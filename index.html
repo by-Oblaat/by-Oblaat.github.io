@@ -397,13 +397,13 @@
     .tonearm-custom-img {
       display: none;
       position: absolute;
-      bottom: 14px;
-      left: 10px;
-      width: 68px;
-      height: 162px;
+      bottom: 24px;
+      left: 20px;
+      width: 58px;
+      height: 138px;
       object-fit: contain;
       transform-origin: 46% 90%;
-      transform: rotate(4deg);
+      transform: rotate(0deg); /* 대기 시 기기 좌측 테두리에 맞춰 반듯하게 대기 */
       transition: transform 0.65s cubic-bezier(0.22, 1, 0.36, 1);
     }
 
@@ -420,7 +420,7 @@
       transform: rotate(38deg);
     }
     .tonearm-overlay.playing .tonearm-custom-img {
-      transform: rotate(35deg);
+      transform: rotate(22deg); /* 바늘 끝이 검은 소리골 시작점에 안착 */
     }
 
     /* =========================================

@@ -388,7 +388,7 @@
     }
 
     /* =========================================
-       우측 뮤직 컨트롤 카드 (닫힘 145px / 열림 215px 고정 및 완벽 스크롤 분리)
+       우측 뮤직 컨트롤 카드 (2개 트랙 고정 높이 + 내부 독립 스크롤)
        ========================================= */
     .player-control-card {
       width: 270px;
@@ -397,18 +397,17 @@
       border: 1px solid #ececec;
       border-radius: 18px;
       box-shadow: 0 10px 28px rgba(0, 0, 0, 0.06);
-      padding: 16px 18px;
+      padding: 18px 20px;
       display: flex;
       flex-direction: column;
       justify-content: space-between;
       position: relative;
-      overflow: hidden;
       flex-shrink: 0;
       transition: height 0.4s cubic-bezier(0.22, 1, 0.36, 1);
     }
 
     .player-control-card.expanded {
-      height: 215px; /* 정확히 2개 트랙 + 스크롤 영역이 카드 내부로 들어오도록 고정 */
+      height: 215px; /* 정확히 2개 트랙과 스크롤바 영역이 들어오도록 고정[cite: 30, 31] */
     }
 
     .ctrl-top-row {
@@ -501,7 +500,7 @@
       fill: currentColor;
     }
 
-    /* 트랙 목록: 카드 바깥으로 절대 튀어나가지 않도록 내부 스크롤 고정 */
+    /* 트랙 목록: 카드를 깨지 않고 내부에서만 깔끔하게 스크롤되도록 설정 */
     .mini-track-popover {
       max-height: 0;
       opacity: 0;
@@ -524,7 +523,7 @@
       border-radius: 99px;
     }
     .mini-track-popover.open {
-      max-height: 58px !important; /* 딱 2개 트랙만 보이도록 높이 엄격 제한 후 스크롤 생성 */
+      max-height: 56px !important; /* 딱 2개 트랙만 보이도록 높이 제한[cite: 30, 31] */
       opacity: 1;
       border-top-color: #f0f0f0;
       padding-top: 4px;
@@ -1609,7 +1608,7 @@
           commentBody.innerHTML = '';
         }
 
-        // 타래 렌더링 (날짜 대신 '+' 기호 출력)
+        // 타래 렌더링
         const threadsContainer = document.getElementById('threadsContainer');
         threadsContainer.innerHTML = '';
 

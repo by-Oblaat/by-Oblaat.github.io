@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
-  <title>ARCHIVES</title>
+ <title>Love the Loveless</title>
   <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+KR:wght@400;600&family=Pretendard:wght@300;400;500;600&display=swap" rel="stylesheet">
   <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
   <style>
@@ -884,12 +884,12 @@
 <body>
 
   <div class="page-shell">
-    <header class="global-header">
-      <h1 id="secretTrigger" title="더블클릭 또는 #write 접속 시 관리창">ARCHIVES</h1>
+<header class="global-header">
+      <h1 id="secretTrigger" title="더블클릭 또는 #write 접속 시 관리창">Love the Loveless</h1>
       <div class="filter-bar" id="filterBar">
-        <button class="filter-btn active" data-label="ALL">ALL</button>
+        <button class="filter-btn active" data-label="AL🩵</button>
         <button class="filter-btn" data-label="MADE">MADE</button>
-        <button class="filter-btn" data-label="AND">AND</button>
+        <button class="filter-btn" data-label="LOVE">LOVE</button>
       </div>
     </header>
 
@@ -968,7 +968,7 @@
           <label>카테고리</label>
           <div class="cat-select-row">
             <div class="cat-option selected" data-cat="MADE">MADE</div>
-            <div class="cat-option" data-cat="AND">AND</div>
+            <div class="cat-option" data-cat="LOVE">LOVE</div>
           </div>
         </div>
 
@@ -1478,8 +1478,8 @@
 
       document.getElementById('postTitleInput').value = post.title;
       document.getElementById('postBodyInput').value = pureText;
-      const cat = post.labels[0] ? post.labels[0].name.toUpperCase() : 'MADE';
-      setCategorySelection(cat === 'AND' ? 'AND' : 'MADE');
+  const cat = post.labels[0] ? post.labels[0].name.toUpperCase() : 'MADE';
+      setCategorySelection(cat === 'LOVE' ? 'LOVE' : 'MADE');
 
       document.getElementById('editModeBanner').classList.add('active');
       document.getElementById('editModeText').textContent = `수정 중: ${post.title}`;

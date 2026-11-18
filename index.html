@@ -24,7 +24,7 @@
       overflow-x: hidden;
     }
 
-    /* 전체 2단 분할 레이아웃 (중앙 점선 제거) */
+    /* 전체 2단 분할 레이아웃 */
     .layout-wrapper {
       display: grid;
       grid-template-columns: 440px 1fr;
@@ -34,50 +34,51 @@
     }
 
     /* =========================================
-       [왼쪽 패널] 위·아래 양방향 3D LP 스택 + 우측 슬라이딩 LP
+       [왼쪽 패널] 가로 스택 LP 커버 + 3단계 LP 플레이어 애니메이션
        ========================================= */
     .left-pane {
       position: sticky;
       top: 0;
       height: 100vh;
       display: flex;
-      justify-content: center;
+      flex-direction: column;
       align-items: center;
-      padding: 40px 24px;
+      justify-content: flex-start;
+      padding: 48px 24px 32px;
       user-select: none;
-      touch-action: none; /* 터치 스와이프 전용 */
     }
 
-    .vertical-stage {
+    /* 상단 LP 커버 스테이지 */
+    .carousel-stage {
       position: relative;
       width: 340px;
-      height: 460px;
+      height: 310px;
       display: flex;
       justify-content: flex-start;
-      align-items: center;
+      align-items: flex-start;
       padding-left: 16px;
       perspective: 1100px;
+      touch-action: none;
     }
 
     .stack-track {
       position: relative;
-      width: 240px;
-      height: 240px;
+      width: 230px;
+      height: 230px;
       transform-style: preserve-3d;
     }
 
-    /* 개별 LP 슬롯 (커버 + 우측 LP판) */
     .lp-slot {
       position: absolute;
       inset: 0;
-      width: 240px;
-      height: 240px;
+      width: 230px;
+      height: 230px;
       transform-style: preserve-3d;
-      transition: transform 0.65s cubic-bezier(0.22, 1, 0.36, 1), opacity 0.5s ease;
+      transition: transform 0.6s cubic-bezier(0.22, 1, 0.36, 1), opacity 0.45s ease;
       cursor: pointer;
     }
 
-    /* 정사각형 LP 커버 */
+    /* 정사각형 LP 커버 (가로 정방향 텍스트) */
     .lp-jacket {
       position: relative;
       width: 100%;
@@ -86,70 +87,59 @@
       border: 1.5px solid var(--line-blue);
       z-index: 2;
       display: flex;
-      justify-content: center;
+      flex-direction: column;
+      justify-content: space-between;
       align-items: center;
-      padding: 20px;
+      text-align: center;
+      padding: 28px 20px;
       transition: box-shadow 0.4s ease;
     }
 
     .lp-slot.active .lp-jacket {
-      box-shadow: 0 12px 30px rgba(107, 158, 255, 0.14);
-    }
-
-    /* 정방향 세로쓰기 (VERTICAL) */
-    .jacket-vertical-inner {
-      writing-mode: vertical-rl;
-      text-orientation: upright;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      gap: 12px;
-      height: 100%;
-      text-align: center;
+      box-shadow: 0 12px 28px rgba(107, 158, 255, 0.14);
     }
 
     .lp-card-label {
-      font-size: 0.68rem;
+      font-size: 0.75rem;
       color: var(--line-blue);
-      border: 1px solid var(--line-blue);
-      padding: 4px 3px;
-      letter-spacing: 0.08em;
+      letter-spacing: 0.14em;
+      font-weight: 500;
     }
 
     .lp-card-title {
       font-family: 'Noto Serif KR', serif;
-      font-size: 0.96rem;
+      font-size: 1.08rem;
       font-weight: 600;
       color: var(--text-main);
-      max-height: 185px;
-      overflow: hidden;
-      letter-spacing: 0.04em;
+      word-break: keep-all;
+      line-height: 1.45;
     }
 
     .lp-card-date {
-      font-size: 0.68rem;
+      font-size: 0.72rem;
       color: var(--text-sub);
-      letter-spacing: 0.05em;
+      letter-spacing: 0.08em;
     }
 
-    /* 커버 안쪽에서 오른쪽으로 슬라이드되는 원형 LP판 (점선 제거) */
+    /* 커버 하단으로 얼굴을 내민 원형 LP판 */
     .vinyl-disc {
       position: absolute;
-      top: 12px;
-      left: 12px;
-      width: 216px;
-      height: 216px;
+      top: 11px;
+      left: 11px;
+      width: 208px;
+      height: 208px;
       border-radius: 50%;
       border: 1.5px solid var(--line-orange);
       background: #ffffff;
       z-index: 1;
       display: flex;
-      align-items: center;
+      flex-direction: column;
       justify-content: flex-end;
-      padding-right: 16px;
+      align-items: center;
+      padding-bottom: 14px;
       opacity: 0;
       pointer-events: none;
-      transition: transform 0.6s cubic-bezier(0.22, 1, 0.36, 1), opacity 0.35s ease;
+      transition: transform 0.75s cubic-bezier(0.22, 1, 0.36, 1), opacity 0.35s ease;
     }
 
     /* LP 중앙 라벨 실선 원 */
@@ -158,46 +148,135 @@
       position: absolute;
       top: 50%;
       left: 50%;
-      width: 64px;
-      height: 64px;
-      margin: -32px 0 0 -32px;
+      width: 62px;
+      height: 62px;
+      margin: -31px 0 0 -31px;
       border-radius: 50%;
-      border: 1px solid rgba(255, 107, 74, 0.45);
+      border: 1px solid rgba(255, 107, 74, 0.5);
     }
 
-    /* LP 소리골 보조 원 */
+    /* LP 소리골 & 회전 각도 확인용 마커 */
     .vinyl-disc::after {
       content: "";
       position: absolute;
       inset: 14px;
       border-radius: 50%;
-      border: 1px solid rgba(255, 107, 74, 0.16);
+      border: 1px solid rgba(255, 107, 74, 0.18);
+      border-top-color: var(--line-orange); /* 회전 시 돌아가는 게 보이도록 포인트 */
     }
 
-    /* 활성화된 중앙 LP판 우측 슬라이드 */
-    .lp-slot.active .vinyl-disc {
-      opacity: 1;
-      pointer-events: auto;
-      transform: translateX(78px);
-    }
-
-    .lp-slot.active:hover .vinyl-disc,
-    .lp-slot.active.sliding-out .vinyl-disc {
-      transform: translateX(108px);
-    }
-
-    /* 세로쓰기 SLIDING 문구 */
     .sliding-text {
-      writing-mode: vertical-rl;
-      text-orientation: upright;
-      font-size: 0.66rem;
+      font-size: 0.62rem;
       color: var(--line-orange);
-      letter-spacing: 0.15em;
+      letter-spacing: 0.18em;
       font-weight: 500;
     }
 
+    /* 대기 상태: LP판이 커버 하단으로 45px 돌출 */
+    .lp-slot.active .vinyl-disc {
+      opacity: 1;
+      pointer-events: auto;
+      transform: translateY(45px);
+    }
+
+    .lp-slot.active:hover .vinyl-disc {
+      transform: translateY(62px);
+    }
+
+    /* [1단계 & 3단계] LP가 슬라이딩되어 아래 턴테이블 위로 안착 + 회전 */
+    .lp-slot.active.on-player .vinyl-disc {
+      transform: translateY(336px);
+    }
+    .lp-slot.active.spinning .vinyl-disc {
+      animation: spinVinyl 4s linear infinite;
+    }
+
+    @keyframes spinVinyl {
+      from { transform: translateY(336px) rotate(0deg); }
+      to   { transform: translateY(336px) rotate(360deg); }
+    }
+
     /* =========================================
-       [오른쪽 패널] ARCHIVES + TRACK(그라데이션/블러) + IMAGE(NO LINE) + COMMENT
+       [2단계] 하단 LP 플레이어 (턴테이블 도형)
+       ========================================= */
+    .turntable-box {
+      position: relative;
+      width: 246px;
+      height: 246px;
+      margin-top: 26px;
+      margin-right: 78px; /* 위쪽 중앙 커버와 수직축 정렬 */
+      border: 1.5px solid var(--line-blue);
+      background: #ffffff;
+      opacity: 0;
+      transform: translateY(14px);
+      pointer-events: none;
+      transition: opacity 0.65s ease, transform 0.65s cubic-bezier(0.22, 1, 0.36, 1);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+    }
+
+    .turntable-box.visible {
+      opacity: 1;
+      transform: translateY(0);
+      pointer-events: auto;
+    }
+
+    /* 턴테이블 중앙 스핀들 축 */
+    .turntable-spindle {
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      border: 1.5px solid var(--line-blue);
+      background: #fff;
+      z-index: 3;
+    }
+
+    /* 턴테이블 좌측 하단 톤암 (스케치 반영) */
+    .tonearm-base {
+      position: absolute;
+      bottom: 20px;
+      left: 16px;
+      width: 14px;
+      height: 22px;
+      border: 1.5px solid var(--line-blue);
+      background: #fff;
+      z-index: 4;
+    }
+
+    .tonearm-stick {
+      position: absolute;
+      bottom: 36px;
+      left: 22px;
+      width: 1.5px;
+      height: 145px;
+      background: var(--line-blue);
+      transform-origin: bottom center;
+      transform: rotate(12deg);
+      transition: transform 0.65s cubic-bezier(0.22, 1, 0.36, 1);
+      z-index: 4;
+    }
+
+    /* 톤암 헤드(바늘 끝 원형) */
+    .tonearm-stick::after {
+      content: "";
+      position: absolute;
+      top: -4px;
+      left: -3.5px;
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      border: 1.5px solid var(--line-blue);
+      background: #fff;
+    }
+
+    /* LP가 올라가면 톤암이 LP판 위로 이동 */
+    .turntable-box.playing .tonearm-stick {
+      transform: rotate(32deg);
+    }
+
+    /* =========================================
+       [오른쪽 패널] ARCHIVES + HIDDEN TRACK + IMAGE + COMMENT
        ========================================= */
     .right-pane {
       padding: 48px 56px 120px;
@@ -216,7 +295,6 @@
       margin-bottom: 14px;
     }
 
-    /* 카테고리 버튼 (ALL / MADE / AND) */
     .filter-bar {
       display: flex;
       gap: 10px;
@@ -238,9 +316,9 @@
       color: var(--text-main);
     }
 
-    /* TRACK 세로 스크롤 + 하단 흰색 그라데이션 & 블러 페이드 */
+    /* TRACK: 테두리 없음(HIDDEN FRAME) + 스크롤바 숨김(HIDDEN SCROLL) + 하단 #FFFFFF 그라데이션 */
     .track-section {
-      margin-bottom: 36px;
+      margin-bottom: 32px;
       max-width: 520px;
     }
     .track-box-title {
@@ -252,41 +330,47 @@
     }
     .track-scroll-wrapper {
       position: relative;
-      height: 132px;
+      height: 152px;
+      border: none; /* HIDDEN FRAME */
     }
     .track-list {
       list-style: none;
       height: 100%;
       overflow-y: auto;
-      overflow-x: hidden; /* 가로 스크롤 완전 차단 */
-      padding-right: 8px;
-      padding-bottom: 42px; /* 하단 그라데이션 영역 여백 */
+      overflow-x: hidden;
+      padding-bottom: 54px;
       display: flex;
       flex-direction: column;
-      gap: 5px;
+      gap: 6px;
+      /* HIDDEN SCROLL: 모든 브라우저에서 스크롤바 시각 요소 숨김 */
+      scrollbar-width: none;
+      -ms-overflow-style: none;
     }
-    /* 깔끔한 얇은 세로 스크롤바 */
-    .track-list::-webkit-scrollbar { width: 3px; }
-    .track-list::-webkit-scrollbar-thumb { background: #e0e0e0; border-radius: 99px; }
+    .track-list::-webkit-scrollbar {
+      display: none;
+    }
 
-    /* 하단 흰색 그라데이션 + 블러 오버레이 */
+    /* 하단 #FFFFFF 흰색 그라데이션 페이드 */
     .track-fade-overlay {
       position: absolute;
       left: 0;
-      right: 6px;
+      right: 0;
       bottom: 0;
-      height: 48px;
-      background: linear-gradient(to bottom, rgba(255, 255, 255, 0) 0%, rgba(255, 255, 255, 0.88) 65%, #ffffff 100%);
-      backdrop-filter: blur(2px);
-      -webkit-backdrop-filter: blur(2px);
+      height: 64px;
+      background: linear-gradient(
+        to bottom,
+        rgba(255, 255, 255, 0) 0%,
+        rgba(255, 255, 255, 0.85) 60%,
+        #ffffff 100%
+      );
       pointer-events: none;
     }
 
     .track-item {
-      font-size: 0.85rem;
+      font-size: 0.86rem;
       color: var(--text-sub);
       cursor: pointer;
-      transition: color 0.2s, transform 0.2s, filter 0.3s;
+      transition: color 0.2s, transform 0.2s;
       padding: 2px 0;
       white-space: nowrap;
       overflow: hidden;
@@ -307,15 +391,15 @@
 
     .fade-section {
       opacity: 0;
-      transform: translateY(20px);
-      transition: opacity 0.65s ease, transform 0.65s cubic-bezier(0.22, 1, 0.36, 1);
+      transform: translateY(18px);
+      transition: opacity 0.6s ease, transform 0.6s cubic-bezier(0.22, 1, 0.36, 1);
     }
     .fade-section.visible {
       opacity: 1;
       transform: translateY(0);
     }
 
-    /* IMAGE 프레임 (테두리 선 제거 - NO LINE) */
+    /* IMAGE 프레임 (테두리 없음) */
     .image-frame {
       width: 100%;
       max-width: 520px;
@@ -384,8 +468,9 @@
       }
       .left-pane {
         position: relative;
-        height: 460px;
-        padding: 24px 16px;
+        height: auto;
+        min-height: 620px;
+        padding: 32px 16px;
       }
       .right-pane {
         padding: 24px 24px 80px;
@@ -396,10 +481,17 @@
 <body>
 
   <div class="layout-wrapper">
-    <!-- [왼쪽] 스크롤 & 터치로 위아래 양방향 회전하는 LP 스택 -->
-    <aside class="left-pane" id="leftPane" title="마우스 휠 스크롤 또는 터치 스와이프로 LP를 넘길 수 있습니다">
-      <div class="vertical-stage">
+    <!-- [왼쪽] LP 커버 스택 + 3단계 애니메이션 LP 플레이어 -->
+    <aside class="left-pane">
+      <div class="carousel-stage" id="carouselStage" title="스크롤/스와이프로 LP 넘기기 · 클릭하여 재생">
         <div class="stack-track" id="stackTrack"></div>
+      </div>
+
+      <!-- 2단계: 페이드인 되는 LP 플레이어 -->
+      <div class="turntable-box" id="turntableBox">
+        <div class="turntable-spindle"></div>
+        <div class="tonearm-base"></div>
+        <div class="tonearm-stick"></div>
       </div>
     </aside>
 
@@ -422,7 +514,7 @@
         </div>
       </section>
 
-      <section class="content-stage" id="contentStage">
+      <section class="content-stage">
         <div class="fade-section" id="imageSection">
           <div class="image-frame" id="imageFrame">
             <div class="image-placeholder">IMAGE</div>
@@ -448,8 +540,19 @@
     let slotElements = [];
     let currentIndex = 0;
     let isScrolling = false;
+    let isPlaying = false;
+    let playTimers = [];
 
-    // 1. 깃허브 이슈 불러오기
+    // 날짜를 YY.MM.DD 형식으로 포맷
+    function formatYYMMDD(dateStr) {
+      const d = new Date(dateStr);
+      const yy = String(d.getFullYear()).slice(-2);
+      const mm = String(d.getMonth() + 1).padStart(2, '0');
+      const dd = String(d.getDate()).padStart(2, '0');
+      return `${yy}.${mm}.${dd}`;
+    }
+
+    // 1. 깃허브 이슈 로드
     async function fetchPosts() {
       try {
         const res = await fetch(`https://api.github.com/repos/${GITHUB_USER}/${GITHUB_REPO}/issues?state=open&per_page=100`);
@@ -459,14 +562,13 @@
         if (issues.length > 0) {
           allPosts = issues;
         } else {
-          // 레이아웃 확인용 샘플 데이터 (MADE / AND 라벨 적용)
           allPosts = [
-            { number: 1, title: "LP 커버 01 (샘플)", created_at: new Date().toISOString(), labels: [{ name: "MADE" }], body: "왼쪽 LP 영역에서 마우스 휠을 위아래로 굴리거나 터치로 밀면 위·아래 스택의 LP판이 부드럽게 회전합니다.\n\n깃허브 `Issues`에 `MADE` 또는 `AND` 라벨을 달아 글을 올리면 자동으로 분류됩니다." },
-            { number: 2, title: "LP 커버 02 (샘플)", created_at: new Date().toISOString(), labels: [{ name: "AND" }], body: "두 번째 트랙입니다. LP 커버와 우측 슬라이딩 원판의 텍스트가 세로쓰기(VERTICAL)로 정렬되어 있습니다." },
-            { number: 3, title: "LP 커버 03 (샘플)", created_at: new Date().toISOString(), labels: [{ name: "MADE" }], body: "세 번째 트랙의 코멘트입니다. 위로 지나간 LP들도 하단 스택에 겹쳐져 보입니다." },
-            { number: 4, title: "LP 커버 04 (샘플)", created_at: new Date().toISOString(), labels: [{ name: "AND" }], body: "네 번째 트랙입니다." },
-            { number: 5, title: "LP 커버 05 (샘플)", created_at: new Date().toISOString(), labels: [{ name: "MADE" }], body: "다섯 번째 트랙입니다." },
-            { number: 6, title: "LP 커버 06 (샘플)", created_at: new Date().toISOString(), labels: [{ name: "AND" }], body: "여섯 번째 트랙입니다." }
+            { number: 1, title: "SAMPLE 01", created_at: new Date().toISOString(), labels: [{ name: "MADE" }], body: "중앙 LP 커버나 아래로 나온 LP판을 클릭하면 ① LP가 아래로 슬라이딩되고 ② LP 플레이어가 페이드인되며 ③ 플레이어 위에서 LP가 회전합니다.\n\n깃허브 `Issues`에 `MADE` 또는 `AND` 라벨을 달아 글을 올리면 자동으로 반영됩니다." },
+            { number: 2, title: "SAMPLE 02", created_at: new Date().toISOString(), labels: [{ name: "AND" }], body: "두 번째 트랙입니다. 오른쪽 TRACK 영역은 스크롤바가 숨겨진 상태에서 마우스 휠로 부드럽게 내려볼 수 있습니다." },
+            { number: 3, title: "SAMPLE 03", created_at: new Date().toISOString(), labels: [{ name: "MADE" }], body: "세 번째 트랙 코멘트입니다." },
+            { number: 4, title: "SAMPLE 04", created_at: new Date().toISOString(), labels: [{ name: "AND" }], body: "네 번째 트랙 코멘트입니다." },
+            { number: 5, title: "SAMPLE 05", created_at: new Date().toISOString(), labels: [{ name: "MADE" }], body: "다섯 번째 트랙 코멘트입니다." },
+            { number: 6, title: "SAMPLE 06", created_at: new Date().toISOString(), labels: [{ name: "AND" }], body: "여섯 번째 트랙 코멘트입니다." }
           ];
         }
         filteredPosts = [...allPosts];
@@ -496,12 +598,13 @@
     }
 
     function rebuildAll() {
+      resetPlayerAnimation();
       buildStackDOM();
       renderTrackList();
       updateActiveState();
     }
 
-    // 3. 왼쪽 LP 스택 DOM 생성
+    // 3. LP 커버 스택 DOM 생성
     function buildStackDOM() {
       const track = document.getElementById('stackTrack');
       track.innerHTML = '';
@@ -511,16 +614,14 @@
         const slot = document.createElement('div');
         slot.className = 'lp-slot';
 
-        const labelName = post.labels[0] ? post.labels[0].name : 'ARCHIVE';
-        const date = new Date(post.created_at).toLocaleDateString('ko-KR');
+        const labelName = post.labels[0] ? post.labels[0].name.toUpperCase() : 'ARCHIVE';
+        const date = formatYYMMDD(post.created_at);
 
         slot.innerHTML = `
           <div class="lp-jacket">
-            <div class="jacket-vertical-inner">
-              <span class="lp-card-label">${labelName}</span>
-              <div class="lp-card-title">${post.title}</div>
-              <div class="lp-card-date">${date}</div>
-            </div>
+            <div class="lp-card-label">${labelName}</div>
+            <div class="lp-card-title">${post.title}</div>
+            <div class="lp-card-date">${date}</div>
           </div>
           <div class="vinyl-disc">
             <span class="sliding-text">SLIDING</span>
@@ -529,7 +630,11 @@
 
         slot.onclick = () => {
           if (idx === currentIndex) {
-            slot.classList.toggle('sliding-out');
+            if (isPlaying) {
+              resetPlayerAnimation();
+            } else {
+              startPlayerSequence(slot);
+            }
           } else {
             currentIndex = idx;
             updateActiveState();
@@ -541,7 +646,45 @@
       });
     }
 
-    // 4. 오른쪽 TRACK 목록 렌더링
+    // 4. 3단계 LP 플레이어 순차 애니메이션 실행
+    function startPlayerSequence(slot) {
+      resetPlayerAnimation();
+      isPlaying = true;
+
+      const turntable = document.getElementById('turntableBox');
+
+      // ① LP가 커버에서 슬라이딩되어 나옴
+      slot.classList.add('on-player');
+
+      // ② LP 플레이어가 Fade-in 되며 등장
+      const t1 = setTimeout(() => {
+        turntable.classList.add('visible');
+      }, 220);
+
+      // ③ LP 플레이어 위에 LP가 올라가고 톤암 이동 + 회전 시작
+      const t2 = setTimeout(() => {
+        turntable.classList.add('playing');
+        slot.classList.add('spinning');
+      }, 780);
+
+      playTimers.push(t1, t2);
+    }
+
+    // 애니메이션 초기화 (다른 트랙으로 넘기거나 재클릭 시)
+    function resetPlayerAnimation() {
+      playTimers.forEach(t => clearTimeout(t));
+      playTimers = [];
+      isPlaying = false;
+
+      const turntable = document.getElementById('turntableBox');
+      turntable.classList.remove('visible', 'playing');
+
+      slotElements.forEach(s => {
+        s.classList.remove('on-player', 'spinning');
+      });
+    }
+
+    // 5. 오른쪽 TRACK 목록 렌더링
     function renderTrackList() {
       const trackList = document.getElementById('trackList');
       if (filteredPosts.length === 0) {
@@ -562,9 +705,10 @@
       });
     }
 
-    // 5. 위·아래 양방향 LP 스택 애니메이션 갱신 + 본문 업데이트
+    // 6. 가로 스택 LP 위치 갱신 + 오른쪽 본문 업데이트
     function updateActiveState() {
-      // 트랙 활성 강조 및 부드러운 스크롤 추적
+      resetPlayerAnimation();
+
       const trackItems = document.querySelectorAll('.track-item');
       trackItems.forEach((el, i) => {
         el.classList.toggle('active', i === currentIndex);
@@ -573,39 +717,31 @@
         }
       });
 
-      // 왼쪽 LP 위·아래 양방향 3D 배치
+      // 가로 스택 배치 (중앙 커버 + 우측으로 겹치는 후속 커버들)
       slotElements.forEach((slot, idx) => {
         const offset = idx - currentIndex;
-        slot.classList.remove('sliding-out');
 
         if (offset === 0) {
-          // 현재 중앙 활성 LP
           slot.classList.add('active');
-          slot.style.transform = `translateY(0px) translateZ(0px) rotateX(0deg)`;
+          slot.style.transform = `translateX(0px) translateZ(0px) rotateY(0deg)`;
           slot.style.zIndex = 30;
           slot.style.opacity = 1;
           slot.style.pointerEvents = 'auto';
         } else if (offset > 0) {
-          // 다음 트랙들 (위쪽으로 겹쳐서 쌓임)
           slot.classList.remove('active');
-          const translateY = -offset * 42;
+          const translateX = offset * 28;
           const translateZ = -offset * 55;
-          const rotateX = Math.min(40, offset * 13);
-          slot.style.transform = `translateY(${translateY}px) translateZ(${translateZ}px) rotateX(${rotateX}deg)`;
+          const rotateY = -Math.min(18, offset * 5);
+          slot.style.transform = `translateX(${translateX}px) translateZ(${translateZ}px) rotateY(${rotateY}deg)`;
           slot.style.zIndex = Math.max(1, 25 - offset);
-          slot.style.opacity = offset > 3 ? 0 : Math.max(0.28, 1 - offset * 0.24);
-          slot.style.pointerEvents = offset > 3 ? 'none' : 'auto';
+          slot.style.opacity = offset > 4 ? 0 : Math.max(0.25, 1 - offset * 0.2);
+          slot.style.pointerEvents = offset > 4 ? 'none' : 'auto';
         } else {
-          // 이전 트랙들 (아래쪽으로 겹쳐서 쌓임 - 스케치 하단 블루 박스 구현)
           slot.classList.remove('active');
-          const abs = Math.abs(offset);
-          const translateY = abs * 42;
-          const translateZ = -abs * 55;
-          const rotateX = -Math.min(40, abs * 13);
-          slot.style.transform = `translateY(${translateY}px) translateZ(${translateZ}px) rotateX(${rotateX}deg)`;
-          slot.style.zIndex = Math.max(1, 25 - abs);
-          slot.style.opacity = abs > 2 ? 0 : Math.max(0.28, 1 - abs * 0.3);
-          slot.style.pointerEvents = abs > 2 ? 'none' : 'auto';
+          slot.style.transform = `translateX(-45px) translateZ(30px) rotateY(10deg)`;
+          slot.style.zIndex = 35;
+          slot.style.opacity = 0;
+          slot.style.pointerEvents = 'none';
         }
       });
 
@@ -647,10 +783,10 @@
 
         imageSection.classList.add('visible');
         commentSection.classList.add('visible');
-      }, 150);
+      }, 140);
     }
 
-    // 6. 왼쪽 LP 영역 전용: 마우스 휠 스크롤 + 터치 스와이프 넘김
+    // 7. LP 커버 스크롤 및 터치 스와이프 넘김
     function stepTrack(direction) {
       if (isScrolling || filteredPosts.length === 0) return;
       const nextIdx = currentIndex + direction;
@@ -658,36 +794,34 @@
         isScrolling = true;
         currentIndex = nextIdx;
         updateActiveState();
-        setTimeout(() => { isScrolling = false; }, 320); // 연속 스크롤 튐 방지
+        setTimeout(() => { isScrolling = false; }, 320);
       }
     }
 
-    const leftPane = document.getElementById('leftPane');
+    const carouselStage = document.getElementById('carouselStage');
 
-    // 마우스 휠 이벤트
-    leftPane.addEventListener('wheel', (e) => {
+    carouselStage.addEventListener('wheel', (e) => {
       e.preventDefault();
-      if (Math.abs(e.deltaY) < 10) return;
-      stepTrack(e.deltaY > 0 ? 1 : -1);
+      const delta = Math.abs(e.deltaX) > Math.abs(e.deltaY) ? e.deltaX : e.deltaY;
+      if (Math.abs(delta) < 10) return;
+      stepTrack(delta > 0 ? 1 : -1);
     }, { passive: false });
 
-    // 모바일/태블릿 터치 스와이프 이벤트
-    let touchStartY = 0;
-    leftPane.addEventListener('touchstart', (e) => {
-      touchStartY = e.touches[0].clientY;
+    let touchStartX = 0;
+    carouselStage.addEventListener('touchstart', (e) => {
+      touchStartX = e.touches[0].clientX;
     }, { passive: true });
 
-    leftPane.addEventListener('touchend', (e) => {
-      const diffY = touchStartY - e.changedTouches[0].clientY;
-      if (Math.abs(diffY) > 30) {
-        stepTrack(diffY > 0 ? 1 : -1);
+    carouselStage.addEventListener('touchend', (e) => {
+      const diffX = touchStartX - e.changedTouches[0].clientX;
+      if (Math.abs(diffX) > 30) {
+        stepTrack(diffX > 0 ? 1 : -1);
       }
     }, { passive: true });
 
-    // 키보드 위/아래 화살표 보조
     window.addEventListener('keydown', (e) => {
-      if (e.key === 'ArrowUp') stepTrack(-1);
-      if (e.key === 'ArrowDown') stepTrack(1);
+      if (e.key === 'ArrowLeft') stepTrack(-1);
+      if (e.key === 'ArrowRight') stepTrack(1);
     });
 
     fetchPosts();

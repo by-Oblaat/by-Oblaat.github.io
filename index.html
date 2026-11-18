@@ -297,7 +297,7 @@
     }
 
     /* =========================================
-       재생 모드 턴테이블 본체 및 부드러운 애니메이션
+       재생 모드 턴테이블 본체 및 톤암
        ========================================= */
     .turntable-box {
       position: absolute;
@@ -384,7 +384,7 @@
     }
 
     /* =========================================
-       우측 뮤직 컨트롤 카드 (카테고리·날짜 삭제 완료)
+       우측 뮤직 컨트롤 카드
        ========================================= */
     .player-control-card {
       width: 280px;
@@ -497,7 +497,7 @@
       fill: currentColor;
     }
 
-    /* 트랙 목록: 글자 잘림 방지용 어울리는 디자인 스크롤바 */
+    /* 트랙 목록: 글자 잘림 방지용 스크롤바 */
     .mini-track-popover {
       max-height: 0;
       opacity: 0;
@@ -1273,13 +1273,18 @@
         rebuildAll();
         renderManageList();
 
+        // 모바일/웹 폰트 및 이미지 로딩 완료 직후 3D 위치 강제 동기화 (새로고침 시 평평하게 깨지는 현상 방지)
+        const forceSync3D = () => {
+          updateCarouselPositions();
+        };
+
         if (document.fonts && document.fonts.ready) {
-          document.fonts.ready.then(() => {
-            updateCarouselPositions();
-          });
+          document.fonts.ready.then(forceSync3D);
         }
-        setTimeout(() => { updateCarouselPositions(); }, 50);
-        setTimeout(() => { updateCarouselPositions(); }, 300);
+        window.addEventListener('load', forceSync3D);
+        setTimeout(forceSync3D, 50);
+        setTimeout(forceSync3D, 200);
+        setTimeout(forceSync3D, 600);
       } catch (err) {
         console.error(err);
       }
@@ -1353,6 +1358,9 @@
         track.appendChild(slot);
         slotElements.push(slot);
       });
+      
+      // DOM 생성 직후 즉시 3D 위치 재계산
+      updateCarouselPositions();
     }
 
     function startPlayerSequence(slot, idx = currentIndex) {
@@ -1405,6 +1413,11 @@
       slotElements.forEach(s => {
         s.classList.remove('on-player', 'spinning');
       });
+
+      // 대기 화면으로 부드럽게 돌아올 때 3D 위치 즉시 동기화
+      setTimeout(() => {
+        updateCarouselPositions();
+      }, 50);
     }
 
     document.getElementById('turntableTriggerBox').onclick = () => {

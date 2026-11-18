@@ -6,7 +6,7 @@
   <title>Love the Loveless</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Gowun+Batang&family=Special+Elite&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Gowun+Batang&family=Playwrite+AU+SA+Guides&display=swap" rel="stylesheet">
   <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
   <style>
     :root {
@@ -36,7 +36,7 @@
     }
 
     /* =========================================
-       [상단 헤더] Love the Loveless (Google Fonts 빈티지/익스프레시브)
+       [상단 헤더] Love the Loveless (Playwrite AU SA Guides 폰트 적용)
        ========================================= */
     .global-header {
       width: 100%;
@@ -46,10 +46,10 @@
       z-index: 50;
     }
     .global-header h1 {
-      font-family: 'Special Elite', cursive, serif;
+      font-family: "Playwrite AU SA Guides", cursive;
       font-weight: 400;
-      font-size: 2.5rem;
-      letter-spacing: 0.08em;
+      font-size: 2.2rem;
+      letter-spacing: 0.02em;
       margin-bottom: 14px;
       color: var(--text-main);
       cursor: pointer;
@@ -444,7 +444,7 @@
 
     .player-control-card {
       width: 280px;
-      height: 145px; /* 평소에는 작게 유지 */
+      height: 145px;
       background: #ffffff;
       border: 1px solid #ececec;
       border-radius: 18px;
@@ -459,7 +459,6 @@
       overflow: hidden;
     }
 
-    /* ☰ 버튼을 눌러 트랙 목록이 열렸을 때 높이가 LP 플레이어(232px)와 같아짐 */
     .player-control-card.expanded {
       height: 232px;
     }
@@ -559,7 +558,6 @@
       fill: currentColor;
     }
 
-    /* 부드럽게 슬라이딩되며 내려오는 트랙 아코디언 영역 */
     .mini-track-popover {
       max-height: 0;
       opacity: 0;

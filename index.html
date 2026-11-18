@@ -15,6 +15,13 @@
       font-stretch: 75%;
     }
 
+    @font-face {
+      font-family: 'Cafe24Gowoonbam';
+      src: url('https://cdn.jsdelivr.net/gh/projectnoonnu/noonfonts_twelve@1.1/Cafe24Oneprettynight.woff') format('woff');
+      font-weight: normal;
+      font-display: swap;
+    }
+
     :root {
       --bg-color: #ffffff;
       --line-blue: #6b9eff;
@@ -31,7 +38,7 @@
       overflow-x: hidden;
       background-color: var(--bg-color);
       color: var(--text-main);
-      font-family: 'Pretendard', sans-serif;
+      font-family: 'Cafe24Gowoonbam', sans-serif;
       min-height: 100vh;
     }
 
@@ -42,7 +49,7 @@
     }
 
     /* =========================================
-       [상단 헤더] Love the Loveless (Stella 장체)
+       [상단 헤더] Love the Loveless (Stella 장체 유지)
        ========================================= */
     .global-header {
       width: 100%;
@@ -72,11 +79,12 @@
       border: 1px solid #dcdcdc;
       padding: 4px 16px;
       border-radius: 99px;
-      font-size: 0.78rem;
+      font-size: 0.85rem;
       color: var(--text-sub);
       cursor: pointer;
       transition: 0.2s;
       letter-spacing: 0.06em;
+      font-family: 'Cafe24Gowoonbam', sans-serif;
     }
     .filter-btn.active, .filter-btn:hover {
       border-color: var(--text-main);
@@ -100,7 +108,7 @@
       width: 100%;
       display: flex;
       justify-content: center;
-      align-items: center;
+      align-items: flex-start; /* 플레이어 상단 기준으로 정렬하여 바닥선 일치 */
       min-height: 290px;
       position: relative;
     }
@@ -194,15 +202,14 @@
     }
 
     .lp-card-label {
-      font-size: 0.74rem;
+      font-size: 0.8rem;
       color: var(--line-blue);
       letter-spacing: 0.14em;
       font-weight: 500;
     }
 
     .lp-card-title {
-      font-family: 'Noto Serif KR', serif;
-      font-size: 1.04rem;
+      font-size: 1.1rem;
       font-weight: 600;
       color: var(--text-main);
       word-break: keep-all;
@@ -210,7 +217,7 @@
     }
 
     .lp-card-date {
-      font-size: 0.7rem;
+      font-size: 0.78rem;
       color: var(--text-sub);
       letter-spacing: 0.08em;
     }
@@ -269,7 +276,7 @@
     }
 
     .sliding-text {
-      font-size: 0.6rem;
+      font-size: 0.65rem;
       color: var(--line-orange);
       letter-spacing: 0.18em;
       font-weight: 500;
@@ -424,7 +431,7 @@
     }
 
     /* =========================================
-       우측 뮤직 컨트롤 카드 드로어
+       우측 뮤직 컨트롤 카드 드로어 (플레이어 세로 길이 맞춤)
        ========================================= */
     .track-drawer {
       position: relative;
@@ -451,15 +458,17 @@
 
     .player-control-card {
       width: 280px;
+      height: 232px; /* 플레이어 본체(232px)와 세로 길이 완벽 일치 */
       background: #ffffff;
       border: 1px solid #ececec;
       border-radius: 18px;
       box-shadow: 0 10px 28px rgba(0, 0, 0, 0.06);
-      padding: 20px 22px 18px 28px;
+      padding: 22px 24px 20px 28px;
       display: flex;
       flex-direction: column;
-      gap: 14px;
+      justify-content: space-between; /* 상중하 요소를 세로 공간에 균등 배치 */
       position: relative;
+      margin-top: 20px; /* 플레이어 상단 마진(20px)과 높이 수평 일치 */
     }
 
     .ctrl-top-row {
@@ -474,7 +483,7 @@
     }
 
     .ctrl-title {
-      font-size: 1.02rem;
+      font-size: 1.05rem;
       font-weight: 600;
       color: var(--text-main);
       white-space: nowrap;
@@ -484,7 +493,7 @@
     }
 
     .ctrl-sub {
-      font-size: 0.76rem;
+      font-size: 0.8rem;
       color: var(--text-sub);
       letter-spacing: 0.04em;
     }
@@ -523,7 +532,7 @@
       display: flex;
       justify-content: space-between;
       align-items: center;
-      padding: 2px 6px 0;
+      padding: 0 6px;
     }
 
     .ctrl-btn {
@@ -562,14 +571,20 @@
       overflow-y: auto;
       border-top: 1px solid #f0f0f0;
       padding-top: 8px;
+      position: absolute;
+      top: 65px;
+      left: 20px;
+      right: 20px;
+      background: #ffffff;
+      z-index: 25;
     }
     .mini-track-popover.open {
       display: flex;
     }
     .mini-track-row {
-      font-size: 0.78rem;
+      font-size: 0.82rem;
       color: var(--text-sub);
-      padding: 4px 6px;
+      padding: 6px 8px;
       border-radius: 6px;
       cursor: pointer;
       white-space: nowrap;
@@ -649,7 +664,7 @@
       width: 100%;
     }
     .comment-label {
-      font-size: 0.9rem;
+      font-size: 0.95rem;
       font-weight: 500;
       letter-spacing: 0.12em;
       color: var(--text-main);
@@ -659,13 +674,12 @@
       gap: 10px;
     }
     .comment-label span {
-      font-size: 0.78rem;
+      font-size: 0.82rem;
       color: var(--text-sub);
       font-weight: 400;
     }
     .comment-body {
-      font-family: 'Noto Serif KR', serif;
-      font-size: 0.98rem;
+      font-size: 1.02rem;
       line-height: 1.95;
       color: var(--text-main);
       word-break: keep-all;
@@ -719,7 +733,7 @@
       padding-bottom: 12px;
     }
     .writer-header h2 {
-      font-size: 0.95rem;
+      font-size: 1rem;
       font-weight: 600;
       letter-spacing: 0.14em;
     }
@@ -742,10 +756,11 @@
       border: none;
       border-bottom: 2px solid transparent;
       padding: 8px 4px;
-      font-size: 0.82rem;
+      font-size: 0.85rem;
       color: var(--text-sub);
       cursor: pointer;
       transition: 0.2s;
+      font-family: 'Cafe24Gowoonbam', sans-serif;
     }
     .admin-tab.active {
       color: var(--text-main);
@@ -759,7 +774,7 @@
       gap: 6px;
     }
     .writer-field label {
-      font-size: 0.78rem;
+      font-size: 0.82rem;
       font-weight: 500;
       color: var(--text-sub);
     }
@@ -767,8 +782,8 @@
       width: 100%;
       border: 1px solid #dcdcdc;
       padding: 10px 12px;
-      font-family: 'Pretendard', sans-serif;
-      font-size: 0.9rem;
+      font-family: 'Cafe24Gowoonbam', sans-serif;
+      font-size: 0.95rem;
       outline: none;
       transition: border-color 0.2s;
     }
@@ -789,9 +804,10 @@
       padding: 8px;
       text-align: center;
       border: 1px solid #dcdcdc;
-      font-size: 0.82rem;
+      font-size: 0.85rem;
       cursor: pointer;
       color: var(--text-sub);
+      font-family: 'Cafe24Gowoonbam', sans-serif;
     }
     .cat-option.selected {
       border-color: var(--line-orange);
@@ -806,7 +822,7 @@
       background: #f4f7ff;
       border: 1px solid var(--line-blue);
       padding: 8px 12px;
-      font-size: 0.78rem;
+      font-size: 0.82rem;
       color: var(--line-blue);
     }
     .edit-mode-banner.active {
@@ -817,12 +833,13 @@
       border: 1px solid var(--line-blue);
       color: var(--line-blue);
       padding: 2px 8px;
-      font-size: 0.72rem;
+      font-size: 0.75rem;
       cursor: pointer;
+      font-family: 'Cafe24Gowoonbam', sans-serif;
     }
 
     .existing-asset-note {
-      font-size: 0.72rem;
+      font-size: 0.75rem;
       color: var(--line-blue);
     }
 
@@ -851,14 +868,14 @@
       overflow: hidden;
     }
     .manage-item-title {
-      font-size: 0.88rem;
+      font-size: 0.92rem;
       font-weight: 500;
       white-space: nowrap;
       overflow: hidden;
       text-overflow: ellipsis;
     }
     .manage-item-meta {
-      font-size: 0.72rem;
+      font-size: 0.76rem;
       color: var(--text-sub);
     }
     .manage-actions {
@@ -868,11 +885,12 @@
     }
     .btn-order {
       padding: 5px 7px;
-      font-size: 0.7rem;
+      font-size: 0.75rem;
       border: 1px solid #dcdcdc;
       background: #fff;
       cursor: pointer;
       color: var(--text-sub);
+      font-family: 'Cafe24Gowoonbam', sans-serif;
     }
     .btn-order:hover:not(:disabled) {
       border-color: var(--text-main);
@@ -884,11 +902,12 @@
     }
     .btn-edit, .btn-delete {
       padding: 5px 9px;
-      font-size: 0.75rem;
+      font-size: 0.78rem;
       border: 1px solid #dcdcdc;
       background: #fff;
       cursor: pointer;
       transition: 0.2s;
+      font-family: 'Cafe24Gowoonbam', sans-serif;
     }
     .btn-edit:hover {
       border-color: var(--line-blue);
@@ -913,18 +932,19 @@
       color: #ffffff;
       border: none;
       padding: 12px;
-      font-size: 0.9rem;
+      font-size: 0.95rem;
       letter-spacing: 0.1em;
       cursor: pointer;
       margin-top: 4px;
       transition: opacity 0.2s;
+      font-family: 'Cafe24Gowoonbam', sans-serif;
     }
     .writer-submit:disabled {
       opacity: 0.45;
       cursor: not-allowed;
     }
     .writer-status {
-      font-size: 0.8rem;
+      font-size: 0.85rem;
       color: var(--line-orange);
       text-align: center;
       min-height: 18px;
@@ -959,10 +979,12 @@
       }
       .player-control-card {
         width: 100%;
+        height: auto;
         padding: 14px 14px 14px 20px;
         gap: 10px;
+        margin-top: 15px;
       }
-      .ctrl-title { font-size: 0.9rem; }
+      .ctrl-title { font-size: 0.95rem; }
       .ctrl-btn { width: 32px; height: 32px; }
       .detail-drawer { max-width: 100%; }
       .image-frame { min-height: 240px; }
@@ -1554,7 +1576,7 @@
 
     /* =========================================================================
        전용 글쓰기 / 순서 변경 / 수정·삭제 관리자 로직
-       ========================================================================= */
+       ========================================= */
     const writerOverlay = document.getElementById('writerOverlay');
     const ghTokenInput = document.getElementById('ghTokenInput');
 

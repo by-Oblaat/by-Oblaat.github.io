@@ -388,12 +388,11 @@
     }
 
     /* =========================================
-       우측 뮤직 컨트롤 카드 (스크롤바 완벽 적용)
+       우측 뮤직 컨트롤 카드 (카드 크기 고정 및 내부 스크롤 적용)
        ========================================= */
     .player-control-card {
       width: 270px;
-      height: auto; /* 고정 높이 제거하여 내부 스크롤 시 늘어나도록 변경 */
-      min-height: 145px;
+      height: 145px; /* 기본 높이 엄격 고정 */
       background: #ffffff;
       border: 1px solid #ececec;
       border-radius: 18px;
@@ -405,6 +404,11 @@
       position: relative;
       overflow: hidden;
       flex-shrink: 0;
+      transition: height 0.4s cubic-bezier(0.22, 1, 0.36, 1);
+    }
+
+    .player-control-card.expanded {
+      height: 232px; /* 펼쳐졌을 때의 고정 높이 */
     }
 
     .ctrl-top-row {
@@ -412,7 +416,6 @@
       justify-content: space-between;
       align-items: flex-start;
       gap: 8px;
-      margin-bottom: 12px;
     }
 
     .ctrl-meta {
@@ -453,7 +456,6 @@
       border-radius: 99px;
       overflow: hidden;
       cursor: pointer;
-      margin-bottom: 14px;
     }
 
     .ctrl-progress-fill {
@@ -469,7 +471,6 @@
       justify-content: space-between;
       align-items: center;
       padding: 0 4px;
-      margin-bottom: 4px;
     }
 
     .ctrl-btn {
@@ -500,7 +501,7 @@
       fill: currentColor;
     }
 
-    /* 트랙 목록: 명확한 스크롤바와 높이 지정으로 잘림 방지 */
+    /* 트랙 목록: 카드 크기를 늘리지 않고 내부 스크롤바가 생기도록 고정 */
     .mini-track-popover {
       max-height: 0;
       opacity: 0;
@@ -523,16 +524,15 @@
       border-radius: 99px;
     }
     .mini-track-popover.open {
-      max-height: 130px !important;
+      max-height: 90px !important; /* 카드가 늘어나지 않도록 스크롤 영역 제한 */
       opacity: 1;
       border-top-color: #f0f0f0;
-      padding-top: 8px;
-      margin-top: 8px;
+      padding-top: 6px;
     }
     .mini-track-row {
       font-size: 0.8rem;
       color: var(--text-sub);
-      padding: 5px 8px;
+      padding: 4px 8px;
       border-radius: 6px;
       cursor: pointer;
       white-space: nowrap;
@@ -1012,9 +1012,10 @@
       }
       .player-control-card {
         width: 100% !important;
-        height: auto !important;
-        min-height: 175px !important;
-        padding: 10px !important;
+        height: 145px !important; /* 모바일에서도 기본 카드 높이 엄격 고정 */
+      }
+      .player-control-card.expanded {
+        height: 232px !important; /* 모바일에서 펼쳐졌을 때의 고정 높이 */
       }
       .ctrl-title { font-size: 0.72rem; }
       .ctrl-btn { width: 24px; height: 24px; }
@@ -1054,7 +1055,7 @@
           </div>
         </div>
 
-        <!-- 2. 재생 상태: 모바일/PC 모두 화면에 꽉 차게 나란히 배치 -->
+        <!-- 2. 재생 상태: 턴테이블과 뮤직 플레이어가 나란히 배치 -->
         <div class="player-active-row" id="playerActiveRow">
           <div class="active-turntable-stage" id="turntableTriggerBox" title="클릭하여 커버 덱으로 돌아가기">
             <div class="turntable-box" id="turntableBox"></div>
@@ -1607,7 +1608,7 @@
           commentBody.innerHTML = '';
         }
 
-        // 타래 렌더링 (엄격한 정규식으로 'threads:' 텍스트 완전 제거)
+        // 타래 렌더링 (엄격한 정규식으로 'threads:' 키워드 완전 필터링)
         const threadsContainer = document.getElementById('threadsContainer');
         threadsContainer.innerHTML = '';
 

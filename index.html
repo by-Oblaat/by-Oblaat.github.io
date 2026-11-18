@@ -1315,3 +1315,751 @@
 
     function buildStackDOM() {
       const track = document.getElementById('stackTrack');
+      track.innerHTML = '';
+      slotElements = [];
+
+      filteredPosts.forEach((post, idx) => {
+        const slot = document.createElement('div');
+        slot.className = 'lp-slot';
+
+        const labelName = post.labels[0] ? post.labels[0].name.toUpperCase() : 'ARCHIVE';
+        const date = formatYYMMDD(post.created_at);
+        const coverImgUrl = extractMetaUrl(post.body, 'cover', CUSTOM_ASSETS.defaultCover);
+        const vinylImgUrl = extractMetaUrl(post.body, 'vinyl', CUSTOM_ASSETS.vinylDisc);
+
+        const jacketClass = coverImgUrl ? 'lp-jacket has-img' : 'lp-jacket';
+        const jacketStyle = coverImgUrl ? `style="background-image: url('${coverImgUrl}')"` : '';
+
+        const vinylClass = vinylImgUrl ? 'vinyl-disc has-img' : 'vinyl-disc';
+        const vinylStyle = vinylImgUrl ? `style="background-image: url('${vinylImgUrl}')"` : '';
+
+        slot.innerHTML = `
+          <div class="${jacketClass}" ${jacketStyle}>
+            <div class="lp-card-label">${labelName}</div>
+            <div class="lp-card-title">${post.title}</div>
+            <div class="lp-card-date">${date}</div>
+          </div>
+          <div class="${vinylClass}" ${vinylStyle}>
+            <span class="sliding-text">SLIDING</span>
+          </div>
+        `;
+
+        slot.onclick = () => {
+          if (isPlaying) {
+            if (idx === currentIndex) resetPlayerAnimation();
+            return;
+          }
+
+          if (idx === currentIndex) {
+            startPlayerSequence(slot, idx);
+          } else {
+            currentIndex = idx;
+            updateCarouselPositions();
+          }
+        };
+
+        track.appendChild(slot);
+        slotElements.push(slot);
+      });
+    }
+
+    function startPlayerSequence(slot, idx = currentIndex) {
+      resetPlayerAnimation();
+      isPlaying = true;
+
+      const showcaseRow = document.getElementById('showcaseRow');
+      const turntable = document.getElementById('turntableBox');
+      const tonearm = document.getElementById('tonearmOverlay');
+      const stage = document.getElementById('carouselStage');
+
+      slot.classList.add('on-player');
+
+      const t1 = setTimeout(() => {
+        turntable.classList.add('visible');
+        tonearm.classList.add('visible');
+        stage.classList.add('deck-up');
+        showcaseRow.classList.add('is-open');
+        openTrackDetail(idx);
+      }, 220);
+
+      const t2 = setTimeout(() => {
+        tonearm.classList.add('playing');
+        slot.classList.add('spinning');
+      }, 740);
+
+      playTimers.push(t1, t2);
+    }
+
+    function resetPlayerAnimation() {
+      playTimers.forEach(t => clearTimeout(t));
+      playTimers = [];
+      clearInterval(progressTimer);
+      isPlaying = false;
+      isDiscPaused = false;
+
+      document.getElementById('showcaseRow').classList.remove('is-open');
+      document.getElementById('turntableBox').classList.remove('visible');
+      document.getElementById('tonearmOverlay').classList.remove('visible', 'playing');
+      document.getElementById('carouselStage').classList.remove('deck-up');
+      document.getElementById('detailDrawer').classList.remove('open');
+      document.getElementById('imageSection').classList.remove('visible');
+      document.getElementById('commentSection').classList.remove('visible');
+      document.getElementById('miniTrackPopover').classList.remove('open');
+      document.getElementById('ctrlListToggle').classList.remove('active');
+      document.getElementById('playerControlCard').classList.remove('expanded');
+
+      document.querySelectorAll('.mini-track-row').forEach(el => el.classList.remove('active'));
+      slotElements.forEach(s => {
+        s.classList.remove('on-player', 'spinning');
+      });
+    }
+
+    document.getElementById('turntableBox').onclick = () => {
+      if (isPlaying) resetPlayerAnimation();
+    };
+
+    function startProgressSimulation() {
+      clearInterval(progressTimer);
+      progressTimer = setInterval(() => {
+        if (isDiscPaused || !isPlaying) return;
+        progressPercent = progressPercent >= 100 ? 0 : progressPercent + 0.5;
+        const fill = document.getElementById('ctrlProgressFill');
+        if (fill) fill.style.width = `${progressPercent}%`;
+      }, 300);
+    }
+
+    function setDiscPlayState(playingState) {
+      isDiscPaused = !playingState;
+      const tonearm = document.getElementById('tonearmOverlay');
+      const activeSlot = slotElements[currentIndex];
+      const icon = document.getElementById('playPauseIcon');
+
+      if (playingState) {
+        tonearm.classList.add('playing');
+        if (activeSlot) activeSlot.classList.add('spinning');
+        if (icon) icon.innerHTML = `<path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/>`;
+      } else {
+        tonearm.classList.remove('playing');
+        if (activeSlot) activeSlot.classList.remove('spinning');
+        if (icon) icon.innerHTML = `<path d="M8 5v14l11-7z"/>`;
+      }
+    }
+
+    document.getElementById('btnPrevTrack').onclick = (e) => {
+      e.stopPropagation();
+      if (filteredPosts.length === 0) return;
+      const prevIdx = (currentIndex - 1 + filteredPosts.length) % filteredPosts.length;
+      switchTrackWhilePlaying(prevIdx);
+    };
+
+    document.getElementById('btnNextTrack').onclick = (e) => {
+      e.stopPropagation();
+      if (filteredPosts.length === 0) return;
+      const nextIdx = (currentIndex + 1) % filteredPosts.length;
+      switchTrackWhilePlaying(nextIdx);
+    };
+
+    document.getElementById('btnPlayPause').onclick = (e) => {
+      e.stopPropagation();
+      setDiscPlayState(isDiscPaused);
+    };
+
+    document.getElementById('ctrlProgressWrap').onclick = (e) => {
+      e.stopPropagation();
+      const rect = e.currentTarget.getBoundingClientRect();
+      progressPercent = Math.max(0, Math.min(100, ((e.clientX - rect.left) / rect.width) * 100));
+      document.getElementById('ctrlProgressFill').style.width = `${progressPercent}%`;
+    };
+
+    document.getElementById('ctrlListToggle').onclick = (e) => {
+      e.stopPropagation();
+      const toggleBtn = e.currentTarget;
+      const popover = document.getElementById('miniTrackPopover');
+      const card = document.getElementById('playerControlCard');
+
+      toggleBtn.classList.toggle('active');
+      popover.classList.toggle('open');
+      card.classList.toggle('expanded');
+    };
+
+    function renderTrackList() {
+      const popover = document.getElementById('miniTrackPopover');
+      if (!popover) return;
+      if (filteredPosts.length === 0) {
+        popover.innerHTML = `<div class="mini-track-row">등록된 트랙이 없습니다.</div>`;
+        return;
+      }
+      popover.innerHTML = filteredPosts.map((post, idx) => `
+        <div class="mini-track-row" data-idx="${idx}">
+          ${idx + 1}. ${post.title}
+        </div>
+      `).join('');
+
+      popover.querySelectorAll('.mini-track-row').forEach(item => {
+        item.onclick = (e) => {
+          e.stopPropagation();
+          switchTrackWhilePlaying(Number(item.dataset.idx));
+        };
+      });
+    }
+
+    function switchTrackWhilePlaying(idx) {
+      if (currentIndex !== idx) {
+        currentIndex = idx;
+        updateCarouselPositions();
+        if (slotElements[currentIndex]) {
+          slotElements[currentIndex].classList.add('on-player', 'spinning');
+        }
+      }
+      openTrackDetail(idx);
+    }
+
+    function openTrackDetail(idx) {
+      document.querySelectorAll('.mini-track-row').forEach((el, i) => {
+        el.classList.toggle('active', i === idx);
+      });
+
+      const post = filteredPosts[idx];
+      if (!post) return;
+
+      const cat = post.labels[0] ? post.labels[0].name.toUpperCase() : 'ARCHIVE';
+      document.getElementById('ctrlTitle').textContent = post.title;
+      document.getElementById('ctrlSub').textContent = `${cat} · ${formatYYMMDD(post.created_at)}`;
+      progressPercent = 18;
+      document.getElementById('ctrlProgressFill').style.width = `${progressPercent}%`;
+      setDiscPlayState(true);
+      startProgressSimulation();
+
+      const detailDrawer = document.getElementById('detailDrawer');
+      const imageSection = document.getElementById('imageSection');
+      const commentSection = document.getElementById('commentSection');
+
+      imageSection.classList.remove('visible');
+      commentSection.classList.remove('visible');
+      detailDrawer.classList.add('open');
+
+      setTimeout(() => {
+        const rawBody = (post.body || '')
+          .replace(/^cover:\s*.+$/gim, '')
+          .replace(/^vinyl:\s*.+$/gim, '')
+          .replace(/^order:\s*.+$/gim, '')
+          .replace(/^threads:[\s\S]*?(?=^#|\Z)/gim, '')
+          .trim();
+
+        const mdImgMatch = rawBody.match(/!\[.*?\]\((.*?)\)/);
+        const htmlImgMatch = rawBody.match(/<img[^>]+src=["']([^"']+)["']/i);
+        const imageFrame = document.getElementById('imageFrame');
+
+        let textOnlyBody = rawBody;
+        if (mdImgMatch) {
+          imageFrame.innerHTML = `<img src="${mdImgMatch[1]}" alt="cover" />`;
+          textOnlyBody = rawBody.replace(mdImgMatch[0], '').trim();
+        } else if (htmlImgMatch) {
+          imageFrame.innerHTML = `<img src="${htmlImgMatch[1]}" alt="cover" />`;
+          textOnlyBody = rawBody.replace(htmlImgMatch[0], '').trim();
+        } else {
+          imageFrame.innerHTML = `<div class="image-placeholder">IMAGE</div>`;
+        }
+
+        document.getElementById('activePostTitle').textContent = `— ${post.title}`;
+        marked.setOptions({ breaks: true });
+        document.getElementById('commentBody').innerHTML = marked.parse(textOnlyBody || '(작성된 코멘트가 없습니다.)');
+
+        const threadsContainer = document.getElementById('threadsContainer');
+        threadsContainer.innerHTML = '';
+
+        const threadMatch = (post.body || '').match(/^threads:\s*\n([\s\S]*)$/im);
+        if (threadMatch && threadMatch[1]) {
+          const rawThreads = threadMatch[1].trim();
+          const threadBlocks = rawThreads.split(/^---\s*$/gm).map(b => b.trim()).filter(Boolean);
+
+          threadBlocks.forEach(block => {
+            const itemEl = document.createElement('div');
+            itemEl.className = 'thread-item';
+            const dateStr = formatYYMMDD(post.created_at);
+
+            itemEl.innerHTML = `
+              <div class="thread-date">${dateStr}</div>
+              <div class="thread-body">${marked.parse(block)}</div>
+            `;
+            threadsContainer.appendChild(itemEl);
+          });
+        }
+
+        imageSection.classList.add('visible');
+        commentSection.classList.add('visible');
+      }, 160);
+    }
+
+    function updateCarouselPositions() {
+      slotElements.forEach((slot, idx) => {
+        const offset = idx - currentIndex;
+
+        if (offset === 0) {
+          slot.classList.add('active');
+          slot.style.transform = `translateX(0px) translateZ(0px) rotateY(0deg)`;
+          slot.style.zIndex = 30;
+          slot.style.opacity = 1;
+          slot.style.pointerEvents = 'auto';
+        } else {
+          slot.classList.remove('active', 'on-player', 'spinning');
+          const sign = offset > 0 ? 1 : -1;
+          const abs = Math.abs(offset);
+          const translateX = sign * (112 + abs * 34);
+          const translateZ = -55 - abs * 38;
+          const rotateY = -sign * 58;
+
+          slot.style.transform = `translateX(${translateX}px) translateZ(${translateZ}px) rotateY(${rotateY}deg)`;
+          slot.style.zIndex = Math.max(1, 25 - abs);
+          slot.style.opacity = abs > 2 ? 0 : Math.max(0.45, 1 - abs * 0.25);
+          slot.style.pointerEvents = abs > 2 ? 'none' : 'auto';
+        }
+      });
+    }
+
+    function stepTrack(direction) {
+      if (isPlaying || isScrolling || filteredPosts.length === 0) return;
+      const nextIdx = currentIndex + direction;
+      if (nextIdx >= 0 && nextIdx < filteredPosts.length) {
+        isScrolling = true;
+        currentIndex = nextIdx;
+        updateCarouselPositions();
+        setTimeout(() => { isScrolling = false; }, 320);
+      }
+    }
+
+    const carouselStage = document.getElementById('carouselStage');
+
+    carouselStage.addEventListener('wheel', (e) => {
+      if (isPlaying) return;
+      e.preventDefault();
+      const delta = Math.abs(e.deltaX) > Math.abs(e.deltaY) ? e.deltaX : e.deltaY;
+      if (Math.abs(delta) < 10) return;
+      stepTrack(delta > 0 ? 1 : -1);
+    }, { passive: false });
+
+    let touchStartX = 0;
+    carouselStage.addEventListener('touchstart', (e) => {
+      if (isPlaying) return;
+      touchStartX = e.touches[0].clientX;
+    }, { passive: true });
+
+    carouselStage.addEventListener('touchend', (e) => {
+      if (isPlaying) return;
+      const diffX = touchStartX - e.changedTouches[0].clientX;
+      if (Math.abs(diffX) > 30) {
+        stepTrack(diffX > 0 ? 1 : -1);
+      }
+    }, { passive: true });
+
+    window.addEventListener('keydown', (e) => {
+      if (isPlaying || document.getElementById('writerOverlay').classList.contains('open')) return;
+      if (e.key === 'ArrowLeft') stepTrack(-1);
+      if (e.key === 'ArrowRight') stepTrack(1);
+    });
+
+    /* =========================================================================
+       전용 글쓰기 / 순서 변경 / 수정·삭제 관리자 모달 및 타래 이미지 업로드
+       ========================================= */
+    const writerOverlay = document.getElementById('writerOverlay');
+    const ghTokenInput = document.getElementById('ghTokenInput');
+
+    const savedToken = localStorage.getItem('oblaat_gh_token');
+    if (savedToken) ghTokenInput.value = savedToken;
+
+    function openWriterModal() {
+      renderManageList();
+      writerOverlay.classList.add('open');
+    }
+    function closeWriterModal() {
+      cancelEditMode();
+      writerOverlay.classList.remove('open');
+      if (window.location.hash === '#write') {
+        history.replaceState(null, null, ' ');
+      }
+    }
+
+    if (window.location.hash === '#write') {
+      openWriterModal();
+    }
+    window.addEventListener('hashchange', () => {
+      if (window.location.hash === '#write') openWriterModal();
+    });
+
+    const secretTrigger = document.getElementById('secretTrigger');
+    secretTrigger.ondblclick = openWriterModal;
+    let pressTimer = null;
+    secretTrigger.addEventListener('touchstart', () => {
+      pressTimer = setTimeout(openWriterModal, 1200);
+    }, { passive: true });
+    secretTrigger.addEventListener('touchend', () => clearTimeout(pressTimer));
+
+    document.getElementById('closeWriter').onclick = closeWriterModal;
+
+    const tabWrite = document.getElementById('tabWrite');
+    const tabManage = document.getElementById('tabManage');
+    const writeFormPanel = document.getElementById('writeFormPanel');
+    const manageListPanel = document.getElementById('manageListPanel');
+
+    function switchAdminTab(mode) {
+      document.getElementById('writerStatus').textContent = '';
+      if (mode === 'write') {
+        tabWrite.classList.add('active');
+        tabManage.classList.remove('active');
+        writeFormPanel.classList.remove('hidden');
+        manageListPanel.classList.remove('active');
+      } else {
+        tabManage.classList.add('active');
+        tabWrite.classList.remove('active');
+        writeFormPanel.classList.add('hidden');
+        manageListPanel.classList.add('active');
+        renderManageList();
+      }
+    }
+
+    tabWrite.onclick = () => switchAdminTab('write');
+    tabManage.onclick = () => switchAdminTab('manage');
+
+    function setCategorySelection(catName) {
+      selectedCategory = catName;
+      document.querySelectorAll('.cat-option').forEach(o => {
+        o.classList.toggle('selected', o.dataset.cat === catName);
+      });
+    }
+
+    document.querySelectorAll('.cat-option').forEach(opt => {
+      opt.onclick = () => setCategorySelection(opt.dataset.cat);
+    });
+
+    // 타래 글 이미지 업로드 핸들러
+    document.getElementById('threadImgFileInput').onchange = async (e) => {
+      const file = e.target.files[0];
+      const token = ghTokenInput.value.trim();
+      const statusEl = document.getElementById('writerStatus');
+      if (!file) return;
+      if (!token) {
+        statusEl.textContent = '이미지를 업로드하려면 상단에 GitHub Token을 먼저 입력해 주세요.';
+        return;
+      }
+      statusEl.textContent = '타래 이미지 업로드 중...';
+      try {
+        const url = await uploadImageToGitHub(file, token);
+        const threadTextArea = document.getElementById('postThreadsInput');
+        threadTextArea.value += `\n![image](${url})\n`;
+        statusEl.textContent = '타래 이미지 첨부 완료!';
+        setTimeout(() => { statusEl.textContent = ''; }, 1000);
+      } catch (err) {
+        statusEl.textContent = err.message;
+      }
+    };
+
+    function renderManageList() {
+      const realPosts = allPosts.filter(p => p.number > 0);
+      if (realPosts.length === 0) {
+        manageListPanel.innerHTML = `<p style="font-size:0.84rem; color:#888; text-align:center; padding:24px 0;">등록된 트랙이 없습니다.</p>`;
+        return;
+      }
+
+      manageListPanel.innerHTML = realPosts.map((post, idx) => {
+        const cat = post.labels[0] ? post.labels[0].name : 'NONE';
+        const date = formatYYMMDD(post.created_at);
+        return `
+          <div class="manage-item">
+            <div class="manage-item-info">
+              <div class="manage-item-title">${idx + 1}. ${post.title}</div>
+              <div class="manage-item-meta">[${cat}] · ${date}</div>
+            </div>
+            <div class="manage-actions">
+              <button class="btn-order" onclick="moveTrackOrder(${idx}, -1)" ${idx === 0 ? 'disabled' : ''}>▲</button>
+              <button class="btn-order" onclick="moveTrackOrder(${idx}, 1)" ${idx === realPosts.length - 1 ? 'disabled' : ''}>▼</button>
+              <button class="btn-edit" onclick="startEditTrack(${post.number})">수정</button>
+              <button class="btn-delete" onclick="deleteTrack(${post.number}, '${post.title.replace(/'/g, "\\'")}')">삭제</button>
+            </div>
+          </div>
+        `;
+      }).join('');
+    }
+
+    window.moveTrackOrder = async function(index, direction) {
+      const token = ghTokenInput.value.trim();
+      const statusEl = document.getElementById('writerStatus');
+      if (!token) {
+        statusEl.textContent = '상단 발행 비밀번호(GitHub Token)를 먼저 입력해 주세요.';
+        return;
+      }
+
+      const targetIndex = index + direction;
+      if (targetIndex < 0 || targetIndex >= allPosts.length) return;
+
+      const temp = allPosts[index];
+      allPosts[index] = allPosts[targetIndex];
+      allPosts[targetIndex] = temp;
+
+      renderManageList();
+      statusEl.textContent = '순서 저장 중...';
+
+      try {
+        for (let i = 0; i < allPosts.length; i++) {
+          const post = allPosts[i];
+          if (post.number <= 0) continue;
+          const newOrder = i + 1;
+          const currentOrder = Number(extractMetaUrl(post.body, 'order', '-1'));
+          if (currentOrder === newOrder) continue;
+
+          const cleanBody = (post.body || '').replace(/^order:\s*.+$/gim, '').trim();
+          const updatedBody = `order: ${newOrder}\n\n${cleanBody}`;
+          post.body = updatedBody;
+
+          await fetch(`https://api.github.com/repos/${GITHUB_USER}/${GITHUB_REPO}/issues/${post.number}`, {
+            method: 'PATCH',
+            headers: {
+              'Authorization': `token ${token}`,
+              'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ body: updatedBody })
+          });
+        }
+
+        const activeFilter = document.querySelector('.filter-btn.active')?.dataset.label?.trim().toUpperCase() || 'ALL';
+        filteredPosts = allPosts.filter(p => matchesCategory(p, activeFilter));
+        rebuildAll();
+
+        statusEl.textContent = '순서가 변경되었습니다.';
+        setTimeout(() => { statusEl.textContent = ''; }, 1000);
+      } catch (err) {
+        statusEl.textContent = '순서 저장 실패: 토큰을 확인해 주세요.';
+      }
+    };
+
+    window.startEditTrack = function(issueNumber) {
+      const post = allPosts.find(p => p.number === issueNumber);
+      if (!post) return;
+
+      editingIssueNumber = issueNumber;
+      const raw = post.body || '';
+
+      const coverUrl = extractMetaUrl(raw, 'cover', '');
+      const vinylUrl = extractMetaUrl(raw, 'vinyl', '');
+      const orderVal = extractMetaUrl(raw, 'order', '');
+
+      const cleanWithoutMeta = raw
+        .replace(/^cover:\s*.+$/gim, '')
+        .replace(/^vinyl:\s*.+$/gim, '')
+        .replace(/^order:\s*.+$/gim, '')
+        .replace(/^threads:[\s\S]*?(?=^#|\Z)/gim, '')
+        .trim();
+
+      const threadMatch = raw.match(/^threads:\s*\n([\s\S]*)$/im);
+      const threadsVal = threadMatch ? threadMatch[1].trim() : '';
+
+      const mdImgMatch = cleanWithoutMeta.match(/!\[.*?\]\((.*?)\)/);
+      const bodyImgUrl = mdImgMatch ? mdImgMatch[1] : '';
+      const pureText = mdImgMatch ? cleanWithoutMeta.replace(mdImgMatch[0], '').trim() : cleanWithoutMeta;
+
+      preservedAssets = { cover: coverUrl, vinyl: vinylUrl, bodyImg: bodyImgUrl, order: orderVal, threads: threadsVal };
+
+      document.getElementById('existingCoverNote').textContent = coverUrl ? '※ 기존 커버 이미지 유지됨 (새 파일 선택 시 교체)' : '';
+      document.getElementById('existingVinylNote').textContent = vinylUrl ? '※ 기존 LP 알판 이미지 유지됨 (새 파일 선택 시 교체)' : '';
+      document.getElementById('existingBodyImgNote').textContent = bodyImgUrl ? '※ 기존 본문 이미지 유지됨 (새 파일 선택 시 교체)' : '';
+
+      document.getElementById('postTitleInput').value = post.title;
+      document.getElementById('postBodyInput').value = pureText;
+      document.getElementById('postThreadsInput').value = threadsVal;
+      const cat = post.labels[0] ? post.labels[0].name.trim().toUpperCase() : 'MADE';
+      setCategorySelection(cat === 'LOVE' || cat === 'AND' ? 'LOVE' : 'MADE');
+
+      document.getElementById('editModeBanner').classList.add('active');
+      document.getElementById('editModeText').textContent = `수정 중: ${post.title}`;
+      document.getElementById('publishBtn').textContent = '수정 완료 (UPDATE)';
+
+      switchAdminTab('write');
+    };
+
+    function cancelEditMode() {
+      editingIssueNumber = null;
+      preservedAssets = { cover: "", vinyl: "", bodyImg: "", order: "", threads: "" };
+      document.getElementById('existingCoverNote').textContent = '';
+      document.getElementById('existingVinylNote').textContent = '';
+      document.getElementById('existingBodyImgNote').textContent = '';
+      document.getElementById('postTitleInput').value = '';
+      document.getElementById('postBodyInput').value = '';
+      document.getElementById('postThreadsInput').value = '';
+      document.getElementById('coverFileInput').value = '';
+      document.getElementById('vinylFileInput').value = '';
+      document.getElementById('bodyImgFileInput').value = '';
+      document.getElementById('editModeBanner').classList.remove('active');
+      document.getElementById('publishBtn').textContent = '발행하기 (PUBLISH)';
+    }
+
+    document.getElementById('cancelEditBtn').onclick = cancelEditMode;
+
+    window.deleteTrack = async function(issueNumber, title) {
+      const token = ghTokenInput.value.trim();
+      const statusEl = document.getElementById('writerStatus');
+
+      if (!token) {
+        statusEl.textContent = '상단 발행 비밀번호(GitHub Token)를 먼저 입력해 주세요.';
+        return;
+      }
+      if (!confirm(`"${title}" 트랙을 정말 삭제할까요?`)) return;
+
+      localStorage.setItem('oblaat_gh_token', token);
+      statusEl.textContent = '트랙 삭제 중...';
+
+      try {
+        const res = await fetch(`https://api.github.com/repos/${GITHUB_USER}/${GITHUB_REPO}/issues/${issueNumber}`, {
+          method: 'PATCH',
+          headers: {
+            'Authorization': `token ${token}`,
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({ state: 'closed' })
+        });
+
+        if (!res.ok) throw new Error('삭제 실패: 토큰 권한을 확인해 주세요.');
+
+        statusEl.textContent = '삭제되었습니다.';
+        await fetchPosts();
+        setTimeout(() => { statusEl.textContent = ''; }, 1200);
+      } catch (err) {
+        statusEl.textContent = err.message;
+      }
+    };
+
+    async function uploadImageToGitHub(file, token) {
+      return new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = async () => {
+          try {
+            const base64Content = reader.result.split(',')[1];
+            const ext = file.name.split('.').pop() || 'png';
+            const fileName = `uploads/${Date.now()}_${Math.random().toString(36).slice(2, 7)}.${ext}`;
+
+            const res = await fetch(`https://api.github.com/repos/${GITHUB_USER}/${GITHUB_REPO}/contents/${fileName}`, {
+              method: 'PUT',
+              headers: {
+                'Authorization': `token ${token}`,
+                'Content-Type': 'application/json'
+              },
+              body: JSON.stringify({
+                message: `upload image: ${fileName}`,
+                content: base64Content
+              })
+            });
+
+            if (!res.ok) throw new Error('이미지 업로드 실패 (토큰 권한 확인)');
+            const data = await res.json();
+            resolve(data.content.download_url);
+          } catch (err) {
+            reject(err);
+          }
+        };
+        reader.onerror = reject;
+        reader.readAsDataURL(file);
+      });
+    }
+
+    document.getElementById('publishBtn').onclick = async () => {
+      const token = ghTokenInput.value.trim();
+      const title = document.getElementById('postTitleInput').value.trim();
+      const rawBody = document.getElementById('postBodyInput').value.trim();
+      const rawThreads = document.getElementById('postThreadsInput').value.trim();
+      const coverFile = document.getElementById('coverFileInput').files[0];
+      const vinylFile = document.getElementById('vinylFileInput').files[0];
+      const bodyImgFile = document.getElementById('bodyImgFileInput').files[0];
+      const statusEl = document.getElementById('writerStatus');
+      const btn = document.getElementById('publishBtn');
+
+      if (!token) {
+        statusEl.textContent = '발행 비밀번호(GitHub Token)를 입력해 주세요.';
+        return;
+      }
+      if (!title) {
+        statusEl.textContent = '트랙 제목을 입력해 주세요.';
+        return;
+      }
+
+      localStorage.setItem('oblaat_gh_token', token);
+      btn.disabled = true;
+
+      try {
+        let finalBodyParts = [];
+
+        if (preservedAssets.order) {
+          finalBodyParts.push(`order: ${preservedAssets.order}`);
+        }
+
+        if (coverFile) {
+          statusEl.textContent = 'LP 커버 이미지 업로드 중...';
+          const coverUrl = await uploadImageToGitHub(coverFile, token);
+          finalBodyParts.push(`cover: ${coverUrl}`);
+        } else if (preservedAssets.cover) {
+          finalBodyParts.push(`cover: ${preservedAssets.cover}`);
+        }
+
+        if (vinylFile) {
+          statusEl.textContent = 'LP 알판 이미지 업로드 중...';
+          const vinylUrl = await uploadImageToGitHub(vinylFile, token);
+          finalBodyParts.push(`vinyl: ${vinylUrl}`);
+        } else if (preservedAssets.vinyl) {
+          finalBodyParts.push(`vinyl: ${preservedAssets.vinyl}`);
+        }
+
+        if (bodyImgFile) {
+          statusEl.textContent = '본문 이미지 업로드 중...';
+          const bodyImgUrl = await uploadImageToGitHub(bodyImgFile, token);
+          finalBodyParts.push(`![image](${bodyImgUrl})`);
+        } else if (preservedAssets.bodyImg) {
+          finalBodyParts.push(`![image](${preservedAssets.bodyImg})`);
+        }
+
+        if (rawBody) {
+          finalBodyParts.push(rawBody);
+        }
+
+        const threadsVal = rawThreads || preservedAssets.threads;
+        if (threadsVal) {
+          finalBodyParts.push(`threads:\n${threadsVal}`);
+        }
+
+        const isEditing = editingIssueNumber !== null;
+        statusEl.textContent = isEditing ? '트랙 수정 저장 중...' : '트랙 발행 중...';
+
+        const endpoint = isEditing
+          ? `https://api.github.com/repos/${GITHUB_USER}/${GITHUB_REPO}/issues/${editingIssueNumber}`
+          : `https://api.github.com/repos/${GITHUB_USER}/${GITHUB_REPO}/issues`;
+
+        const res = await fetch(endpoint, {
+          method: isEditing ? 'PATCH' : 'POST',
+          headers: {
+            'Authorization': `token ${token}`,
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({
+            title: title,
+            body: finalBodyParts.join('\n\n'),
+            labels: [selectedCategory]
+          })
+        });
+
+        if (!res.ok) throw new Error('저장 실패: 토큰이 올바른지 확인해 주세요.');
+
+        statusEl.textContent = isEditing ? '수정 완료!' : '발행 완료!';
+
+        setTimeout(() => {
+          closeWriterModal();
+          statusEl.textContent = '';
+          btn.disabled = false;
+          fetchPosts();
+        }, 700);
+
+      } catch (err) {
+        statusEl.textContent = err.message;
+        btn.disabled = false;
+      }
+    };
+
+    fetchPosts();
+  </script>
+</body>
+</html>

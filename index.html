@@ -219,14 +219,14 @@
   <script>
     // ★ 여기 두 줄만 본인 깃허브 정보로 수정하세요! ★
     const GITHUB_USER = "Oblaat-Oblate";
-    const GITHUB_REPO = "Oblaat-Oblate.github.io";
+    const GITHUB_REPO = "Oblaat.github.io";
 
     let allPosts = [];
 
     // 깃허브 이슈 불러오기
     async function fetchPosts() {
       try {
-        const res = await fetch(`https://api.github.com/repos/${Oblaat-Oblate}/${Oblaat-Oblate.github.io}/issues?state=open&per_page=100`);
+        const res = await fetch(`https://api.github.com/repos/${Oblaat-Oblate}/${Oblaat.github.io}/issues?state=open&per_page=100`);
         const data = await res.json();
         // Pull Request 제외하고 순수 이슈만 필터링
         allPosts = data.filter(item => !item.pull_request);

@@ -1092,6 +1092,10 @@
   </div>
 
   <script>
+    // 페이지 전체 우클릭 방지
+  document.addEventListener('contextmenu', function(e) {
+    e.preventDefault();
+  });
     const GITHUB_USER = "by-Oblaat";
     const GITHUB_REPO = "by-Oblaat.github.io";
 

@@ -127,7 +127,7 @@
     .player-active-row {
       display: none;
       width: 100%;
-      max-width: 490px;
+      max-width: 456px;
       align-items: center;
       justify-content: center;
       gap: 0;
@@ -150,7 +150,7 @@
     .track-drawer {
       position: relative;
       z-index: 1;
-      margin-left: -24px; /* 카드가 턴테이블 뒤로 살짝 들어가도록 */
+      margin-left: -18px; /* 카드가 턴테이블 뒤로 살짝 들어가도록 */
     }
 
     /* =========================================
@@ -398,12 +398,12 @@
        ========================================= */
     .player-control-card {
       width: 260px;
-      height: 150px;
+      height: 156px;
       background: #ffffff;
       border: 1px solid #ececec;
       border-radius: 16px;
       box-shadow: 0 10px 28px rgba(0, 0, 0, 0.06);
-      padding: 12px 14px;
+      padding: 12px 14px 12px 38px;
       display: flex;
       flex-direction: column;
       justify-content: space-between;
@@ -485,7 +485,7 @@
 
     /* 트랙 목록: 처음부터 항상 열려 있고, 2개 트랙이 선명하게 보이며 스크롤 제공[cite: 36] */
     .mini-track-popover {
-      max-height: 48px !important;
+      max-height: 58px !important;
       opacity: 1 !important;
       overflow-y: auto !important;
       display: flex;
@@ -989,13 +989,13 @@
       .track-drawer { z-index: 1; }
       .player-control-card {
         width: 100% !important;
-        height: 150px !important;
-        padding: 10px 11px !important;
+        height: 156px !important;
+        padding: 10px 11px 10px 30px !important;
       }
       .ctrl-title { font-size: 0.72rem; }
       .ctrl-btn { width: 24px; height: 24px; }
       .ctrl-btn svg { width: 10px; height: 10px; }
-      .mini-track-popover { max-height: 46px !important; }
+      .mini-track-popover { max-height: 54px !important; }
       .detail-drawer { max-width: 100%; }
       .image-frame { min-height: 200px; }
     }

@@ -99,7 +99,6 @@
       position: relative;
     }
 
-    /* 평소에는 정사각형 앨범 크기(230x230), 클릭 시 우측으로 길게 확장되는 카드 컨테이너 */
     .player-card-box {
       position: relative;
       width: 230px;
@@ -123,7 +122,6 @@
       box-shadow: 0 16px 40px rgba(0, 0, 0, 0.08);
     }
 
-    /* 좌측: 3D 커버플로우 및 LP 스테이지 */
     .player-stage {
       position: relative;
       width: 180px;
@@ -140,7 +138,6 @@
       margin: 0;
     }
 
-    /* 3D 커버플로우 스테이지 */
     .carousel-stage {
       position: absolute;
       inset: 0;
@@ -222,7 +219,6 @@
       letter-spacing: 0.08em;
     }
 
-    /* 앨범 커버 밑에서 쑥 올라오는 LP판 */
     .vinyl-disc {
       position: absolute;
       top: 6px;
@@ -284,10 +280,9 @@
       font-weight: 500;
     }
 
-    /* 클릭 시 LP판이 커버 아래로 쑥 올라오는 상태 */
     .lp-slot.active.on-player .vinyl-disc {
       opacity: 1;
-      transform: translateY(58px); /* 커버 아래에서 아래로 삐져나오며 슬라이딩 */
+      transform: translateY(58px);
       pointer-events: auto;
       cursor: pointer;
     }
@@ -300,7 +295,6 @@
       to   { transform: translateY(58px) rotate(360deg); }
     }
 
-    /* 우측으로 펼쳐지는 음악 플레이어 컨트롤 패널 */
     .player-control-right {
       width: 0;
       opacity: 0;
@@ -418,7 +412,6 @@
       fill: currentColor;
     }
 
-    /* 트랙 목록 드롭다운 */
     .mini-track-popover {
       max-height: 0;
       opacity: 0;
@@ -461,7 +454,7 @@
     }
 
     /* =========================================
-       [하단 영역] IMAGE & COMMENT
+       [하단 영역] IMAGE & COMMENT & THREADS
        ========================================= */
     .detail-drawer {
       width: 100%;
@@ -559,6 +552,37 @@
       margin: 14px 0;
     }
 
+    /* 타래(Thread) 스레드 스타일 */
+    .threads-container {
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+      margin-top: 24px;
+      border-top: 1px dashed #e0e0e0;
+      padding-top: 24px;
+    }
+
+    .thread-item {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .thread-date {
+      font-size: 0.78rem;
+      color: var(--text-sub);
+      letter-spacing: 0.06em;
+    }
+
+    .thread-body {
+      font-size: 1rem;
+      line-height: 1.9;
+      color: var(--text-main);
+      word-break: keep-all;
+    }
+    .thread-body p { margin-bottom: 1em; }
+    .thread-body img { max-width: 100%; margin: 10px 0; }
+
     /* =========================================
        전용 글쓰기 / 순서 변경 / 수정·삭제 관리자 모달 UI
        ========================================= */
@@ -654,7 +678,7 @@
       border-color: var(--line-blue);
     }
     .writer-textarea {
-      min-height: 130px;
+      min-height: 110px;
       resize: vertical;
       line-height: 1.6;
     }
@@ -849,7 +873,7 @@
 </head>
 <body>
 
-  <!-- 페이지 전체 우클릭 방지 적용 -->
+  <!-- 페이지 전체 우클릭 방지 -->
   <script>
     document.addEventListener('contextmenu', function(e) {
       e.preventDefault();
@@ -920,6 +944,8 @@
               COMMENT <span id="activePostTitle"></span>
             </div>
             <div class="comment-body" id="commentBody"></div>
+            <!-- 스레드(타래) 글들이 추가되는 영역 -->
+            <div class="threads-container" id="threadsContainer"></div>
           </div>
         </div>
       </section>
@@ -982,8 +1008,13 @@
         </div>
 
         <div class="writer-field">
-          <label>COMMENT (본문 내용)</label>
-          <textarea class="writer-textarea" id="postBodyInput" placeholder="썰이나 연성, 코멘트를 자유롭게 작성하세요."></textarea>
+          <label>COMMENT (메인 코멘트 본문)</label>
+          <textarea class="writer-textarea" id="postBodyInput" placeholder="첫 번째 코멘트를 작성하세요."></textarea>
+        </div>
+
+        <div class="writer-field">
+          <label>THREADS (추가 타래글들 - 구분선 `---`로 여러 개 작성 가능)</label>
+          <textarea class="writer-textarea" id="postThreadsInput" placeholder="---\n두 번째 타래글 내용...\n---\n세 번째 타래글 내용..."></textarea>
         </div>
 
         <button class="writer-submit" id="publishBtn">발행하기 (PUBLISH)</button>
@@ -1013,7 +1044,7 @@
     let progressPercent = 28;
 
     let editingIssueNumber = null;
-    let preservedAssets = { cover: "", vinyl: "", bodyImg: "", order: "" };
+    let preservedAssets = { cover: "", vinyl: "", bodyImg: "", order: "", threads: "" };
 
     function formatYYMMDD(dateStr) {
       const d = new Date(dateStr);
@@ -1153,13 +1184,11 @@
       isPlaying = true;
 
       const cardBox = document.getElementById('playerCardBox');
-      const stage = document.getElementById('carouselStage');
 
       slot.classList.add('on-player');
 
       const t1 = setTimeout(() => {
         cardBox.classList.add('playing-mode');
-        stage.classList.add('deck-up');
         openTrackDetail(idx);
       }, 200);
 
@@ -1178,7 +1207,6 @@
       isDiscPaused = false;
 
       document.getElementById('playerCardBox').classList.remove('playing-mode');
-      document.getElementById('carouselStage').classList.remove('deck-up');
       document.getElementById('detailDrawer').classList.remove('open');
       document.getElementById('imageSection').classList.remove('visible');
       document.getElementById('commentSection').classList.remove('visible');
@@ -1310,6 +1338,7 @@
           .replace(/^cover:\s*.+$/gim, '')
           .replace(/^vinyl:\s*.+$/gim, '')
           .replace(/^order:\s*.+$/gim, '')
+          .replace(/^threads:[\s\S]*?(?=^#|\Z)/gim, '')
           .trim();
 
         const mdImgMatch = rawBody.match(/!\[.*?\]\((.*?)\)/);
@@ -1330,6 +1359,28 @@
         document.getElementById('activePostTitle').textContent = `— ${post.title}`;
         marked.setOptions({ breaks: true });
         document.getElementById('commentBody').innerHTML = marked.parse(textOnlyBody || '(작성된 코멘트가 없습니다.)');
+
+        // 타래(Threads) 파싱 및 렌더링
+        const threadsContainer = document.getElementById('threadsContainer');
+        threadsContainer.innerHTML = '';
+
+        const threadMatch = (post.body || '').match(/^threads:\s*\n([\s\S]*)$/im);
+        if (threadMatch && threadMatch[1]) {
+          const rawThreads = threadMatch[1].trim();
+          const threadBlocks = rawThreads.split(/^---\s*$/gm).map(b => b.trim()).filter(Boolean);
+
+          threadBlocks.forEach(block => {
+            const itemEl = document.createElement('div');
+            itemEl.className = 'thread-item';
+            const dateStr = formatYYMMDD(post.created_at);
+
+            itemEl.innerHTML = `
+              <div class="thread-date">${dateStr}</div>
+              <div class="thread-body">${marked.parse(block)}</div>
+            `;
+            threadsContainer.appendChild(itemEl);
+          });
+        }
 
         imageSection.classList.add('visible');
         commentSection.classList.add('visible');
@@ -1569,13 +1620,17 @@
         .replace(/^cover:\s*.+$/gim, '')
         .replace(/^vinyl:\s*.+$/gim, '')
         .replace(/^order:\s*.+$/gim, '')
+        .replace(/^threads:[\s\S]*?(?=^#|\Z)/gim, '')
         .trim();
+
+      const threadMatch = raw.match(/^threads:\s*\n([\s\S]*)$/im);
+      const threadsVal = threadMatch ? threadMatch[1].trim() : '';
 
       const mdImgMatch = cleanWithoutMeta.match(/!\[.*?\]\((.*?)\)/);
       const bodyImgUrl = mdImgMatch ? mdImgMatch[1] : '';
       const pureText = mdImgMatch ? cleanWithoutMeta.replace(mdImgMatch[0], '').trim() : cleanWithoutMeta;
 
-      preservedAssets = { cover: coverUrl, vinyl: vinylUrl, bodyImg: bodyImgUrl, order: orderVal };
+      preservedAssets = { cover: coverUrl, vinyl: vinylUrl, bodyImg: bodyImgUrl, order: orderVal, threads: threadsVal };
 
       document.getElementById('existingCoverNote').textContent = coverUrl ? '※ 기존 커버 이미지 유지됨 (새 파일 선택 시 교체)' : '';
       document.getElementById('existingVinylNote').textContent = vinylUrl ? '※ 기존 LP 알판 이미지 유지됨 (새 파일 선택 시 교체)' : '';
@@ -1583,6 +1638,7 @@
 
       document.getElementById('postTitleInput').value = post.title;
       document.getElementById('postBodyInput').value = pureText;
+      document.getElementById('postThreadsInput').value = threadsVal;
       const cat = post.labels[0] ? post.labels[0].name.trim().toUpperCase() : 'MADE';
       setCategorySelection(cat === 'LOVE' || cat === 'AND' ? 'LOVE' : 'MADE');
 
@@ -1595,12 +1651,13 @@
 
     function cancelEditMode() {
       editingIssueNumber = null;
-      preservedAssets = { cover: "", vinyl: "", bodyImg: "", order: "" };
+      preservedAssets = { cover: "", vinyl: "", bodyImg: "", order: "", threads: "" };
       document.getElementById('existingCoverNote').textContent = '';
       document.getElementById('existingVinylNote').textContent = '';
       document.getElementById('existingBodyImgNote').textContent = '';
       document.getElementById('postTitleInput').value = '';
       document.getElementById('postBodyInput').value = '';
+      document.getElementById('postThreadsInput').value = '';
       document.getElementById('coverFileInput').value = '';
       document.getElementById('vinylFileInput').value = '';
       document.getElementById('bodyImgFileInput').value = '';
@@ -1680,6 +1737,7 @@
       const token = ghTokenInput.value.trim();
       const title = document.getElementById('postTitleInput').value.trim();
       const rawBody = document.getElementById('postBodyInput').value.trim();
+      const rawThreads = document.getElementById('postThreadsInput').value.trim();
       const coverFile = document.getElementById('coverFileInput').files[0];
       const vinylFile = document.getElementById('vinylFileInput').files[0];
       const bodyImgFile = document.getElementById('bodyImgFileInput').files[0];
@@ -1731,6 +1789,11 @@
 
         if (rawBody) {
           finalBodyParts.push(rawBody);
+        }
+
+        const threadsVal = rawThreads || preservedAssets.threads;
+        if (threadsVal) {
+          finalBodyParts.push(`threads:\n${threadsVal}`);
         }
 
         const isEditing = editingIssueNumber !== null;

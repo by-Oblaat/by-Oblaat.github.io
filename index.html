@@ -78,7 +78,7 @@
     }
 
     /* =========================================
-       메인 스테이지 및 플레이어 카드 컨테이너
+       메인 컨테이너 및 턴테이블 레이아웃 (원래 형태 복원)
        ========================================= */
     .main-container {
       width: 100%;
@@ -95,77 +95,56 @@
       display: flex;
       justify-content: center;
       align-items: center;
-      min-height: 320px;
+      min-height: 290px;
       position: relative;
-    }
-
-    .player-card-box {
-      position: relative;
-      width: 230px;
-      height: 230px;
-      background: #ffffff;
-      border: 1px solid #ececec;
-      border-radius: 20px;
-      box-shadow: 0 12px 32px rgba(0, 0, 0, 0.06);
-      display: flex;
-      align-items: center;
-      padding: 0;
-      overflow: hidden;
-      transition: width 0.75s cubic-bezier(0.22, 1, 0.36, 1),
-                  padding 0.75s cubic-bezier(0.22, 1, 0.36, 1),
-                  box-shadow 0.5s ease;
-    }
-
-    .player-card-box.playing-mode {
-      width: 680px;
-      padding: 0 40px 0 25px;
-      box-shadow: 0 16px 40px rgba(0, 0, 0, 0.08);
     }
 
     .player-stage {
       position: relative;
-      width: 180px;
-      height: 180px;
+      width: 240px;
+      height: 275px;
       flex-shrink: 0;
       display: flex;
       justify-content: center;
-      align-items: center;
-      margin: 0 auto;
-      transition: margin 0.75s cubic-bezier(0.22, 1, 0.36, 1);
+      align-items: flex-start;
+      transition: transform 0.75s cubic-bezier(0.22, 1, 0.36, 1);
     }
 
-    .player-card-box.playing-mode .player-stage {
-      margin: 0;
-    }
-
+    /* =========================================
+       커버플로우(Cover Flow) 3D 스테이지
+       ========================================= */
     .carousel-stage {
       position: absolute;
-      inset: 0;
+      top: 10px;
+      left: 50%;
+      margin-left: -260px;
+      width: 520px;
+      height: 260px;
       display: flex;
       justify-content: center;
-      align-items: center;
+      align-items: flex-start;
       perspective: 750px;
       touch-action: none;
-      z-index: 25;
-      transition: transform 0.6s ease;
+      z-index: 20;
     }
 
-    .carousel-stage.deck-up {
-      transform: translateY(-8px);
+    .carousel-stage.deck-up,
+    .carousel-stage.deck-up .lp-slot {
+      pointer-events: none !important;
     }
 
     .stack-track {
       position: relative;
-      width: 165px;
-      height: 165px;
+      width: 210px;
+      height: 210px;
       transform-style: preserve-3d;
     }
 
     .lp-slot {
       position: absolute;
       inset: 0;
-      width: 165px;
-      height: 165px;
+      width: 210px;
+      height: 210px;
       transform-style: preserve-3d;
       transition: transform 0.6s cubic-bezier(0.22, 1, 0.36, 1), opacity 0.45s ease;
       cursor: pointer;
@@ -185,8 +164,8 @@
       justify-content: space-between;
       align-items: center;
       text-align: center;
-      padding: 18px 12px;
-      box-shadow: 0 6px 18px rgba(0,0,0,0.06);
+      padding: 24px 16px;
+      transition: transform 0.7s cubic-bezier(0.22, 1, 0.36, 1), opacity 0.55s ease, box-shadow 0.4s ease;
     }
 
     .lp-jacket.has-img {
@@ -198,33 +177,43 @@
       display: none;
     }
 
+    .lp-slot.active .lp-jacket {
+      box-shadow: 0 12px 28px rgba(107, 158, 255, 0.14);
+    }
+
+    .carousel-stage.deck-up .lp-jacket {
+      transform: translateY(-190px);
+      opacity: 0;
+      pointer-events: none;
+    }
+
     .lp-card-label {
-      font-size: 0.7rem;
+      font-size: 0.8rem;
       color: var(--line-blue);
       letter-spacing: 0.14em;
       font-weight: 500;
     }
 
     .lp-card-title {
-      font-size: 0.92rem;
+      font-size: 1.1rem;
       font-weight: 600;
       color: var(--text-main);
       word-break: keep-all;
-      line-height: 1.35;
+      line-height: 1.45;
     }
 
     .lp-card-date {
-      font-size: 0.65rem;
+      font-size: 0.78rem;
       color: var(--text-sub);
       letter-spacing: 0.08em;
     }
 
     .vinyl-disc {
       position: absolute;
-      top: 6px;
-      left: 6px;
-      width: 153px;
-      height: 153px;
+      top: 9px;
+      left: 9px;
+      width: 192px;
+      height: 192px;
       border-radius: 50%;
       border: 1.5px solid var(--line-orange);
       background-color: #ffffff;
@@ -235,11 +224,10 @@
       flex-direction: column;
       justify-content: flex-end;
       align-items: center;
-      padding-bottom: 10px;
+      padding-bottom: 13px;
       opacity: 0;
       pointer-events: none;
-      transform: translateY(0px);
-      transition: transform 0.7s cubic-bezier(0.22, 1, 0.36, 1), opacity 0.4s ease;
+      transition: transform 0.7s cubic-bezier(0.22, 1, 0.36, 1), opacity 0.35s ease;
     }
 
     .vinyl-disc.has-img {
@@ -257,9 +245,9 @@
       position: absolute;
       top: 50%;
       left: 50%;
-      width: 44px;
-      height: 44px;
-      margin: -22px 0 0 -22px;
+      width: 56px;
+      height: 56px;
+      margin: -28px 0 0 -28px;
       border-radius: 50%;
       border: 1px solid rgba(255, 107, 74, 0.55);
     }
@@ -267,23 +255,32 @@
     .vinyl-disc::after {
       content: "";
       position: absolute;
-      inset: 10px;
+      inset: 14px;
       border-radius: 50%;
       border: 1px solid rgba(255, 107, 74, 0.18);
       border-top-color: var(--line-orange);
     }
 
     .sliding-text {
-      font-size: 0.55rem;
+      font-size: 0.65rem;
       color: var(--line-orange);
       letter-spacing: 0.18em;
       font-weight: 500;
     }
 
-    .lp-slot.active.on-player .vinyl-disc {
+    .lp-slot.active .vinyl-disc {
       opacity: 1;
-      transform: translateY(58px);
       pointer-events: auto;
+      transform: translateY(40px);
+    }
+
+    .lp-slot.active:hover .vinyl-disc {
+      transform: translateY(56px);
+    }
+
+    .lp-slot.active.on-player .vinyl-disc {
+      transform: translateY(21px);
+      pointer-events: auto !important;
       cursor: pointer;
     }
     .lp-slot.active.spinning .vinyl-disc {
@@ -291,36 +288,186 @@
     }
 
     @keyframes spinVinyl {
-      from { transform: translateY(58px) rotate(0deg); }
-      to   { transform: translateY(58px) rotate(360deg); }
+      from { transform: translateY(21px) rotate(0deg); }
+      to   { transform: translateY(21px) rotate(360deg); }
     }
 
-    .player-control-right {
+    /* =========================================
+       LP 플레이어 본체 및 톤암 레이어
+       ========================================= */
+    .turntable-box {
+      position: absolute;
+      top: 20px;
+      left: 50%;
+      margin-left: -116px;
+      width: 232px;
+      height: 232px;
+      border: 1.5px solid var(--line-blue);
+      background-color: #ffffff;
+      background-size: cover;
+      background-position: center;
+      opacity: 0;
+      transform: scale(0.96);
+      pointer-events: none;
+      z-index: 10;
+      transition: opacity 0.6s ease, transform 0.6s cubic-bezier(0.22, 1, 0.36, 1);
+      cursor: pointer;
+    }
+
+    .turntable-box.has-img {
+      border: none;
+      background-color: transparent;
+    }
+
+    .turntable-box.visible {
+      opacity: 1;
+      transform: scale(1);
+      pointer-events: auto;
+    }
+
+    .tonearm-overlay {
+      position: absolute;
+      top: 20px;
+      left: 50%;
+      margin-left: -116px;
+      width: 232px;
+      height: 232px;
+      z-index: 35;
+      pointer-events: none;
+      opacity: 0;
+      transition: opacity 0.6s ease;
+    }
+    .tonearm-overlay.visible {
+      opacity: 1;
+    }
+
+    .turntable-spindle {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      width: 10px;
+      height: 10px;
+      margin: -5px 0 0 -5px;
+      border-radius: 50%;
+      border: 1.5px solid var(--line-blue);
+      background: #ffffff;
+    }
+
+    .tonearm-base {
+      position: absolute;
+      bottom: 18px;
+      left: 16px;
+      width: 14px;
+      height: 22px;
+      border: 1.5px solid var(--line-blue);
+      background: #ffffff;
+    }
+
+    .tonearm-stick {
+      position: absolute;
+      bottom: 34px;
+      left: 22px;
+      width: 1.5px;
+      height: 142px;
+      background: var(--line-blue);
+      transform-origin: bottom center;
+      transform: rotate(8deg);
+      transition: transform 0.65s cubic-bezier(0.22, 1, 0.36, 1);
+    }
+
+    .tonearm-stick::after {
+      content: "";
+      position: absolute;
+      top: -4px;
+      left: -3.5px;
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      border: 1.5px solid var(--line-blue);
+      background: #ffffff;
+    }
+
+    .tonearm-custom-img {
+      display: none;
+      position: absolute;
+      bottom: 24px;
+      left: 20px;
+      width: 58px;
+      height: 138px;
+      object-fit: contain;
+      transform-origin: 46% 90%;
+      transform: rotate(0deg);
+      transition: transform 0.65s cubic-bezier(0.22, 1, 0.36, 1);
+    }
+
+    .tonearm-overlay.has-img .turntable-spindle,
+    .tonearm-overlay.has-img .turntable-base,
+    .tonearm-overlay.has-img .tonearm-stick {
+      display: none;
+    }
+    .tonearm-overlay.has-img .tonearm-custom-img {
+      display: block;
+    }
+
+    .tonearm-overlay.playing .tonearm-stick {
+      transform: rotate(38deg);
+    }
+    .tonearm-overlay.playing .tonearm-custom-img {
+      transform: rotate(22deg);
+    }
+
+    /* =========================================
+       우측 뮤직 컨트롤 카드 드로어 (재생 시 우측에서 슬라이딩)
+       ========================================= */
+    .track-drawer {
+      position: relative;
+      z-index: 15;
       width: 0;
       opacity: 0;
       overflow: hidden;
-      display: flex;
-      flex-direction: column;
-      justify-content: center;
-      gap: 16px;
-      flex-shrink: 0;
-      transition: width 0.75s cubic-bezier(0.22, 1, 0.36, 1),
-                  opacity 0.5s ease 0.15s,
-                  margin-left 0.75s cubic-bezier(0.22, 1, 0.36, 1);
       margin-left: 0;
+      transform: translateX(-16px);
+      pointer-events: none;
+      transition: width 0.75s cubic-bezier(0.22, 1, 0.36, 1),
+                  margin-left 0.75s cubic-bezier(0.22, 1, 0.36, 1),
+                  opacity 0.5s ease 0.1s,
+                  transform 0.75s cubic-bezier(0.22, 1, 0.36, 1);
     }
 
-    .player-card-box.playing-mode .player-control-right {
-      width: 380px;
+    .showcase-row.is-open .track-drawer {
+      width: 290px;
+      margin-left: -12px;
       opacity: 1;
-      margin-left: 36px;
+      transform: translateX(0);
+      pointer-events: auto;
+    }
+
+    .player-control-card {
+      width: 280px;
+      height: 145px;
+      background: #ffffff;
+      border: 1px solid #ececec;
+      border-radius: 18px;
+      box-shadow: 0 10px 28px rgba(0, 0, 0, 0.06);
+      padding: 22px 24px 20px 28px;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      position: relative;
+      margin-top: 20px;
+      transition: height 0.4s cubic-bezier(0.22, 1, 0.36, 1);
+      overflow: hidden;
+    }
+
+    .player-control-card.expanded {
+      height: 232px;
     }
 
     .ctrl-top-row {
       display: flex;
       justify-content: space-between;
       align-items: flex-start;
-      gap: 12px;
+      gap: 8px;
     }
 
     .ctrl-meta {
@@ -328,29 +475,28 @@
     }
 
     .ctrl-title {
-      font-size: 1.2rem;
+      font-size: 1.05rem;
       font-weight: 600;
       color: var(--text-main);
       white-space: nowrap;
       overflow: hidden;
       text-overflow: ellipsis;
-      margin-bottom: 4px;
-      letter-spacing: 0.04em;
+      margin-bottom: 3px;
     }
 
     .ctrl-sub {
-      font-size: 0.82rem;
+      font-size: 0.8rem;
       color: var(--text-sub);
-      letter-spacing: 0.06em;
+      letter-spacing: 0.04em;
     }
 
     .ctrl-list-toggle {
       background: none;
       border: none;
       color: #b0b0b0;
-      font-size: 1.1rem;
+      font-size: 1rem;
       cursor: pointer;
-      padding: 4px;
+      padding: 2px 4px;
       transition: color 0.2s, transform 0.3s ease;
     }
     .ctrl-list-toggle:hover, .ctrl-list-toggle.active {
@@ -381,14 +527,14 @@
       display: flex;
       justify-content: space-between;
       align-items: center;
-      padding: 0 10px;
+      padding: 0 6px;
     }
 
     .ctrl-btn {
       background: none;
       border: 1.5px solid transparent;
-      width: 40px;
-      height: 40px;
+      width: 38px;
+      height: 38px;
       border-radius: 50%;
       display: flex;
       justify-content: center;
@@ -419,28 +565,23 @@
       display: flex;
       flex-direction: column;
       gap: 4px;
-      position: absolute;
-      top: 60px;
-      left: 215px;
-      right: 40px;
-      background: #ffffff;
       border-top: 1px solid transparent;
       padding-top: 0;
-      z-index: 30;
       transition: max-height 0.4s cubic-bezier(0.22, 1, 0.36, 1),
                   opacity 0.3s ease,
-                  padding 0.3s ease;
+                  padding 0.3s ease,
+                  border-color 0.3s ease;
     }
     .mini-track-popover.open {
-      max-height: 110px;
+      max-height: 90px;
       opacity: 1;
       border-top-color: #f0f0f0;
-      padding-top: 8px;
+      padding-top: 6px;
     }
     .mini-track-row {
-      font-size: 0.85rem;
+      font-size: 0.82rem;
       color: var(--text-sub);
-      padding: 6px 8px;
+      padding: 5px 8px;
       border-radius: 6px;
       cursor: pointer;
       white-space: nowrap;
@@ -473,7 +614,7 @@
     .detail-drawer.open {
       max-height: 5000px;
       opacity: 1;
-      margin-top: 40px;
+      margin-top: 24px;
       transform: translateY(0);
     }
 
@@ -552,7 +693,6 @@
       margin: 14px 0;
     }
 
-    /* 타래(Thread) 스레드 스타일 */
     .threads-container {
       display: flex;
       flex-direction: column;
@@ -837,35 +977,45 @@
       min-height: 18px;
     }
 
-    @media (max-width: 720px) {
+    @media (max-width: 640px) {
       .global-header { padding: 32px 16px 16px; }
       .global-header h1 { font-size: 2.15rem; }
       .main-container { padding: 12px 16px 80px; }
-      .showcase-row { min-height: auto; }
+      .showcase-row { min-height: 220px; }
 
-      .player-card-box {
-        width: 230px !important;
-        height: 230px !important;
-        padding: 0 !important;
-        flex-direction: column !important;
+      .player-stage {
+        width: 182px;
+        height: 215px;
       }
-      .player-card-box.playing-mode {
-        width: 100% !important;
-        max-width: 340px !important;
-        height: auto !important;
-        padding: 24px 20px !important;
-        gap: 20px !important;
+
+      .carousel-stage,
+      .turntable-box,
+      .tonearm-overlay {
+        transform-origin: top center;
       }
-      .player-control-right {
-        width: 100% !important;
-        margin-left: 0 !important;
+
+      .carousel-stage { transform: scale(0.78); }
+      .turntable-box { transform: scale(0.74); }
+      .turntable-box.visible { transform: scale(0.78); }
+      .tonearm-overlay { transform: scale(0.78); }
+
+      .showcase-row.is-open .track-drawer {
+        width: calc(100vw - 195px);
+        max-width: 230px;
+        margin-left: -10px;
       }
-      .mini-track-popover {
-        left: 20px !important;
-        right: 20px !important;
-        top: auto !important;
-        bottom: 100% !important;
+      .player-control-card {
+        width: 100%;
+        height: auto;
+        padding: 14px 14px 14px 20px;
+        gap: 10px;
+        margin-top: 15px;
       }
+      .player-control-card.expanded {
+        height: auto;
+      }
+      .ctrl-title { font-size: 0.95rem; }
+      .ctrl-btn { width: 32px; height: 32px; }
       .detail-drawer { max-width: 100%; }
       .image-frame { min-height: 240px; }
     }
@@ -892,16 +1042,23 @@
 
     <main class="main-container">
       <div class="showcase-row" id="showcaseRow">
-        <div class="player-card-box" id="playerCardBox">
-          <!-- 좌측: 3D 커버플로우 및 LP 스테이지 -->
-          <div class="player-stage">
-            <div class="carousel-stage" id="carouselStage" title="스크롤/스와이프로 카드 넘기기 · 클릭하여 재생">
-              <div class="stack-track" id="stackTrack"></div>
-            </div>
+        <div class="player-stage">
+          <div class="carousel-stage" id="carouselStage" title="스크롤/스와이프로 카드 넘기기 · 클릭하여 재생">
+            <div class="stack-track" id="stackTrack"></div>
           </div>
 
-          <!-- 우측: 음악 플레이어 컨트롤 패널 (클릭 시 확장) -->
-          <div class="player-control-right">
+          <div class="turntable-box" id="turntableBox" title="클릭하여 커버 덱으로 돌아가기"></div>
+
+          <div class="tonearm-overlay" id="tonearmOverlay">
+            <div class="turntable-spindle"></div>
+            <div class="tonearm-base"></div>
+            <div class="tonearm-stick"></div>
+            <img class="tonearm-custom-img" id="tonearmImg" src="" alt="tonearm" />
+          </div>
+        </div>
+
+        <aside class="track-drawer" id="trackDrawer">
+          <div class="player-control-card" id="playerControlCard">
             <div class="ctrl-top-row">
               <div class="ctrl-meta">
                 <div class="ctrl-title" id="ctrlTitle">TRACK TITLE</div>
@@ -928,7 +1085,7 @@
 
             <div class="mini-track-popover" id="miniTrackPopover"></div>
           </div>
-        </div>
+        </aside>
       </div>
 
       <section class="detail-drawer" id="detailDrawer">
@@ -1030,6 +1187,13 @@
     const GITHUB_USER = "by-Oblaat";
     const GITHUB_REPO = "by-Oblaat.github.io";
 
+    const CUSTOM_ASSETS = {
+      defaultCover: "",
+      vinylDisc: "",
+      turntable: "./player.png",
+      tonearm: "./tonearm.png"
+    };
+
     let allPosts = [];
     let filteredPosts = [];
     let slotElements = [];
@@ -1045,6 +1209,21 @@
 
     let editingIssueNumber = null;
     let preservedAssets = { cover: "", vinyl: "", bodyImg: "", order: "", threads: "" };
+
+    function applyCustomPlayerAssets() {
+      const turntableBox = document.getElementById('turntableBox');
+      const tonearmOverlay = document.getElementById('tonearmOverlay');
+      const tonearmImg = document.getElementById('tonearmImg');
+
+      if (CUSTOM_ASSETS.turntable) {
+        turntableBox.style.backgroundImage = `url("${CUSTOM_ASSETS.turntable}")`;
+        turntableBox.classList.add('has-img');
+      }
+      if (CUSTOM_ASSETS.tonearm) {
+        tonearmImg.src = CUSTOM_ASSETS.tonearm;
+        tonearmOverlay.classList.add('has-img');
+      }
+    }
 
     function formatYYMMDD(dateStr) {
       const d = new Date(dateStr);
@@ -1072,6 +1251,7 @@
     }
 
     async function fetchPosts() {
+      applyCustomPlayerAssets();
       try {
         const res = await fetch(`https://api.github.com/repos/${GITHUB_USER}/${GITHUB_REPO}/issues?state=open&per_page=100&_t=${Date.now()}`);
         const data = await res.json();
@@ -1140,8 +1320,8 @@
 
         const labelName = post.labels[0] ? post.labels[0].name.toUpperCase() : 'ARCHIVE';
         const date = formatYYMMDD(post.created_at);
-        const coverImgUrl = extractMetaUrl(post.body, 'cover', '');
-        const vinylImgUrl = extractMetaUrl(post.body, 'vinyl', '');
+        const coverImgUrl = extractMetaUrl(post.body, 'cover', CUSTOM_ASSETS.defaultCover);
+        const vinylImgUrl = extractMetaUrl(post.body, 'vinyl', CUSTOM_ASSETS.vinylDisc);
 
         const jacketClass = coverImgUrl ? 'lp-jacket has-img' : 'lp-jacket';
         const jacketStyle = coverImgUrl ? `style="background-image: url('${coverImgUrl}')"` : '';
@@ -1183,18 +1363,25 @@
       resetPlayerAnimation();
       isPlaying = true;
 
-      const cardBox = document.getElementById('playerCardBox');
+      const showcaseRow = document.getElementById('showcaseRow');
+      const turntable = document.getElementById('turntableBox');
+      const tonearm = document.getElementById('tonearmOverlay');
+      const stage = document.getElementById('carouselStage');
 
       slot.classList.add('on-player');
 
       const t1 = setTimeout(() => {
-        cardBox.classList.add('playing-mode');
+        turntable.classList.add('visible');
+        tonearm.classList.add('visible');
+        stage.classList.add('deck-up');
+        showcaseRow.classList.add('is-open');
         openTrackDetail(idx);
-      }, 200);
+      }, 220);
 
       const t2 = setTimeout(() => {
+        tonearm.classList.add('playing');
         slot.classList.add('spinning');
-      }, 650);
+      }, 740);
 
       playTimers.push(t1, t2);
     }
@@ -1206,17 +1393,26 @@
       isPlaying = false;
       isDiscPaused = false;
 
-      document.getElementById('playerCardBox').classList.remove('playing-mode');
+      document.getElementById('showcaseRow').classList.remove('is-open');
+      document.getElementById('turntableBox').classList.remove('visible');
+      document.getElementById('tonearmOverlay').classList.remove('visible', 'playing');
+      document.getElementById('carouselStage').classList.remove('deck-up');
       document.getElementById('detailDrawer').classList.remove('open');
       document.getElementById('imageSection').classList.remove('visible');
       document.getElementById('commentSection').classList.remove('visible');
       document.getElementById('miniTrackPopover').classList.remove('open');
       document.getElementById('ctrlListToggle').classList.remove('active');
+      document.getElementById('playerControlCard').classList.remove('expanded');
 
+      document.querySelectorAll('.mini-track-row').forEach(el => el.classList.remove('active'));
       slotElements.forEach(s => {
         s.classList.remove('on-player', 'spinning');
       });
     }
+
+    document.getElementById('turntableBox').onclick = () => {
+      if (isPlaying) resetPlayerAnimation();
+    };
 
     function startProgressSimulation() {
       clearInterval(progressTimer);
@@ -1230,13 +1426,16 @@
 
     function setDiscPlayState(playingState) {
       isDiscPaused = !playingState;
+      const tonearm = document.getElementById('tonearmOverlay');
       const activeSlot = slotElements[currentIndex];
       const icon = document.getElementById('playPauseIcon');
 
       if (playingState) {
+        tonearm.classList.add('playing');
         if (activeSlot) activeSlot.classList.add('spinning');
         if (icon) icon.innerHTML = `<path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/>`;
       } else {
+        tonearm.classList.remove('playing');
         if (activeSlot) activeSlot.classList.remove('spinning');
         if (icon) icon.innerHTML = `<path d="M8 5v14l11-7z"/>`;
       }
@@ -1272,9 +1471,11 @@
       e.stopPropagation();
       const toggleBtn = e.currentTarget;
       const popover = document.getElementById('miniTrackPopover');
+      const card = document.getElementById('playerControlCard');
 
       toggleBtn.classList.toggle('active');
       popover.classList.toggle('open');
+      card.classList.toggle('expanded');
     };
 
     function renderTrackList() {
@@ -1360,7 +1561,7 @@
         marked.setOptions({ breaks: true });
         document.getElementById('commentBody').innerHTML = marked.parse(textOnlyBody || '(작성된 코멘트가 없습니다.)');
 
-        // 타래(Threads) 파싱 및 렌더링
+        // 타래(Threads) 렌더링
         const threadsContainer = document.getElementById('threadsContainer');
         threadsContainer.innerHTML = '';
 
@@ -1401,9 +1602,9 @@
           slot.classList.remove('active', 'on-player', 'spinning');
           const sign = offset > 0 ? 1 : -1;
           const abs = Math.abs(offset);
-          const translateX = sign * (80 + abs * 26);
-          const translateZ = -40 - abs * 28;
-          const rotateY = -sign * 50;
+          const translateX = sign * (112 + abs * 34);
+          const translateZ = -55 - abs * 38;
+          const rotateY = -sign * 58;
 
           slot.style.transform = `translateX(${translateX}px) translateZ(${translateZ}px) rotateY(${rotateY}deg)`;
           slot.style.zIndex = Math.max(1, 25 - abs);

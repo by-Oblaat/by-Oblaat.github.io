@@ -6,7 +6,7 @@
   <title>Love the Loveless</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Gowun+Batang&family=Playwrite+AU+SA+Guides&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Gowun+Batang&family=Monsieur+La+Doulaise&display=swap" rel="stylesheet">
   <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
   <style>
     :root {
@@ -36,7 +36,7 @@
     }
 
     /* =========================================
-       [상단 헤더] Love the Loveless (Playwrite AU SA Guides 폰트 적용)
+       [상단 헤더] Love the Loveless (Monsieur La Doulaise)
        ========================================= */
     .global-header {
       width: 100%;
@@ -46,10 +46,10 @@
       z-index: 50;
     }
     .global-header h1 {
-      font-family: "Playwrite AU SA Guides", cursive;
+      font-family: 'Monsieur La Doulaise', cursive;
       font-weight: 400;
-      font-size: 2.2rem;
-      letter-spacing: 0.02em;
+      font-size: 2.8rem;
+      letter-spacing: 0.04em;
       margin-bottom: 14px;
       color: var(--text-main);
       cursor: pointer;
@@ -417,7 +417,7 @@
     }
 
     /* =========================================
-       우측 뮤직 컨트롤 카드 드로어 (아코디언 슬라이딩 적용)
+       우측 뮤직 컨트롤 카드 드로어
        ========================================= */
     .track-drawer {
       position: relative;
@@ -1232,6 +1232,11 @@
         bindFilterButtons();
         rebuildAll();
         renderManageList();
+
+        // 모바일/웹 새로고침 직후 3D 회전 위치 강제 동기화 안전장치
+        setTimeout(() => {
+          updateCarouselPositions();
+        }, 100);
       } catch (err) {
         console.error(err);
       }

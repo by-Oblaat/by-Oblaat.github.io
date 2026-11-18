@@ -958,14 +958,12 @@
       min-height: 18px;
     }
 
-    /* 모바일 반응형: 모바일 화면에서도 턴테이블과 뮤직 플레이어가 좌우로 나란히 들어가도록 스케일 고정 */
     @media (max-width: 680px) {
       .global-header { padding: 28px 12px 14px; }
       .global-header h1 { font-size: 2rem; }
       .main-container { padding: 10px 12px 60px; }
       .showcase-row { min-height: 200px; }
 
-      /* 모바일에서도 절대 줄바꿈되지 않고 나란히 들어가도록 강제 고정 */
       .player-active-row {
         flex-direction: row !important;
         gap: 6px !important;
@@ -1048,7 +1046,7 @@
           </div>
         </div>
 
-        <!-- 2. 재생 상태: 모바일/PC 모두 턴테이블과 뮤직 플레이어가 나란히 배치 -->
+        <!-- 2. 재생 상태: 턴테이블과 뮤직 플레이어가 나란히 배치 -->
         <div class="player-active-row" id="playerActiveRow">
           <div class="active-turntable-stage" id="turntableTriggerBox" title="클릭하여 커버 덱으로 돌아가기">
             <div class="turntable-box" id="turntableBox"></div>
@@ -1061,7 +1059,7 @@
             </div>
           </div>
 
-          <aside class="track-drawer" style="width: 280px; opacity: 1; pointer-events: auto;">
+          <aside class="track-drawer" style="width: 270px; opacity: 1; pointer-events: auto;">
             <div class="player-control-card" id="playerControlCard">
               <div class="ctrl-top-row">
                 <div class="ctrl-meta">
@@ -1600,14 +1598,15 @@
           commentBody.innerHTML = '';
         }
 
-        // 타래 렌더링 (threads: 접두어 및 원치 않는 텍스트 완벽 차단)
+        // 타래 렌더링 (렌더링 직전 'threads:' 텍스트 완벽 차단 처리)
         const threadsContainer = document.getElementById('threadsContainer');
         threadsContainer.innerHTML = '';
 
         if (threadPart.trim()) {
           const blocks = threadPart.trim().split(/^---\s*$/gm).map(b => b.trim()).filter(Boolean);
           blocks.forEach(block => {
-            const cleanBlock = block.replace(/^threads:\s*/i, '').trim();
+            // "threads:" 키워드가 맨 앞에 있거나 포함되어 있으면 빈 문자열로 대체하여 원천 제거
+            const cleanBlock = block.replace(/^threads:\s*/i, '').replace(/threads:/gi, '').trim();
             if (!cleanBlock) return;
 
             const itemEl = document.createElement('div');
@@ -1660,7 +1659,8 @@
         } else {
           existingBody += '\n---\n';
         }
-        existingBody += threadText;
+        // 저장할 때도 'threads:' 텍스트가 붙지 않도록 순수 텍스트만 추가
+        existingBody += threadText.replace(/^threads:\s*/i, '');
 
         const res = await fetch(`https://api.github.com/repos/${GITHUB_USER}/${GITHUB_REPO}/issues/${currentPost.number}`, {
           method: 'PATCH',

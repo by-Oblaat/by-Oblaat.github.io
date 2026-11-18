@@ -35,6 +35,20 @@
       overflow-x: hidden;
     }
 
+    /* 이미지 및 커버 우클릭/드래그 차단 */
+    img, .lp-jacket, .vinyl-disc, .turntable-box {
+      -webkit-user-drag: none;
+      -khtml-user-drag: none;
+      -moz-user-drag: none;
+      -o-user-drag: none;
+      user-drag: none;
+      pointer-events: none;
+    }
+
+    .lp-slot, .carousel-stage, .ctrl-buttons, .player-control-right, .global-header, .writer-overlay {
+      pointer-events: auto;
+    }
+
     /* =========================================
        [상단 헤더] Love the Loveless (Monsieur La Doulaise)
        ========================================= */
@@ -94,7 +108,7 @@
       width: 100%;
       display: flex;
       justify-content: center;
-      align-items: flex-start;
+      align-items: flex-start; /* 상단 라인 기준 정렬로 수정하여 위로 치우치는 현상 원천 차단 */
       min-height: 290px;
       position: relative;
     }
@@ -378,7 +392,7 @@
     }
 
     /* =========================================
-       우측 뮤직 컨트롤 카드 드로어
+       우측 뮤직 컨트롤 카드 드로어 (마진 제거하여 턴테이블 본체와 상단 수평 일치)
        ========================================= */
     .track-drawer {
       position: relative;
@@ -415,7 +429,7 @@
       flex-direction: column;
       justify-content: space-between;
       position: relative;
-      margin-top: 0;
+      margin-top: 20px; /* 턴테이블 상단 여백(top: 20px)과 정확히 수평 일치 */
       transition: height 0.4s cubic-bezier(0.22, 1, 0.36, 1);
       overflow: hidden;
     }
@@ -519,6 +533,7 @@
       fill: currentColor;
     }
 
+    /* 트랙 목록: 히든 스크롤 적용으로 글자 잘림 방지 */
     .mini-track-popover {
       max-height: 0;
       opacity: 0;
@@ -689,7 +704,6 @@
     .thread-body p { margin-bottom: 1em; }
     .thread-body img { max-width: 100%; margin: 10px 0; }
 
-    /* 타래글 작성 폼 스타일 */
     .thread-write-box {
       margin-top: 28px;
       border: 1px solid #e5e5e5;
@@ -1010,7 +1024,7 @@
         height: auto;
         padding: 14px 14px 14px 20px;
         gap: 10px;
-        margin-top: 0;
+        margin-top: 20px;
       }
       .player-control-card.expanded {
         height: auto;
@@ -1104,10 +1118,9 @@
               COMMENT <span id="activePostTitle"></span>
             </div>
             <div class="comment-body" id="commentBody"></div>
-            
             <div class="threads-container" id="threadsContainer"></div>
 
-            <!-- 타래글을 해당 트랙 하단에서 바로 추가할 수 있는 작성 박스 -->
+            <!-- 타래글 작성 박스 -->
             <div class="thread-write-box" id="threadWriteBox" style="display:none;">
               <textarea id="newThreadInput" placeholder="타래글을 작성하세요... (이미지 첨부 가능)"></textarea>
               <div class="thread-write-footer">
@@ -1547,31 +1560,14 @@
 
       setTimeout(() => {
         const fullBody = post.body || '';
-        const lines = fullBody.split('\n');
-        
-        let metaLines = [];
-        let commentLines = [];
-        let threadLines = [];
-        let mode = 'comment';
+        const parts = fullBody.split('---threads---');
+        let commentPart = parts[0] || '';
+        let threadPart = parts[1] || '';
 
-        for (let line of lines) {
-          if (line.trim().startsWith('cover:') || line.trim().startsWith('vinyl:') || line.trim().startsWith('order:')) {
-            metaLines.push(line);
-            continue;
-          }
-          if (line.trim() === '---threads---') {
-            mode = 'threads';
-            continue;
-          }
-          if (mode === 'comment') {
-            commentLines.push(line);
-          } else {
-            threadLines.push(line);
-          }
-        }
-
-        const cleanComment = commentLines.join('\n')
-          .replace(/^(cover|vinyl|order):\s*.+$/gim, '')
+        const cleanComment = commentPart
+          .replace(/^cover:\s*.+$/gim, '')
+          .replace(/^vinyl:\s*.+$/gim, '')
+          .replace(/^order:\s*.+$/gim, '')
           .trim();
 
         const mdImgMatch = cleanComment.match(/!\[.*?\]\((.*?)\)/);
@@ -1606,9 +1602,8 @@
         const threadsContainer = document.getElementById('threadsContainer');
         threadsContainer.innerHTML = '';
 
-        const rawThreadsText = threadLines.join('\n').trim();
-        if (rawThreadsText) {
-          const blocks = rawThreadsText.split(/^---\s*$/gm).map(b => b.trim()).filter(Boolean);
+        if (threadPart.trim()) {
+          const blocks = threadPart.trim().split(/^---\s*$/gm).map(b => b.trim()).filter(Boolean);
           blocks.forEach(block => {
             const itemEl = document.createElement('div');
             itemEl.className = 'thread-item';
@@ -1621,7 +1616,6 @@
           });
         }
 
-        // 타래 작성 박스 활성화 (토큰이 있을 때만 노출 또는 항상 노출 후 제출 시 체크)
         document.getElementById('threadWriteBox').style.display = 'flex';
 
         imageSection.classList.add('visible');
@@ -1637,7 +1631,7 @@
       const threadText = threadInput.value.trim();
 
       if (!token) {
-        statusEl.textContent = '타래를 작성하려면 상단 관리창 또는 토큰을 먼저 입력해 주세요.';
+        statusEl.textContent = '타래를 작성하려면 상단 관리창에 GitHub Token을 먼저 입력해 주세요.';
         return;
       }
       if (!threadText) {
@@ -2109,7 +2103,6 @@
           finalBodyParts.push(rawBody);
         }
 
-        // 수정 시 기존 타래(threads) 내용 보존
         if (editingIssueNumber !== null) {
           const oldPost = allPosts.find(p => p.number === editingIssueNumber);
           if (oldPost && oldPost.body && oldPost.body.includes('---threads---')) {

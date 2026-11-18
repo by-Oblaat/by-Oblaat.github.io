@@ -4,24 +4,11 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
   <title>Love the Loveless</title>
-  <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+KR:wght@400;600&family=Pretendard:wght@300;400;500;600&display=swap" rel="stylesheet">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Gowun+Batang&family=Special+Elite&display=swap" rel="stylesheet">
   <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
   <style>
-    @font-face {
-      font-family: 'Stella';
-      src: url('https://cdn.jsdelivr.net/gh/Project-Noonnu/2608201622@stellar-serif/stellar-serif/Stellar_Serif_Bold_Condensed.woff2') format('woff2');
-      font-weight: 400;
-      font-display: swap;
-      font-stretch: 75%;
-    }
-
-    @font-face {
-      font-family: 'Cafe24Gowoonbam';
-      src: url('https://cdn.jsdelivr.net/gh/projectnoonnu/noonfonts_twelve@1.1/Cafe24Oneprettynight.woff') format('woff');
-      font-weight: normal;
-      font-display: swap;
-    }
-
     :root {
       --bg-color: #ffffff;
       --line-blue: #6b9eff;
@@ -38,7 +25,7 @@
       overflow-x: hidden;
       background-color: var(--bg-color);
       color: var(--text-main);
-      font-family: 'Cafe24Gowoonbam', sans-serif;
+      font-family: 'Gowun Batang', serif;
       min-height: 100vh;
     }
 
@@ -49,7 +36,7 @@
     }
 
     /* =========================================
-       [상단 헤더] Love the Loveless (Stella 장체 유지)
+       [상단 헤더] Love the Loveless (Google Fonts 빈티지/익스프레시브)
        ========================================= */
     .global-header {
       width: 100%;
@@ -59,11 +46,10 @@
       z-index: 50;
     }
     .global-header h1 {
-      font-family: 'Stella', serif;
-      font-stretch: 75%;
+      font-family: 'Special Elite', cursive, serif;
       font-weight: 400;
-      font-size: 2.6rem;
-      letter-spacing: 0.14em;
+      font-size: 2.5rem;
+      letter-spacing: 0.08em;
       margin-bottom: 14px;
       color: var(--text-main);
       cursor: pointer;
@@ -84,7 +70,7 @@
       cursor: pointer;
       transition: 0.2s;
       letter-spacing: 0.06em;
-      font-family: 'Cafe24Gowoonbam', sans-serif;
+      font-family: 'Gowun Batang', serif;
     }
     .filter-btn.active, .filter-btn:hover {
       border-color: var(--text-main);
@@ -108,7 +94,7 @@
       width: 100%;
       display: flex;
       justify-content: center;
-      align-items: flex-start; /* 플레이어 상단 기준으로 정렬하여 바닥선 일치 */
+      align-items: center;
       min-height: 290px;
       position: relative;
     }
@@ -415,7 +401,7 @@
     }
 
     .tonearm-overlay.has-img .turntable-spindle,
-    .tonearm-overlay.has-img .tonearm-base,
+    .tonearm-overlay.has-img .turntable-base,
     .tonearm-overlay.has-img .tonearm-stick {
       display: none;
     }
@@ -431,7 +417,7 @@
     }
 
     /* =========================================
-       우측 뮤직 컨트롤 카드 드로어 (플레이어 세로 길이 맞춤)
+       우측 뮤직 컨트롤 카드 드로어
        ========================================= */
     .track-drawer {
       position: relative;
@@ -458,7 +444,7 @@
 
     .player-control-card {
       width: 280px;
-      height: 232px; /* 플레이어 본체(232px)와 세로 길이 완벽 일치 */
+      height: 232px;
       background: #ffffff;
       border: 1px solid #ececec;
       border-radius: 18px;
@@ -466,9 +452,9 @@
       padding: 22px 24px 20px 28px;
       display: flex;
       flex-direction: column;
-      justify-content: space-between; /* 상중하 요소를 세로 공간에 균등 배치 */
+      justify-content: space-between;
       position: relative;
-      margin-top: 20px; /* 플레이어 상단 마진(20px)과 높이 수평 일치 */
+      margin-top: 20px;
     }
 
     .ctrl-top-row {
@@ -760,7 +746,7 @@
       color: var(--text-sub);
       cursor: pointer;
       transition: 0.2s;
-      font-family: 'Cafe24Gowoonbam', sans-serif;
+      font-family: 'Gowun Batang', serif;
     }
     .admin-tab.active {
       color: var(--text-main);
@@ -782,7 +768,7 @@
       width: 100%;
       border: 1px solid #dcdcdc;
       padding: 10px 12px;
-      font-family: 'Cafe24Gowoonbam', sans-serif;
+      font-family: 'Gowun Batang', serif;
       font-size: 0.95rem;
       outline: none;
       transition: border-color 0.2s;
@@ -807,7 +793,7 @@
       font-size: 0.85rem;
       cursor: pointer;
       color: var(--text-sub);
-      font-family: 'Cafe24Gowoonbam', sans-serif;
+      font-family: 'Gowun Batang', serif;
     }
     .cat-option.selected {
       border-color: var(--line-orange);
@@ -835,7 +821,7 @@
       padding: 2px 8px;
       font-size: 0.75rem;
       cursor: pointer;
-      font-family: 'Cafe24Gowoonbam', sans-serif;
+      font-family: 'Gowun Batang', serif;
     }
 
     .existing-asset-note {
@@ -890,7 +876,7 @@
       background: #fff;
       cursor: pointer;
       color: var(--text-sub);
-      font-family: 'Cafe24Gowoonbam', sans-serif;
+      font-family: 'Gowun Batang', serif;
     }
     .btn-order:hover:not(:disabled) {
       border-color: var(--text-main);
@@ -907,7 +893,7 @@
       background: #fff;
       cursor: pointer;
       transition: 0.2s;
-      font-family: 'Cafe24Gowoonbam', sans-serif;
+      font-family: 'Gowun Batang', serif;
     }
     .btn-edit:hover {
       border-color: var(--line-blue);
@@ -937,7 +923,7 @@
       cursor: pointer;
       margin-top: 4px;
       transition: opacity 0.2s;
-      font-family: 'Cafe24Gowoonbam', sans-serif;
+      font-family: 'Gowun Batang', serif;
     }
     .writer-submit:disabled {
       opacity: 0.45;
@@ -1014,8 +1000,8 @@
 
           <div class="tonearm-overlay" id="tonearmOverlay">
             <div class="turntable-spindle"></div>
-            <div class="tonearm-base"></div>
-            <div class="tonearm-stick"></div>
+            <div class="turntable-base"></div>
+            <div class="turntable-stick"></div>
             <img class="tonearm-custom-img" id="tonearmImg" src="" alt="tonearm" />
           </div>
         </div>

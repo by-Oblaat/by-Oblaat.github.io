@@ -124,7 +124,6 @@
       transition: transform 0.75s cubic-bezier(0.22, 1, 0.36, 1);
     }
 
-    /* 모바일에서도 턴테이블 우측에 나란히 오도록 flex-direction: row 유지 */
     .player-active-row {
       display: none;
       align-items: center;
@@ -959,7 +958,7 @@
       min-height: 18px;
     }
 
-    /* 모바일 반응형: 화면이 좁을 때 턴테이블과 컨트롤 카드가 좌우로 나란히 들어가도록 스케일 조정 */
+    /* 모바일 반응형: 모바일 화면에서도 턴테이블과 뮤직 플레이어가 좌우로 나란히 들어가도록 스케일 고정 */
     @media (max-width: 680px) {
       .global-header { padding: 32px 16px 16px; }
       .global-header h1 { font-size: 2.15rem; }
@@ -967,9 +966,9 @@
       .showcase-row { min-height: 220px; }
 
       .player-active-row {
-        flex-direction: row !important; /* 모바일에서도 나란히 유지 */
-        gap: 8px !important;
-        transform: scale(0.85); /* 전체 크기를 살짝 축소하여 화면 이탈 방지 */
+        flex-direction: row !important;
+        gap: 6px !important;
+        transform: scale(0.78);
         transform-origin: center;
       }
       .player-stage {
@@ -1003,14 +1002,14 @@
       .player-control-card {
         width: 175px;
         height: 175px;
-        padding: 14px;
+        padding: 12px;
       }
       .player-control-card.expanded {
         height: 175px;
       }
-      .ctrl-title { font-size: 0.85rem; }
-      .ctrl-btn { width: 30px; height: 30px; }
-      .ctrl-btn svg { width: 12px; height: 12px; }
+      .ctrl-title { font-size: 0.8rem; }
+      .ctrl-btn { width: 28px; height: 28px; }
+      .ctrl-btn svg { width: 11px; height: 11px; }
       .detail-drawer { max-width: 100%; }
       .image-frame { min-height: 240px; }
     }
@@ -1046,7 +1045,7 @@
           </div>
         </div>
 
-        <!-- 2. 재생 상태: 턴테이블과 뮤직 플레이어가 모바일에서도 나란히 배치 -->
+        <!-- 2. 재생 상태: 모바일/PC 모두 턴테이블과 뮤직 플레이어가 나란히 배치 -->
         <div class="player-active-row" id="playerActiveRow">
           <div class="active-turntable-stage" id="turntableTriggerBox" title="클릭하여 커버 덱으로 돌아가기">
             <div class="turntable-box" id="turntableBox"></div>
@@ -1598,7 +1597,7 @@
           commentBody.innerHTML = '';
         }
 
-        // 타래 렌더링
+        // 타래 렌더링 (threads: 접두어 및 원치 않는 텍스트 완벽 차단)
         const threadsContainer = document.getElementById('threadsContainer');
         threadsContainer.innerHTML = '';
 

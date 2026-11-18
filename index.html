@@ -226,7 +226,7 @@
     // 깃허브 이슈 불러오기
     async function fetchPosts() {
       try {
-        const res = await fetch(`https://api.github.com/repos/${GITHUB_USER}/${GITHUB_REPO}/issues?state=open&per_page=100`);
+        const res = await fetch(`https://api.github.com/repos/${Oblaat-Oblate}/${Oblaat.github.io}/issues?state=open&per_page=100`);
         const data = await res.json();
         // Pull Request 제외하고 순수 이슈만 필터링
         allPosts = data.filter(item => !item.pull_request);

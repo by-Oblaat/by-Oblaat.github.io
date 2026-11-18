@@ -124,7 +124,6 @@
       transition: transform 0.75s cubic-bezier(0.22, 1, 0.36, 1);
     }
 
-    /* 재생 상태: 기본은 가로 나란히 배치 */
     .player-active-row {
       display: none;
       width: 100%;
@@ -502,7 +501,7 @@
       fill: currentColor;
     }
 
-    /* 트랙 목록: 글자 잘림 방지용 스크롤바 */
+    /* 트랙 목록: 명확한 스크롤바 활성화 및 글자 잘림 방지 */
     .mini-track-popover {
       max-height: 0;
       opacity: 0;
@@ -525,7 +524,7 @@
       border-radius: 99px;
     }
     .mini-track-popover.open {
-      max-height: 110px;
+      max-height: 110px !important;
       opacity: 1;
       border-top-color: #f0f0f0;
       padding-top: 6px;
@@ -963,7 +962,6 @@
       min-height: 18px;
     }
 
-    /* 모바일 반응형: 화면 가로 폭에 딱 맞게 꽉 차도록 최적화된 유연한 가로 배치 */
     @media (max-width: 680px) {
       .global-header { padding: 24px 12px 12px; }
       .global-header h1 { font-size: 1.9rem; }
@@ -1297,7 +1295,6 @@
         rebuildAll();
         renderManageList();
 
-        // 모바일/웹 폰트 및 이미지 로딩 완료 직후 3D 위치 강제 동기화 (새로고침 시 평평하게 깨지는 현상 방지)
         const forceSync3D = () => {
           updateCarouselPositions();
         };
@@ -1612,14 +1609,14 @@
           commentBody.innerHTML = '';
         }
 
-        // 타래 렌더링
+        // 타래 렌더링 (정규식을 통해 'threads:' 키워드 완전 필터링)
         const threadsContainer = document.getElementById('threadsContainer');
         threadsContainer.innerHTML = '';
 
         if (threadPart.trim()) {
           const blocks = threadPart.trim().split(/^---\s*$/gm).map(b => b.trim()).filter(Boolean);
           blocks.forEach(block => {
-            const cleanBlock = block.replace(/^threads:\s*/i, '').replace(/threads:/gi, '').trim();
+            const cleanBlock = block.replace(/^(?:threads:)?\s*/gi, '').replace(/threads:/gi, '').trim();
             if (!cleanBlock) return;
 
             const itemEl = document.createElement('div');
@@ -1672,7 +1669,7 @@
         } else {
           existingBody += '\n---\n';
         }
-        existingBody += threadText.replace(/^threads:\s*/i, '');
+        existingBody += threadText.replace(/^(?:threads:)?\s*/gi, '');
 
         const res = await fetch(`https://api.github.com/repos/${GITHUB_USER}/${GITHUB_REPO}/issues/${currentPost.number}`, {
           method: 'PATCH',

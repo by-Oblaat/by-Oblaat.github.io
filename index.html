@@ -3,129 +3,219 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>ARCHIVE</title>
-  <!-- 웹폰트: 본문용 명조 + UI용 산세리프 -->
-  <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+KR:wght@400;600&family=Pretendard:wght@400;600&display=swap" rel="stylesheet">
-  <!-- 마크다운 변환기 (이슈에 쓴 볼드, 인용구 등을 예쁘게 변환) -->
+  <title>ARCHIVES</title>
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+KR:wght@400;600&family=Pretendard:wght@300;500;600&display=swap" rel="stylesheet">
   <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
   <style>
     :root {
-      --bg-color: #f9f8f6;
-      --card-bg: #ffffff;
-      --text-main: #222222;
+      --bg-color: #ffffff;
+      --line-blue: #6b9eff;     /* 스케치의 LP 커버 도형 선 색 */
+      --line-orange: #ff6b4a;   /* 스케치의 LP판 도형 선 색 */
+      --text-main: #1a1a1a;
       --text-sub: #777777;
-      --border-color: #e4e2dd;
-      --accent-color: #4a4e69;
     }
 
-    
     * { box-sizing: border-box; margin: 0; padding: 0; }
     body {
       background-color: var(--bg-color);
       color: var(--text-main);
       font-family: 'Pretendard', sans-serif;
-      line-height: 1.7;
-      padding: 40px 20px;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      overflow-x: hidden;
+      padding: 48px 16px 80px;
     }
 
-    .container {
-      max-width: 720px;
-      margin: 0 auto;
-    }
-
-    /* 헤더 영역 */
+    /* 1. 상단 타이틀 */
     header {
       text-align: center;
-      padding-bottom: 30px;
-      border-bottom: 1px dashed var(--border-color);
-      margin-bottom: 24px;
+      margin-bottom: 36px;
+      z-index: 20;
     }
     header h1 {
-      font-family: 'Noto Serif KR', serif;
-      font-size: 1.6rem;
-      letter-spacing: 0.1em;
-      margin-bottom: 8px;
-    }
-    header p {
-      font-size: 0.85rem;
-      color: var(--text-sub);
+      font-weight: 300;
+      font-size: 2.4rem;
+      letter-spacing: 0.14em;
+      color: var(--text-main);
     }
 
-    /* 카테고리(라벨) 필터 버튼 */
+    /* 카테고리 필터 (미니멀 도형 버튼) */
     .filter-bar {
       display: flex;
       flex-wrap: wrap;
       gap: 8px;
       justify-content: center;
-      margin-bottom: 28px;
+      margin-top: 14px;
     }
     .filter-btn {
       background: transparent;
-      border: 1px solid var(--border-color);
-      padding: 5px 14px;
-      border-radius: 20px;
-      font-size: 0.8rem;
+      border: 1px solid #ddd;
+      padding: 4px 12px;
+      border-radius: 99px;
+      font-size: 0.78rem;
       color: var(--text-sub);
       cursor: pointer;
       transition: 0.2s;
     }
     .filter-btn.active, .filter-btn:hover {
-      background: var(--accent-color);
-      color: #fff;
-      border-color: var(--accent-color);
+      border-color: var(--text-main);
+      color: var(--text-main);
     }
 
-    /* 게시글 목록 */
-    .post-list {
+    /* 2. 3D 커버플로우 + 슬라이딩 LP 스테이지 */
+    .stage {
+      position: relative;
+      width: 100%;
+      max-width: 960px;
+      height: 460px;
+      display: flex;
+      justify-content: center;
+      align-items: flex-start;
+      padding-top: 10px;
+      perspective: 1100px; /* 3D 원근감 깊이 */
+      user-select: none;
+    }
+
+    .carousel-track {
+      position: relative;
+      width: 280px;
+      height: 280px;
+      transform-style: preserve-3d;
+    }
+
+    /* 개별 LP 커버 도형 */
+    .lp-card {
+      position: absolute;
+      inset: 0;
+      width: 280px;
+      height: 280px;
+      background: rgba(255, 255, 255, 0.94);
+      border: 1.5px solid var(--line-blue);
       display: flex;
       flex-direction: column;
-      gap: 12px;
-    }
-    .post-item {
-      background: var(--card-bg);
-      border: 1px solid var(--border-color);
-      padding: 18px 22px;
-      border-radius: 6px;
+      justify-content: center;
+      align-items: center;
+      text-align: center;
+      padding: 24px;
       cursor: pointer;
-      transition: transform 0.15s, box-shadow 0.15s;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      gap: 12px;
-    }
-    .post-item:hover {
-      transform: translateY(-2px);
-      box-shadow: 0 4px 12px rgba(0,0,0,0.04);
-    }
-    .post-title {
-      font-family: 'Noto Serif KR', serif;
-      font-size: 1.05rem;
-      font-weight: 600;
-    }
-    .post-meta {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      flex-shrink: 0;
-    }
-    .label-tag {
-      font-size: 0.72rem;
-      padding: 2px 8px;
-      border-radius: 4px;
-      background: #efede8;
-      color: #555;
-    }
-    .post-date {
-      font-size: 0.78rem;
-      color: var(--text-sub);
+      transition: transform 0.55s cubic-bezier(0.22, 1, 0.36, 1), opacity 0.4s, box-shadow 0.4s;
+      backface-visibility: hidden;
     }
 
-    /* 본문 모달(팝업) 창 */
+    .lp-card.active {
+      box-shadow: 0 12px 32px rgba(107, 158, 255, 0.14);
+      z-index: 10;
+    }
+
+    .lp-card-label {
+      font-size: 0.72rem;
+      color: var(--line-blue);
+      letter-spacing: 0.08em;
+      margin-bottom: 10px;
+      border: 1px solid var(--line-blue);
+      padding: 2px 8px;
+    }
+
+    .lp-card-title {
+      font-family: 'Noto Serif KR', serif;
+      font-size: 1.15rem;
+      font-weight: 600;
+      color: var(--text-main);
+      word-break: keep-all;
+      line-height: 1.45;
+    }
+
+    .lp-card-date {
+      font-size: 0.75rem;
+      color: var(--text-sub);
+      margin-top: 12px;
+    }
+
+    /* 3. 중앙 커버 아래로 겹쳐진 원형 LP판 도형 */
+    .vinyl-disc {
+      position: absolute;
+      top: 145px; /* 커버 하단 절반과 겹치도록 배치 */
+      left: 50%;
+      width: 256px;
+      height: 256px;
+      margin-left: -128px;
+      border-radius: 50%;
+      border: 1.5px solid var(--line-orange);
+      background: rgba(255, 255, 255, 0.85);
+      backdrop-filter: blur(2px);
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      cursor: pointer;
+      z-index: 15;
+      transition: transform 0.55s cubic-bezier(0.22, 1, 0.36, 1), background 0.3s;
+    }
+
+    /* LP 중앙 라벨 홀 도형 */
+    .vinyl-disc::before {
+      content: "";
+      position: absolute;
+      width: 74px;
+      height: 74px;
+      border-radius: 50%;
+      border: 1px dashed var(--line-orange);
+      opacity: 0.55;
+      pointer-events: none;
+    }
+
+    /* 마우스 올리거나 클릭 시 아래로 슬라이딩 */
+    .vinyl-disc:hover {
+      transform: translateY(22px);
+    }
+    .vinyl-disc.sliding-out {
+      transform: translateY(135px) rotate(90deg);
+    }
+
+    .sliding-guide {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      color: var(--line-orange);
+      font-size: 0.85rem;
+      font-weight: 500;
+      letter-spacing: 0.12em;
+      margin-top: 28px;
+      pointer-events: none;
+    }
+
+    /* 좌우 컨트롤 보조 안내 */
+    .nav-hint {
+      margin-top: 30px;
+      display: flex;
+      gap: 20px;
+      align-items: center;
+      font-size: 0.8rem;
+      color: var(--text-sub);
+    }
+    .nav-btn {
+      background: none;
+      border: 1px solid #ddd;
+      width: 34px;
+      height: 34px;
+      border-radius: 50%;
+      cursor: pointer;
+      color: var(--text-main);
+      transition: 0.2s;
+    }
+    .nav-btn:hover {
+      border-color: var(--line-blue);
+      color: var(--line-blue);
+    }
+
+    /* 4. 글 본문 모달(팝업) */
     .modal-overlay {
       display: none;
       position: fixed;
       inset: 0;
-      background: rgba(0,0,0,0.45);
+      background: rgba(0, 0, 0, 0.4);
       z-index: 100;
       justify-content: center;
       align-items: center;
@@ -133,39 +223,36 @@
     }
     .modal-overlay.open { display: flex; }
     .modal-content {
-      background: var(--card-bg);
+      background: #fff;
       width: 100%;
-      max-width: 720px;
-      max-height: 85vh;
+      max-width: 680px;
+      max-height: 82vh;
       overflow-y: auto;
       padding: 36px 32px;
-      border-radius: 8px;
+      border: 1.5px solid var(--line-blue);
       position: relative;
-      box-shadow: 0 10px 30px rgba(0,0,0,0.15);
     }
     .close-btn {
       position: sticky;
       top: 0;
       float: right;
-      background: #eee;
-      border: none;
+      background: #fff;
+      border: 1px solid #ccc;
       width: 32px;
       height: 32px;
       border-radius: 50%;
       cursor: pointer;
-      font-size: 1rem;
     }
     .modal-header {
-      border-bottom: 1px solid var(--border-color);
+      border-bottom: 1px dashed #ddd;
       padding-bottom: 16px;
       margin-bottom: 24px;
     }
     .modal-header h2 {
       font-family: 'Noto Serif KR', serif;
-      font-size: 1.4rem;
-      margin-bottom: 8px;
+      font-size: 1.35rem;
+      margin-bottom: 6px;
     }
-    /* 연성 본문 스타일 */
     .modal-body {
       font-family: 'Noto Serif KR', serif;
       font-size: 0.98rem;
@@ -174,35 +261,43 @@
     }
     .modal-body p { margin-bottom: 1.2em; }
     .modal-body blockquote {
-      border-left: 3px solid var(--accent-color);
+      border-left: 2px solid var(--line-orange);
       padding-left: 14px;
       color: var(--text-sub);
       margin: 16px 0;
     }
-    .modal-body img {
-      max-width: 100%;
-      border-radius: 4px;
-      margin: 16px 0;
+
+    /* 모바일 대응 */
+    @media (max-width: 600px) {
+      .carousel-track, .lp-card { width: 220px; height: 220px; }
+      .vinyl-disc { width: 200px; height: 200px; margin-left: -100px; top: 115px; }
+      .stage { height: 390px; }
     }
   </style>
 </head>
 <body>
 
-  <div class="container">
-    <header>
-      <h1>ARCHIVES</h1>
-      <p>썰 및 연성 백업 공간</p>
-    </header>
-
-    <!-- 카테고리 버튼 자동 생성 영역 -->
+  <header>
+    <h1>ARCHIVES</h1>
     <div class="filter-bar" id="filterBar">
-      <button class="filter-btn active" data-label="ALL">전체</button>
+      <button class="filter-btn active" data-label="ALL">ALL</button>
     </div>
+  </header>
 
-    <!-- 글 목록 출력 영역 -->
-    <div class="post-list" id="postList">
-      <p style="text-align:center; color:#888;">기록을 불러오는 중...</p>
+  <div class="stage">
+    <!-- 좌우로 펼쳐지는 3D LP 커버들 -->
+    <div class="carousel-track" id="carouselTrack"></div>
+
+    <!-- 하단에 겹쳐져 아래로 슬라이딩되는 원형 LP판 -->
+    <div class="vinyl-disc" id="vinylDisc" title="클릭하여 열기">
+      <div class="sliding-guide">↓ SLIDING</div>
     </div>
+  </div>
+
+  <div class="nav-hint">
+    <button class="nav-btn" id="prevBtn">←</button>
+    <span id="counterText">0 / 0</span>
+    <button class="nav-btn" id="nextBtn">→</button>
   </div>
 
   <!-- 글 본문 팝업 -->
@@ -211,49 +306,63 @@
       <button class="close-btn" id="closeModal">✕</button>
       <div class="modal-header">
         <h2 id="modalTitle"></h2>
-        <span class="post-date" id="modalDate"></span>
+        <span style="font-size:0.78rem; color:#888;" id="modalDate"></span>
       </div>
       <div class="modal-body" id="modalBody"></div>
     </div>
   </div>
 
   <script>
-    // 본인 깃허브 정보로 세팅 완료
     const GITHUB_USER = "by-Oblaat";
     const GITHUB_REPO = "by-Oblaat.github.io";
 
     let allPosts = [];
+    let filteredPosts = [];
+    let currentIndex = 0;
 
-    // 깃허브 이슈 불러오기
+    // 깃허브 이슈 불러오기 (글이 없을 땐 레이아웃 확인용 샘플 데이터 표시)
     async function fetchPosts() {
       try {
         const res = await fetch(`https://api.github.com/repos/${GITHUB_USER}/${GITHUB_REPO}/issues?state=open&per_page=100`);
         const data = await res.json();
-        // Pull Request 제외하고 순수 이슈만 필터링
-        allPosts = data.filter(item => !item.pull_request);
+        const issues = Array.isArray(data) ? data.filter(item => !item.pull_request) : [];
+        
+        if (issues.length > 0) {
+          allPosts = issues;
+        } else {
+          // 아직 이슈를 안 썼을 때 도형 레이아웃을 바로 볼 수 있는 임시 데이터
+          allPosts = [
+            { number: 1, title: "LP 커버 01 (샘플)", created_at: new Date().toISOString(), labels: [{ name: "썰" }], body: "깃허브 `Issues` 탭에 첫 글을 올리면 이 샘플은 자동으로 사라지고 실제 글이 표시됩니다." },
+            { number: 2, title: "LP 커버 02 (샘플)", created_at: new Date().toISOString(), labels: [{ name: "연성" }], body: "좌우 커버를 클릭하거나 방향키로 회전할 수 있습니다." },
+            { number: 3, title: "LP 커버 03 (샘플)", created_at: new Date().toISOString(), labels: [{ name: "설정" }], body: "중앙 커버나 아래 원형 LP를 누르면 슬라이딩 후 본문이 열립니다." },
+            { number: 4, title: "LP 커버 04 (샘플)", created_at: new Date().toISOString(), labels: [{ name: "썰" }], body: "추후 `.lp-card`에 `background-image`만 넣으면 실제 앨범 아트처럼 바뀝니다." },
+            { number: 5, title: "LP 커버 05 (샘플)", created_at: new Date().toISOString(), labels: [{ name: "연성" }], body: "다섯 번째 샘플 트랙입니다." }
+          ];
+        }
+        filteredPosts = [...allPosts];
         renderFilters(allPosts);
-        renderPosts(allPosts);
+        renderCarousel();
       } catch (err) {
-        document.getElementById('postList').innerHTML = '<p style="text-align:center;">글을 불러오지 못했습니다. 아이디와 저장소 이름을 확인해 주세요.</p>';
+        console.error(err);
       }
     }
 
-    // 라벨(카테고리) 버튼 생성
+    // 라벨 필터 생성
     function renderFilters(posts) {
       const labelSet = new Set();
-      posts.forEach(post => post.labels.forEach(l => labelSet.add(l.name)));
-      
+      posts.forEach(p => p.labels.forEach(l => labelSet.add(l.name)));
       const filterBar = document.getElementById('filterBar');
+
       labelSet.forEach(label => {
         const btn = document.createElement('button');
         btn.className = 'filter-btn';
         btn.textContent = label;
-        btn.dataset.label = label;
         btn.onclick = () => {
           document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
           btn.classList.add('active');
-          const filtered = allPosts.filter(p => p.labels.some(l => l.name === label));
-          renderPosts(filtered);
+          filteredPosts = allPosts.filter(p => p.labels.some(l => l.name === label));
+          currentIndex = 0;
+          renderCarousel();
         };
         filterBar.appendChild(btn);
       });
@@ -261,48 +370,105 @@
       filterBar.querySelector('[data-label="ALL"]').onclick = (e) => {
         document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
         e.target.classList.add('active');
-        renderPosts(allPosts);
+        filteredPosts = [...allPosts];
+        currentIndex = 0;
+        renderCarousel();
       };
     }
 
-    // 글 목록 그리기
-    function renderPosts(posts) {
-      const listEl = document.getElementById('postList');
-      if (posts.length === 0) {
-        listEl.innerHTML = '<p style="text-align:center; color:#888;">등록된 글이 없습니다.</p>';
-        return;
-      }
-      listEl.innerHTML = posts.map(post => {
+    // 3D 커버플로우 배치 계산
+    function renderCarousel() {
+      const track = document.getElementById('carouselTrack');
+      track.innerHTML = '';
+      document.getElementById('counterText').textContent = `${filteredPosts.length ? currentIndex + 1 : 0} / ${filteredPosts.length}`;
+
+      filteredPosts.forEach((post, idx) => {
+        const offset = idx - currentIndex;
+        // 화면 성능을 위해 좌우 3장씩만 렌더링
+        if (Math.abs(offset) > 3) return;
+
+        const card = document.createElement('div');
+        card.className = 'lp-card' + (offset === 0 ? ' active' : '');
+
+        // 중앙(0) vs 좌우(-3~+3) 3D 회전 및 간격 계산
+        if (offset === 0) {
+          card.style.transform = `translateX(0px) translateZ(0px) rotateY(0deg)`;
+          card.style.zIndex = 10;
+          card.style.opacity = 1;
+        } else {
+          const sign = offset > 0 ? 1 : -1;
+          const abs = Math.abs(offset);
+          const translateX = sign * (135 + abs * 52); // 겹쳐지는 간격
+          const translateZ = -90 - abs * 35;          // 뒤로 물러나는 깊이
+          const rotateY = -sign * 48;                 // 안쪽으로 꺾이는 각도
+          card.style.transform = `translateX(${translateX}px) translateZ(${translateZ}px) rotateY(${rotateY}deg)`;
+          card.style.zIndex = 10 - abs;
+          card.style.opacity = Math.max(0.35, 1 - abs * 0.2);
+        }
+
+        const labelName = post.labels[0] ? post.labels[0].name : 'ARCHIVE';
         const date = new Date(post.created_at).toLocaleDateString('ko-KR');
-        const labelsHtml = post.labels.map(l => `<span class="label-tag">${l.name}</span>`).join('');
-        return `
-          <div class="post-item" onclick="openPost(${post.number})">
-            <div class="post-title">${post.title}</div>
-            <div class="post-meta">
-              ${labelsHtml}
-              <span class="post-date">${date}</span>
-            </div>
-          </div>
+        card.innerHTML = `
+          <div class="lp-card-label">${labelName}</div>
+          <div class="lp-card-title">${post.title}</div>
+          <div class="lp-card-date">${date}</div>
         `;
-      }).join('');
+
+        card.onclick = () => {
+          if (offset === 0) {
+            triggerSlideAndOpen(post);
+          } else {
+            currentIndex = idx;
+            renderCarousel();
+          }
+        };
+
+        track.appendChild(card);
+      });
     }
 
-    // 본문 열기
-    function openPost(issueNumber) {
-      const post = allPosts.find(p => p.number === issueNumber);
-      if (!post) return;
-      document.getElementById('modalTitle').textContent = post.title;
-      document.getElementById('modalDate').textContent = new Date(post.created_at).toLocaleDateString('ko-KR');
-      // 줄바꿈 유지하면서 마크다운 렌더링
-      marked.setOptions({ breaks: true });
-      document.getElementById('modalBody').innerHTML = marked.parse(post.body || '');
-      document.getElementById('modalOverlay').classList.add('open');
+    // 원형 LP가 아래로 슬라이딩된 뒤 본문 모달 열기
+    function triggerSlideAndOpen(post) {
+      const disc = document.getElementById('vinylDisc');
+      disc.classList.add('sliding-out');
+
+      setTimeout(() => {
+        document.getElementById('modalTitle').textContent = post.title;
+        document.getElementById('modalDate').textContent = new Date(post.created_at).toLocaleDateString('ko-KR');
+        marked.setOptions({ breaks: true });
+        document.getElementById('modalBody').innerHTML = marked.parse(post.body || '');
+        document.getElementById('modalOverlay').classList.add('open');
+      }, 380); // 슬라이딩 애니메이션이 내려간 직후 팝업 오픈
     }
 
-    // 모달 닫기
-    document.getElementById('closeModal').onclick = () => document.getElementById('modalOverlay').classList.remove('open');
+    // 하단 LP판 직접 클릭 시에도 현재 중앙 글 오픈
+    document.getElementById('vinylDisc').onclick = () => {
+      if (filteredPosts[currentIndex]) {
+        triggerSlideAndOpen(filteredPosts[currentIndex]);
+      }
+    };
+
+    // 좌우 버튼 및 키보드 방향키 조작
+    document.getElementById('prevBtn').onclick = () => {
+      if (currentIndex > 0) { currentIndex--; renderCarousel(); }
+    };
+    document.getElementById('nextBtn').onclick = () => {
+      if (currentIndex < filteredPosts.length - 1) { currentIndex++; renderCarousel(); }
+    };
+    window.addEventListener('keydown', (e) => {
+      if (document.getElementById('modalOverlay').classList.contains('open')) return;
+      if (e.key === 'ArrowLeft' && currentIndex > 0) { currentIndex--; renderCarousel(); }
+      if (e.key === 'ArrowRight' && currentIndex < filteredPosts.length - 1) { currentIndex++; renderCarousel(); }
+    });
+
+    // 모달 닫을 때 LP판 원위치 복귀
+    function closeModal() {
+      document.getElementById('modalOverlay').classList.remove('open');
+      document.getElementById('vinylDisc').classList.remove('sliding-out');
+    }
+    document.getElementById('closeModal').onclick = closeModal;
     document.getElementById('modalOverlay').onclick = (e) => {
-      if (e.target.id === 'modalOverlay') document.getElementById('modalOverlay').classList.remove('open');
+      if (e.target.id === 'modalOverlay') closeModal();
     };
 
     fetchPosts();

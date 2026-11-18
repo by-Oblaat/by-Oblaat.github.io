@@ -271,7 +271,7 @@
       height: 56px;
       margin: -28px 0 0 -28px;
       border-radius: 50%;
-      border: 1.px solid rgba(255, 107, 74, 0.55);
+      border: 1px solid rgba(255, 107, 74, 0.55);
     }
 
     .vinyl-disc::after {
@@ -388,11 +388,11 @@
     }
 
     /* =========================================
-       우측 뮤직 컨트롤 카드 (2번째 이미지 시안과 100% 동일한 고정형 레이아웃)
+       우측 뮤직 컨트롤 카드 (이미지 시안과 100% 일치하는 고정형 스크롤 레이아웃)
        ========================================= */
     .player-control-card {
       width: 285px;
-      height: 225px; /* 시안에 맞춘 넉넉하고 안정적인 고정 높이 */
+      height: 225px; /* 상단 플레이어와 하단 트랙 2개+스크롤이 완벽히 들어가는 고정 높이 */
       background: #ffffff;
       border: 1px solid #ececec;
       border-radius: 18px;
@@ -402,7 +402,6 @@
       flex-direction: column;
       justify-content: space-between;
       position: relative;
-      overflow: hidden;
       flex-shrink: 0;
     }
 
@@ -425,11 +424,6 @@
       white-space: nowrap;
       overflow: hidden;
       text-overflow: ellipsis;
-    }
-
-    /* 토글 버튼 숨김 처리 (항상 고정 노출되므로 불필요) */
-    .ctrl-list-toggle {
-      display: none;
     }
 
     .ctrl-progress-wrap {
@@ -486,9 +480,9 @@
       fill: currentColor;
     }
 
-    /* 트랙 목록: 이미지 시안처럼 상단 플레이어와 선으로 분리되며, 정확히 2개만 보이고 스크롤 제공[cite: 27] */
+    /* 트랙 목록: 처음부터 항상 열려 있고, 딱 2개만 보이며 우측에 스크롤바가 상시 위치[cite: 29] */
     .mini-track-popover {
-      max-height: 60px !important; /* 딱 2개 트랙만 들어오는 높이 */
+      max-height: 60px !important;
       opacity: 1 !important;
       overflow-y: auto !important;
       display: flex;
@@ -1028,7 +1022,7 @@
           </div>
         </div>
 
-        <!-- 2. 재생 상태: 턴테이블과 뮤직 플레이어 (처음부터 트랙 목록이 열려있는 시안 구조) -->
+        <!-- 2. 재생 상태: 턴테이블과 뮤직 플레이어 (시안과 100% 일치하는 고정형 스크롤 구조) -->
         <div class="player-active-row" id="playerActiveRow">
           <div class="active-turntable-stage" id="turntableTriggerBox" title="클릭하여 커버 덱으로 돌아가기">
             <div class="turntable-box" id="turntableBox"></div>
@@ -1065,7 +1059,7 @@
                 </button>
               </div>
 
-              <!-- 처음부터 고정 노출되고 2개 트랙만 보이며 스크롤이 적용되는 영역[cite: 27] -->
+              <!-- 처음부터 항상 열려 있고 2개 트랙만 보이며 스크롤이 적용되는 영역[cite: 27] -->
               <div class="mini-track-popover open" id="miniTrackPopover"></div>
             </div>
           </aside>
@@ -1398,8 +1392,6 @@
       document.getElementById('detailDrawer').classList.remove('open');
       document.getElementById('imageSection').classList.remove('visible');
       document.getElementById('commentSection').classList.remove('visible');
-      document.getElementById('playerControlCard').classList.add('expanded');
-      document.getElementById('miniTrackPopover').classList.add('open');
 
       document.querySelectorAll('.mini-track-row').forEach(el => el.classList.remove('active'));
       slotElements.forEach(s => {

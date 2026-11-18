@@ -9,8 +9,8 @@
   <style>
     :root {
       --bg-color: #ffffff;
-      --line-blue: #6b9eff;     /* 스케치의 LP 커버 도형 선 색 */
-      --line-orange: #ff6b4a;   /* 스케치의 LP판 도형 선 색 */
+      --line-blue: #6b9eff;     /* LP 커버 도형 선 */
+      --line-orange: #ff6b4a;   /* LP 알판 도형 선 */
       --text-main: #1a1a1a;
       --text-sub: #777777;
     }
@@ -31,8 +31,8 @@
     /* 1. 상단 타이틀 */
     header {
       text-align: center;
-      margin-bottom: 36px;
-      z-index: 20;
+      margin-bottom: 32px;
+      z-index: 30;
     }
     header h1 {
       font-weight: 300;
@@ -41,7 +41,7 @@
       color: var(--text-main);
     }
 
-    /* 카테고리 필터 (미니멀 도형 버튼) */
+    /* 카테고리 필터 */
     .filter-bar {
       display: flex;
       flex-wrap: wrap;
@@ -57,7 +57,7 @@
       font-size: 0.78rem;
       color: var(--text-sub);
       cursor: pointer;
-      transition: 0.2s;
+      transition: all 0.25s ease;
     }
     .filter-btn.active, .filter-btn:hover {
       border-color: var(--text-main);
@@ -73,8 +73,8 @@
       display: flex;
       justify-content: center;
       align-items: flex-start;
-      padding-top: 10px;
-      perspective: 1100px; /* 3D 원근감 깊이 */
+      padding-top: 12px;
+      perspective: 1200px;
       user-select: none;
     }
 
@@ -85,13 +85,24 @@
       transform-style: preserve-3d;
     }
 
-    /* 개별 LP 커버 도형 */
-    .lp-card {
+    /* 개별 LP 커버 래퍼 (커버 + 내부 LP판을 함께 묶음) */
+    .lp-slot {
       position: absolute;
       inset: 0;
       width: 280px;
       height: 280px;
-      background: rgba(255, 255, 255, 0.94);
+      /* 부드러운 관성 이동 애니메이션 */
+      transition: transform 0.65s cubic-bezier(0.22, 1, 0.36, 1), opacity 0.55s ease;
+      transform-style: preserve-3d;
+      cursor: pointer;
+    }
+
+    /* 실제 정사각형 LP 커버(재킷) 도형 - 앞면 */
+    .lp-jacket {
+      position: relative;
+      width: 100%;
+      height: 100%;
+      background: #ffffff; /* 불투명 배경으로 뒤쪽 LP판을 가림 */
       border: 1.5px solid var(--line-blue);
       display: flex;
       flex-direction: column;
@@ -99,14 +110,12 @@
       align-items: center;
       text-align: center;
       padding: 24px;
-      cursor: pointer;
-      transition: transform 0.55s cubic-bezier(0.22, 1, 0.36, 1), opacity 0.4s, box-shadow 0.4s;
-      backface-visibility: hidden;
+      z-index: 2; /* LP판보다 위 레이어 */
+      transition: box-shadow 0.45s ease, border-color 0.45s ease;
     }
 
-    .lp-card.active {
-      box-shadow: 0 12px 32px rgba(107, 158, 255, 0.14);
-      z-index: 10;
+    .lp-slot.active .lp-jacket {
+      box-shadow: 0 14px 34px rgba(107, 158, 255, 0.14);
     }
 
     .lp-card-label {
@@ -133,73 +142,89 @@
       margin-top: 12px;
     }
 
-    /* 3. 중앙 커버 아래로 겹쳐진 원형 LP판 도형 */
+    /* 3. 재킷 안쪽에서 아래로 슬라이드되어 나오는 원형 LP판 도형 */
     .vinyl-disc {
       position: absolute;
-      top: 145px; /* 커버 하단 절반과 겹치도록 배치 */
-      left: 50%;
-      width: 256px;
-      height: 256px;
-      margin-left: -128px;
+      top: 14px;
+      left: 14px;
+      width: 252px;
+      height: 252px;
       border-radius: 50%;
       border: 1.5px solid var(--line-orange);
-      background: rgba(255, 255, 255, 0.85);
-      backdrop-filter: blur(2px);
+      background: #ffffff;
+      z-index: 1; /* 재킷(.lp-jacket) 바로 뒤쪽 레이어 */
       display: flex;
       flex-direction: column;
-      justify-content: center;
+      justify-content: flex-end;
       align-items: center;
-      cursor: pointer;
-      z-index: 15;
-      transition: transform 0.55s cubic-bezier(0.22, 1, 0.36, 1), background 0.3s;
+      padding-bottom: 24px;
+      opacity: 0;
+      pointer-events: none;
+      transition: transform 0.6s cubic-bezier(0.22, 1, 0.36, 1), opacity 0.35s ease;
     }
 
     /* LP 중앙 라벨 홀 도형 */
     .vinyl-disc::before {
       content: "";
       position: absolute;
-      width: 74px;
-      height: 74px;
+      top: 50%;
+      left: 50%;
+      width: 76px;
+      height: 76px;
+      margin: -38px 0 0 -38px;
       border-radius: 50%;
       border: 1px dashed var(--line-orange);
       opacity: 0.55;
-      pointer-events: none;
     }
 
-    /* 마우스 올리거나 클릭 시 아래로 슬라이딩 */
-    .vinyl-disc:hover {
-      transform: translateY(22px);
+    /* LP 소리골(홈) 느낌을 주는 얇은 보조 원 */
+    .vinyl-disc::after {
+      content: "";
+      position: absolute;
+      inset: 18px;
+      border-radius: 50%;
+      border: 1px solid rgba(255, 107, 74, 0.18);
     }
-    .vinyl-disc.sliding-out {
-      transform: translateY(135px) rotate(90deg);
+
+    /* 활성화된 중앙 카드일 때 LP판이 재킷 아래로 살짝 얼굴을 내밈 */
+    .lp-slot.active .vinyl-disc {
+      opacity: 1;
+      pointer-events: auto;
+      transform: translateY(42px);
+    }
+
+    /* 중앙 카드에 마우스를 올리면 반쯤 슬라이드 아웃 */
+    .lp-slot.active:hover .vinyl-disc {
+      transform: translateY(115px) rotate(35deg);
+    }
+
+    /* 클릭해서 열 때 완전히 슬라이드 아웃 */
+    .lp-slot.active.sliding-out .vinyl-disc {
+      transform: translateY(165px) rotate(90deg);
     }
 
     .sliding-guide {
-      display: flex;
-      align-items: center;
-      gap: 6px;
       color: var(--line-orange);
-      font-size: 0.85rem;
+      font-size: 0.78rem;
       font-weight: 500;
       letter-spacing: 0.12em;
-      margin-top: 28px;
-      pointer-events: none;
     }
 
-    /* 좌우 컨트롤 보조 안내 */
+    /* 좌우 컨트롤 영역 */
     .nav-hint {
-      margin-top: 30px;
+      margin-top: 48px;
       display: flex;
       gap: 20px;
       align-items: center;
       font-size: 0.8rem;
       color: var(--text-sub);
+      z-index: 20;
     }
     .nav-btn {
-      background: none;
+      background: #fff;
       border: 1px solid #ddd;
-      width: 34px;
-      height: 34px;
+      width: 36px;
+      height: 36px;
       border-radius: 50%;
       cursor: pointer;
       color: var(--text-main);
@@ -231,6 +256,11 @@
       padding: 36px 32px;
       border: 1.5px solid var(--line-blue);
       position: relative;
+      animation: modalFade 0.3s ease;
+    }
+    @keyframes modalFade {
+      from { opacity: 0; transform: translateY(12px); }
+      to { opacity: 1; transform: translateY(0); }
     }
     .close-btn {
       position: sticky;
@@ -269,8 +299,11 @@
 
     /* 모바일 대응 */
     @media (max-width: 600px) {
-      .carousel-track, .lp-card { width: 220px; height: 220px; }
-      .vinyl-disc { width: 200px; height: 200px; margin-left: -100px; top: 115px; }
+      .carousel-track, .lp-slot { width: 220px; height: 220px; }
+      .vinyl-disc { top: 10px; left: 10px; width: 200px; height: 200px; padding-bottom: 18px; }
+      .lp-slot.active .vinyl-disc { transform: translateY(34px); }
+      .lp-slot.active:hover .vinyl-disc { transform: translateY(90px) rotate(35deg); }
+      .lp-slot.active.sliding-out .vinyl-disc { transform: translateY(130px) rotate(90deg); }
       .stage { height: 390px; }
     }
   </style>
@@ -284,14 +317,8 @@
     </div>
   </header>
 
-  <div class="stage">
-    <!-- 좌우로 펼쳐지는 3D LP 커버들 -->
+  <div class="stage" id="stage">
     <div class="carousel-track" id="carouselTrack"></div>
-
-    <!-- 하단에 겹쳐져 아래로 슬라이딩되는 원형 LP판 -->
-    <div class="vinyl-disc" id="vinylDisc" title="클릭하여 열기">
-      <div class="sliding-guide">↓ SLIDING</div>
-    </div>
   </div>
 
   <div class="nav-hint">
@@ -318,9 +345,9 @@
 
     let allPosts = [];
     let filteredPosts = [];
+    let slotElements = [];
     let currentIndex = 0;
 
-    // 깃허브 이슈 불러오기 (글이 없을 땐 레이아웃 확인용 샘플 데이터 표시)
     async function fetchPosts() {
       try {
         const res = await fetch(`https://api.github.com/repos/${GITHUB_USER}/${GITHUB_REPO}/issues?state=open&per_page=100`);
@@ -330,24 +357,23 @@
         if (issues.length > 0) {
           allPosts = issues;
         } else {
-          // 아직 이슈를 안 썼을 때 도형 레이아웃을 바로 볼 수 있는 임시 데이터
           allPosts = [
             { number: 1, title: "LP 커버 01 (샘플)", created_at: new Date().toISOString(), labels: [{ name: "썰" }], body: "깃허브 `Issues` 탭에 첫 글을 올리면 이 샘플은 자동으로 사라지고 실제 글이 표시됩니다." },
-            { number: 2, title: "LP 커버 02 (샘플)", created_at: new Date().toISOString(), labels: [{ name: "연성" }], body: "좌우 커버를 클릭하거나 방향키로 회전할 수 있습니다." },
-            { number: 3, title: "LP 커버 03 (샘플)", created_at: new Date().toISOString(), labels: [{ name: "설정" }], body: "중앙 커버나 아래 원형 LP를 누르면 슬라이딩 후 본문이 열립니다." },
-            { number: 4, title: "LP 커버 04 (샘플)", created_at: new Date().toISOString(), labels: [{ name: "썰" }], body: "추후 `.lp-card`에 `background-image`만 넣으면 실제 앨범 아트처럼 바뀝니다." },
+            { number: 2, title: "LP 커버 02 (샘플)", created_at: new Date().toISOString(), labels: [{ name: "연성" }], body: "좌우 커버를 클릭하거나 방향키·스와이프로 부드럽게 회전할 수 있습니다." },
+            { number: 3, title: "LP 커버 03 (샘플)", created_at: new Date().toISOString(), labels: [{ name: "설정" }], body: "중앙 커버나 아래로 삐져나온 원형 LP를 누르면 커버 안에서 LP가 슬라이드되어 나온 뒤 본문이 열립니다." },
+            { number: 4, title: "LP 커버 04 (샘플)", created_at: new Date().toISOString(), labels: [{ name: "썰" }], body: "추후 `.lp-jacket`에 이미지를 넣으면 실제 앨범 아트처럼 바뀝니다." },
             { number: 5, title: "LP 커버 05 (샘플)", created_at: new Date().toISOString(), labels: [{ name: "연성" }], body: "다섯 번째 샘플 트랙입니다." }
           ];
         }
         filteredPosts = [...allPosts];
         renderFilters(allPosts);
-        renderCarousel();
+        buildCarouselDOM();
+        updateCarouselPositions();
       } catch (err) {
         console.error(err);
       }
     }
 
-    // 라벨 필터 생성
     function renderFilters(posts) {
       const labelSet = new Set();
       posts.forEach(p => p.labels.forEach(l => labelSet.add(l.name)));
@@ -362,7 +388,8 @@
           btn.classList.add('active');
           filteredPosts = allPosts.filter(p => p.labels.some(l => l.name === label));
           currentIndex = 0;
-          renderCarousel();
+          buildCarouselDOM();
+          updateCarouselPositions();
         };
         filterBar.appendChild(btn);
       });
@@ -372,65 +399,83 @@
         e.target.classList.add('active');
         filteredPosts = [...allPosts];
         currentIndex = 0;
-        renderCarousel();
+        buildCarouselDOM();
+        updateCarouselPositions();
       };
     }
 
-    // 3D 커버플로우 배치 계산
-    function renderCarousel() {
+    // 최초 1회만 DOM 생성 (애니메이션이 끊기지 않도록 유지)
+    function buildCarouselDOM() {
       const track = document.getElementById('carouselTrack');
       track.innerHTML = '';
-      document.getElementById('counterText').textContent = `${filteredPosts.length ? currentIndex + 1 : 0} / ${filteredPosts.length}`;
+      slotElements = [];
 
       filteredPosts.forEach((post, idx) => {
-        const offset = idx - currentIndex;
-        // 화면 성능을 위해 좌우 3장씩만 렌더링
-        if (Math.abs(offset) > 3) return;
-
-        const card = document.createElement('div');
-        card.className = 'lp-card' + (offset === 0 ? ' active' : '');
-
-        // 중앙(0) vs 좌우(-3~+3) 3D 회전 및 간격 계산
-        if (offset === 0) {
-          card.style.transform = `translateX(0px) translateZ(0px) rotateY(0deg)`;
-          card.style.zIndex = 10;
-          card.style.opacity = 1;
-        } else {
-          const sign = offset > 0 ? 1 : -1;
-          const abs = Math.abs(offset);
-          const translateX = sign * (135 + abs * 52); // 겹쳐지는 간격
-          const translateZ = -90 - abs * 35;          // 뒤로 물러나는 깊이
-          const rotateY = -sign * 48;                 // 안쪽으로 꺾이는 각도
-          card.style.transform = `translateX(${translateX}px) translateZ(${translateZ}px) rotateY(${rotateY}deg)`;
-          card.style.zIndex = 10 - abs;
-          card.style.opacity = Math.max(0.35, 1 - abs * 0.2);
-        }
+        const slot = document.createElement('div');
+        slot.className = 'lp-slot';
 
         const labelName = post.labels[0] ? post.labels[0].name : 'ARCHIVE';
         const date = new Date(post.created_at).toLocaleDateString('ko-KR');
-        card.innerHTML = `
-          <div class="lp-card-label">${labelName}</div>
-          <div class="lp-card-title">${post.title}</div>
-          <div class="lp-card-date">${date}</div>
+
+        slot.innerHTML = `
+          <div class="lp-jacket">
+            <div class="lp-card-label">${labelName}</div>
+            <div class="lp-card-title">${post.title}</div>
+            <div class="lp-card-date">${date}</div>
+          </div>
+          <div class="vinyl-disc">
+            <span class="sliding-guide">↓ SLIDING</span>
+          </div>
         `;
 
-        card.onclick = () => {
-          if (offset === 0) {
-            triggerSlideAndOpen(post);
+        slot.onclick = () => {
+          if (idx === currentIndex) {
+            triggerSlideAndOpen(post, slot);
           } else {
             currentIndex = idx;
-            renderCarousel();
+            updateCarouselPositions();
           }
         };
 
-        track.appendChild(card);
+        track.appendChild(slot);
+        slotElements.push(slot);
       });
     }
 
-    // 원형 LP가 아래로 슬라이딩된 뒤 본문 모달 열기
-    function triggerSlideAndOpen(post) {
-      const disc = document.getElementById('vinylDisc');
-      disc.classList.add('sliding-out');
+    // DOM을 지우지 않고 transform 좌표만 부드럽게 갱신
+    function updateCarouselPositions() {
+      document.getElementById('counterText').textContent = `${filteredPosts.length ? currentIndex + 1 : 0} / ${filteredPosts.length}`;
+
+      slotElements.forEach((slot, idx) => {
+        const offset = idx - currentIndex;
+        slot.classList.remove('sliding-out');
+
+        if (offset === 0) {
+          slot.classList.add('active');
+          slot.style.transform = `translateX(0px) translateZ(0px) rotateY(0deg)`;
+          slot.style.zIndex = 20;
+          slot.style.opacity = 1;
+          slot.style.pointerEvents = 'auto';
+        } else {
+          slot.classList.remove('active');
+          const sign = offset > 0 ? 1 : -1;
+          const abs = Math.abs(offset);
+          const translateX = sign * (135 + abs * 52);
+          const translateZ = -90 - abs * 35;
+          const rotateY = -sign * 48;
+
+          slot.style.transform = `translateX(${translateX}px) translateZ(${translateZ}px) rotateY(${rotateY}deg)`;
+          slot.style.zIndex = Math.max(1, 15 - abs);
+          // 멀리 떨어진 카드는 투명하게 숨겨 부드럽게 나타나고 사라지게 처리
+          slot.style.opacity = abs > 3 ? 0 : Math.max(0.35, 1 - abs * 0.2);
+          slot.style.pointerEvents = abs > 3 ? 'none' : 'auto';
+        }
+      });
+    }
+
+    // 커버 안에서 LP가 슬라이드되어 나온 뒤 본문 모달 오픈
+    function triggerSlideAndOpen(post, slot) {
+      slot.classList.add('sliding-out');
 
       setTimeout(() => {
         document.getElementById('modalTitle').textContent = post.title;
@@ -438,33 +483,48 @@
         marked.setOptions({ breaks: true });
         document.getElementById('modalBody').innerHTML = marked.parse(post.body || '');
         document.getElementById('modalOverlay').classList.add('open');
-      }, 380); // 슬라이딩 애니메이션이 내려간 직후 팝업 오픈
+      }, 450);
     }
 
-    // 하단 LP판 직접 클릭 시에도 현재 중앙 글 오픈
-    document.getElementById('vinylDisc').onclick = () => {
-      if (filteredPosts[currentIndex]) {
-        triggerSlideAndOpen(filteredPosts[currentIndex]);
+    function goPrev() {
+      if (currentIndex > 0) {
+        currentIndex--;
+        updateCarouselPositions();
       }
-    };
+    }
+    function goNext() {
+      if (currentIndex < filteredPosts.length - 1) {
+        currentIndex++;
+        updateCarouselPositions();
+      }
+    }
 
-    // 좌우 버튼 및 키보드 방향키 조작
-    document.getElementById('prevBtn').onclick = () => {
-      if (currentIndex > 0) { currentIndex--; renderCarousel(); }
-    };
-    document.getElementById('nextBtn').onclick = () => {
-      if (currentIndex < filteredPosts.length - 1) { currentIndex++; renderCarousel(); }
-    };
+    document.getElementById('prevBtn').onclick = goPrev;
+    document.getElementById('nextBtn').onclick = goNext;
+
+    // 키보드 좌우 화살표 지원
     window.addEventListener('keydown', (e) => {
       if (document.getElementById('modalOverlay').classList.contains('open')) return;
-      if (e.key === 'ArrowLeft' && currentIndex > 0) { currentIndex--; renderCarousel(); }
-      if (e.key === 'ArrowRight' && currentIndex < filteredPosts.length - 1) { currentIndex++; renderCarousel(); }
+      if (e.key === 'ArrowLeft') goPrev();
+      if (e.key === 'ArrowRight') goNext();
     });
 
-    // 모달 닫을 때 LP판 원위치 복귀
+    // 모바일 터치 스와이프 지원
+    let touchStartX = 0;
+    const stage = document.getElementById('stage');
+    stage.addEventListener('touchstart', (e) => { touchStartX = e.changedTouches[0].screenX; }, { passive: true });
+    stage.addEventListener('touchend', (e) => {
+      const diff = e.changedTouches[0].screenX - touchStartX;
+      if (diff > 45) goPrev();
+      else if (diff < -45) goNext();
+    }, { passive: true });
+
+    // 모달 닫을 때 LP판 다시 재킷 안으로 쏙 복귀
     function closeModal() {
       document.getElementById('modalOverlay').classList.remove('open');
-      document.getElementById('vinylDisc').classList.remove('sliding-out');
+      if (slotElements[currentIndex]) {
+        slotElements[currentIndex].classList.remove('sliding-out');
+      }
     }
     document.getElementById('closeModal').onclick = closeModal;
     document.getElementById('modalOverlay').onclick = (e) => {

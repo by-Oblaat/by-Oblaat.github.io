@@ -94,7 +94,7 @@
       width: 100%;
       display: flex;
       justify-content: center;
-      align-items: center;
+      align-items: flex-start;
       min-height: 290px;
       position: relative;
     }
@@ -401,7 +401,7 @@
     }
 
     .tonearm-overlay.has-img .turntable-spindle,
-    .tonearm-overlay.has-img .turntable-base,
+    .tonearm-overlay.has-img .tonearm-base,
     .tonearm-overlay.has-img .tonearm-stick {
       display: none;
     }
@@ -417,21 +417,21 @@
     }
 
     /* =========================================
-       우측 뮤직 컨트롤 카드 드로어
+       우측 뮤직 컨트롤 카드 드로어 (부드러운 슬라이딩 및 높이 고정)
        ========================================= */
     .track-drawer {
       position: relative;
-      z-index: 15;
+      z-index: 5;
       width: 0;
       opacity: 0;
       overflow: hidden;
       margin-left: 0;
-      transform: translateX(-24px);
+      transform: translateX(-16px);
       pointer-events: none;
-      transition: width 0.7s cubic-bezier(0.22, 1, 0.36, 1),
-                  margin-left 0.7s cubic-bezier(0.22, 1, 0.36, 1),
-                  opacity 0.5s ease 0.12s,
-                  transform 0.65s cubic-bezier(0.22, 1, 0.36, 1) 0.08s;
+      transition: width 0.75s cubic-bezier(0.22, 1, 0.36, 1),
+                  margin-left 0.75s cubic-bezier(0.22, 1, 0.36, 1),
+                  opacity 0.5s ease 0.1s,
+                  transform 0.75s cubic-bezier(0.22, 1, 0.36, 1);
     }
 
     .showcase-row.is-open .track-drawer {
@@ -444,7 +444,7 @@
 
     .player-control-card {
       width: 280px;
-      height: 232px;
+      height: 232px; /* LP 플레이어 본체 세로 길이와 완벽 일치 */
       background: #ffffff;
       border: 1px solid #ececec;
       border-radius: 18px;
@@ -454,7 +454,7 @@
       flex-direction: column;
       justify-content: space-between;
       position: relative;
-      margin-top: 20px;
+      margin-top: 20px; /* 플레이어 상단 마진과 수평 정렬 */
     }
 
     .ctrl-top-row {
@@ -1000,8 +1000,8 @@
 
           <div class="tonearm-overlay" id="tonearmOverlay">
             <div class="turntable-spindle"></div>
-            <div class="turntable-base"></div>
-            <div class="turntable-stick"></div>
+            <div class="tonearm-base"></div>
+            <div class="tonearm-stick"></div>
             <img class="tonearm-custom-img" id="tonearmImg" src="" alt="tonearm" />
           </div>
         </div>

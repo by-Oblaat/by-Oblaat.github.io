@@ -35,6 +35,20 @@
       overflow-x: hidden;
     }
 
+    /* 이미지 및 커버 우클릭/드래그 차단 */
+    img, .lp-jacket, .vinyl-disc, .turntable-box {
+      -webkit-user-drag: none;
+      -khtml-user-drag: none;
+      -moz-user-drag: none;
+      -o-user-drag: none;
+      user-drag: none;
+      pointer-events: none;
+    }
+
+    .lp-slot, .carousel-stage, .ctrl-buttons, .player-control-right, .global-header, .writer-overlay {
+      pointer-events: auto;
+    }
+
     /* =========================================
        [상단 헤더] Love the Loveless (Monsieur La Doulaise)
        ========================================= */
@@ -94,7 +108,7 @@
       width: 100%;
       display: flex;
       justify-content: center;
-      align-items: center;
+      align-items: flex-start; /* 상단 정렬을 통해 플레이어와 컨트롤 카드 상단 수평 맞춤 */
       min-height: 290px;
       position: relative;
     }
@@ -353,40 +367,6 @@
       background: #ffffff;
     }
 
-    .tonearm-base {
-      position: absolute;
-      bottom: 18px;
-      left: 16px;
-      width: 14px;
-      height: 22px;
-      border: 1.5px solid var(--line-blue);
-      background: #ffffff;
-    }
-
-    .tonearm-stick {
-      position: absolute;
-      bottom: 34px;
-      left: 22px;
-      width: 1.5px;
-      height: 142px;
-      background: var(--line-blue);
-      transform-origin: bottom center;
-      transform: rotate(8deg);
-      transition: transform 0.65s cubic-bezier(0.22, 1, 0.36, 1);
-    }
-
-    .tonearm-stick::after {
-      content: "";
-      position: absolute;
-      top: -4px;
-      left: -3.5px;
-      width: 8px;
-      height: 8px;
-      border-radius: 50%;
-      border: 1.5px solid var(--line-blue);
-      background: #ffffff;
-    }
-
     .tonearm-custom-img {
       display: none;
       position: absolute;
@@ -400,24 +380,19 @@
       transition: transform 0.65s cubic-bezier(0.22, 1, 0.36, 1);
     }
 
-    .tonearm-overlay.has-img .turntable-spindle,
-    .tonearm-overlay.has-img .turntable-base,
-    .tonearm-overlay.has-img .tonearm-stick {
+    .tonearm-overlay.has-img .turntable-spindle {
       display: none;
     }
     .tonearm-overlay.has-img .tonearm-custom-img {
       display: block;
     }
 
-    .tonearm-overlay.playing .tonearm-stick {
-      transform: rotate(38deg);
-    }
     .tonearm-overlay.playing .tonearm-custom-img {
       transform: rotate(22deg);
     }
 
     /* =========================================
-       우측 뮤직 컨트롤 카드 드로어
+       우측 뮤직 컨트롤 카드 드로어 (마진 0으로 턴테이블 상단선과 완벽 일치)
        ========================================= */
     .track-drawer {
       position: relative;
@@ -454,7 +429,7 @@
       flex-direction: column;
       justify-content: space-between;
       position: relative;
-      margin-top: 20px;
+      margin-top: 0; /* 턴테이블 상단 마진(20px)과 높이 라인 일치 */
       transition: height 0.4s cubic-bezier(0.22, 1, 0.36, 1);
       overflow: hidden;
     }
@@ -558,10 +533,13 @@
       fill: currentColor;
     }
 
+    /* 트랙 목록 영역: 히든 스크롤(글자 잘림 방지 및 스크롤바 숨김) 적용 */
     .mini-track-popover {
       max-height: 0;
       opacity: 0;
       overflow-y: auto;
+      scrollbar-width: none; /* Firefox 스크롤바 숨김 */
+      -ms-overflow-style: none; /* IE/Edge 스크롤바 숨김 */
       display: flex;
       flex-direction: column;
       gap: 4px;
@@ -572,8 +550,12 @@
                   padding 0.3s ease,
                   border-color 0.3s ease;
     }
+    .mini-track-popover::-webkit-scrollbar {
+      display: none; /* Chrome/Safari/Opera 스크롤바 숨김 (히든 스크롤) */
+    }
+
     .mini-track-popover.open {
-      max-height: 90px;
+      max-height: 100px;
       opacity: 1;
       border-top-color: #f0f0f0;
       padding-top: 6px;
@@ -1008,7 +990,7 @@
         height: auto;
         padding: 14px 14px 14px 20px;
         gap: 10px;
-        margin-top: 15px;
+        margin-top: 0;
       }
       .player-control-card.expanded {
         height: auto;
@@ -1022,7 +1004,7 @@
 </head>
 <body>
 
-  <!-- 페이지 전체 우클릭 방지 및 이미지 저장 차단 -->
+  <!-- 페이지 전체 우클릭 방지 -->
   <script>
     document.addEventListener('contextmenu', function(e) {
       if (e.target.tagName === 'IMG' || e.target.classList.contains('lp-jacket') || e.target.classList.contains('vinyl-disc')) {

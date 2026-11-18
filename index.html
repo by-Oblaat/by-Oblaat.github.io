@@ -14,7 +14,7 @@
       --line-blue: #6b9eff;
       --line-orange: #ff6b4a;
       --text-main: #1a1a1a;
-      --text-sub: #777777;
+      --text-sub: #555555;
     }
 
     * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -388,7 +388,7 @@
     }
 
     /* =========================================
-       우측 뮤직 컨트롤 카드 (시안 3번과 100% 동일한 가로형 슬림 구조 및 고정 스크롤)
+       우측 뮤직 컨트롤 카드 (텍스트 가시성 및 스크롤바 완벽 고정)
        ========================================= */
     .player-control-card {
       width: 320px;
@@ -397,7 +397,7 @@
       border: 1px solid #ececec;
       border-radius: 20px;
       box-shadow: 0 10px 28px rgba(0, 0, 0, 0.06);
-      padding: 22px 24px;
+      padding: 20px 22px;
       display: flex;
       flex-direction: column;
       justify-content: space-between;
@@ -424,10 +424,6 @@
       white-space: nowrap;
       overflow: hidden;
       text-overflow: ellipsis;
-    }
-
-    .ctrl-list-toggle {
-      display: none; /* 토글 버튼 완전 제거 (항상 노출형) */
     }
 
     .ctrl-progress-wrap {
@@ -484,9 +480,9 @@
       fill: currentColor;
     }
 
-    /* 트랙 목록: 처음부터 무조건 열려있고 딱 2개만 보이며 우측에 예쁜 스크롤바 상시 유지[cite: 31] */
+    /* 트랙 목록: 투명도나 색상 누락 없이 텍스트가 선명하게 나오도록 고정 스크롤 적용 */
     .mini-track-popover {
-      max-height: 54px !important;
+      max-height: 56px !important;
       opacity: 1 !important;
       overflow-y: auto !important;
       display: flex;
@@ -499,23 +495,24 @@
       width: 4px;
     }
     .mini-track-popover::-webkit-scrollbar-thumb {
-      background: #d8d8d8;
+      background: #cccccc;
       border-radius: 99px;
     }
     .mini-track-row {
       font-size: 0.82rem;
-      color: var(--text-sub);
+      color: #333333 !important; /* 텍스트가 흐리거나 안 나오는 현상 원천 방지 */
       padding: 4px 8px;
       border-radius: 4px;
       cursor: pointer;
       white-space: nowrap;
       overflow: hidden;
       text-overflow: ellipsis;
+      opacity: 1 !important;
     }
     .mini-track-row:hover, .mini-track-row.active {
       background: #f4f7ff;
-      color: var(--line-blue);
-      font-weight: 500;
+      color: var(--line-blue) !important;
+      font-weight: 600;
     }
 
     /* =========================================
@@ -1026,7 +1023,7 @@
           </div>
         </div>
 
-        <!-- 2. 재생 상태: 시안과 100% 일치하는 고정형 스크롤 레이아웃 -->
+        <!-- 2. 재생 상태: 턴테이블과 뮤직 플레이어 (트랙명이 선명하게 상시 노출되는 구조) -->
         <div class="player-active-row" id="playerActiveRow">
           <div class="active-turntable-stage" id="turntableTriggerBox" title="클릭하여 커버 덱으로 돌아가기">
             <div class="turntable-box" id="turntableBox"></div>
@@ -1063,7 +1060,7 @@
                 </button>
               </div>
 
-              <!-- 처음부터 항상 열려 있고 2개 트랙만 보이며 스크롤이 적용되는 영역[cite: 31] -->
+              <!-- 트랙명이 흐려지지 않고 정상 출력되며 스크롤이 적용되는 영역 -->
               <div class="mini-track-popover open" id="miniTrackPopover"></div>
             </div>
           </aside>

@@ -146,6 +146,7 @@
       cursor: pointer;
     }
 
+    /* ① LP 커버 (420x420 기준) */
     .lp-jacket {
       position: relative;
       width: 100%;
@@ -205,7 +206,7 @@
       letter-spacing: 0.08em;
     }
 
-    /* 원형 LP판 */
+    /* ② 원형 LP판 (384x384 투명 PNG 기준) */
     .vinyl-disc {
       position: absolute;
       top: 9px;
@@ -291,7 +292,7 @@
     }
 
     /* =========================================
-       LP 플레이어 본체 및 톤암 레이어
+       ③ LP 플레이어 본체 (464x464 기준)
        ========================================= */
     .turntable-box {
       position: absolute;
@@ -323,6 +324,9 @@
       pointer-events: auto;
     }
 
+    /* =========================================
+       ④ 톤암 레이어 (150x320 투명 PNG 기준, 수직 0도 작업 후 회전)
+       ========================================= */
     .tonearm-overlay {
       position: absolute;
       top: 20px;
@@ -385,15 +389,17 @@
       background: #ffffff;
     }
 
+    /* 커스텀 톤암 PNG 배치 (150x320 비율 -> 75x160 표시) */
     .tonearm-custom-img {
       display: none;
       position: absolute;
       bottom: 16px;
       left: 12px;
       width: 75px;
-      height: auto;
-      transform-origin: 18% 88%;
-      transform: rotate(0deg);
+      height: 160px;
+      object-fit: contain;
+      transform-origin: 50% 88%; /* 하단 12% 지점 회전축 */
+      transform: rotate(6deg);
       transition: transform 0.65s cubic-bezier(0.22, 1, 0.36, 1);
     }
 
@@ -409,7 +415,7 @@
       transform: rotate(38deg);
     }
     .tonearm-overlay.playing .tonearm-custom-img {
-      transform: rotate(24deg);
+      transform: rotate(34deg);
     }
 
     /* =========================================
@@ -605,7 +611,7 @@
     }
 
     /* =========================================
-       ★ 숨겨진 전용 글쓰기(포스팅) 모달 UI ★
+       전용 글쓰기(포스팅) 관리자 모달 UI
        ========================================= */
     .writer-overlay {
       display: none;
@@ -631,7 +637,7 @@
       padding: 28px 24px;
       display: flex;
       flex-direction: column;
-      gap: 16px;
+      gap: 14px;
     }
     .writer-header {
       display: flex;
@@ -675,7 +681,7 @@
       border-color: var(--line-blue);
     }
     .writer-textarea {
-      min-height: 150px;
+      min-height: 130px;
       resize: vertical;
       line-height: 1.6;
     }
@@ -696,13 +702,6 @@
       border-color: var(--line-orange);
       color: var(--line-orange);
       font-weight: 600;
-    }
-    .file-row {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-      font-size: 0.8rem;
-      color: var(--text-sub);
     }
     .writer-submit {
       background: var(--text-main);
@@ -820,7 +819,7 @@
     </main>
   </div>
 
-  <!-- ★ 전용 글쓰기(포스팅) 관리자 모달 ★ -->
+  <!-- 전용 글쓰기(포스팅) 관리자 모달 -->
   <div class="writer-overlay" id="writerOverlay">
     <div class="writer-box">
       <div class="writer-header">
@@ -829,7 +828,7 @@
       </div>
 
       <div class="writer-field">
-        <label>발행 비밀번호 (GitHub Token — 브라우저에 자동 저장됨)</label>
+        <label>발행 비밀번호 (GitHub Token)</label>
         <input type="password" class="writer-input" id="ghTokenInput" placeholder="ghp_..." />
       </div>
 
@@ -847,12 +846,17 @@
       </div>
 
       <div class="writer-field">
-        <label>LP 커버 이미지 (선택 — 비우면 기본 커버 표시)</label>
+        <label>① LP 커버 이미지 (420×420 권장 / 선택)</label>
         <input type="file" id="coverFileInput" accept="image/*" />
       </div>
 
       <div class="writer-field">
-        <label>본문 IMAGE 첨부 (선택)</label>
+        <label>② LP 알판 이미지 (384×384 투명 PNG 권장 / 선택)</label>
+        <input type="file" id="vinylFileInput" accept="image/*" />
+      </div>
+
+      <div class="writer-field">
+        <label>③ 본문 IMAGE 첨부 (선택)</label>
         <input type="file" id="bodyImgFileInput" accept="image/*" />
       </div>
 
@@ -870,12 +874,14 @@
     const GITHUB_USER = "by-Oblaat";
     const GITHUB_REPO = "by-Oblaat.github.io";
 
-    /* 자체 디자인 이미지 설정 (비워두면 기본 도형 표시) */
+    /* =========================================================================
+       공통 파츠 커스텀 이미지 (저장소에 파일 올린 뒤 파일명 입력 시 자동 적용)
+       ========================================================================= */
     const CUSTOM_ASSETS = {
-      defaultCover: "",
-      vinylDisc: "",
-      turntable: "",
-      tonearm: ""
+      defaultCover: "",   // 420x420 기본 커버
+      vinylDisc: "",      // 384x384 투명 PNG 기본 LP 알판
+      turntable: "",      // 464x464 플레이어 본체
+      tonearm: ""         // 150x320 투명 PNG 톤암 (수직 0도 기준)
     };
 
     let allPosts = [];
@@ -913,7 +919,6 @@
     async function fetchPosts() {
       applyCustomPlayerAssets();
       try {
-        // 캐시 방지를 위해 타임스탬프 쿼리 추가 (글 발행 직후 즉시 새 글 반영)
         const res = await fetch(`https://api.github.com/repos/${GITHUB_USER}/${GITHUB_REPO}/issues?state=open&per_page=100&_t=${Date.now()}`);
         const data = await res.json();
         const issues = Array.isArray(data) ? data.filter(item => !item.pull_request) : [];
@@ -959,10 +964,12 @@
       updateCarouselPositions();
     }
 
-    function extractCustomCover(bodyText) {
-      if (!bodyText) return CUSTOM_ASSETS.defaultCover;
-      const match = bodyText.match(/^cover:\s*(.+)$/im);
-      return match ? match[1].trim() : CUSTOM_ASSETS.defaultCover;
+    // 본문 메타 태그('cover: URL', 'vinyl: URL') 추출
+    function extractMetaUrl(bodyText, key, fallback) {
+      if (!bodyText) return fallback;
+      const regex = new RegExp(`^${key}:\\s*(.+)$`, 'im');
+      const match = bodyText.match(regex);
+      return match ? match[1].trim() : fallback;
     }
 
     function buildStackDOM() {
@@ -976,13 +983,14 @@
 
         const labelName = post.labels[0] ? post.labels[0].name.toUpperCase() : 'ARCHIVE';
         const date = formatYYMMDD(post.created_at);
-        const coverImgUrl = extractCustomCover(post.body);
+        const coverImgUrl = extractMetaUrl(post.body, 'cover', CUSTOM_ASSETS.defaultCover);
+        const vinylImgUrl = extractMetaUrl(post.body, 'vinyl', CUSTOM_ASSETS.vinylDisc);
 
         const jacketClass = coverImgUrl ? 'lp-jacket has-img' : 'lp-jacket';
         const jacketStyle = coverImgUrl ? `style="background-image: url('${coverImgUrl}')"` : '';
 
-        const vinylClass = CUSTOM_ASSETS.vinylDisc ? 'vinyl-disc has-img' : 'vinyl-disc';
-        const vinylStyle = CUSTOM_ASSETS.vinylDisc ? `style="background-image: url('${CUSTOM_ASSETS.vinylDisc}')"` : '';
+        const vinylClass = vinylImgUrl ? 'vinyl-disc has-img' : 'vinyl-disc';
+        const vinylStyle = vinylImgUrl ? `style="background-image: url('${vinylImgUrl}')"` : '';
 
         slot.innerHTML = `
           <div class="${jacketClass}" ${jacketStyle}>
@@ -1109,7 +1117,12 @@
       detailDrawer.classList.add('open');
 
       setTimeout(() => {
-        const rawBody = (post.body || '').replace(/^cover:\s*.+$/im, '').trim();
+        // 본문에서 'cover: URL', 'vinyl: URL' 메타 줄은 제거하고 표시
+        const rawBody = (post.body || '')
+          .replace(/^cover:\s*.+$/gim, '')
+          .replace(/^vinyl:\s*.+$/gim, '')
+          .trim();
+
         const mdImgMatch = rawBody.match(/!\[.*?\]\((.*?)\)/);
         const htmlImgMatch = rawBody.match(/<img[^>]+src=["']([^"']+)["']/i);
         const imageFrame = document.getElementById('imageFrame');
@@ -1202,12 +1215,11 @@
     });
 
     /* =========================================================================
-       ★ 숨겨진 전용 글쓰기(포스팅) 관리자 로직 ★
+       전용 글쓰기 관리자 로직
        ========================================================================= */
     const writerOverlay = document.getElementById('writerOverlay');
     const ghTokenInput = document.getElementById('ghTokenInput');
 
-    // 저장된 토큰 자동 불러오기
     const savedToken = localStorage.getItem('oblaat_gh_token');
     if (savedToken) ghTokenInput.value = savedToken;
 
@@ -1221,7 +1233,6 @@
       }
     }
 
-    // 1) URL 해시(#write)로 접속 시 자동 오픈
     if (window.location.hash === '#write') {
       openWriterModal();
     }
@@ -1229,7 +1240,6 @@
       if (window.location.hash === '#write') openWriterModal();
     });
 
-    // 2) 상단 ARCHIVES 더블클릭 또는 롱프레스(1.2초) 시 오픈
     const secretTrigger = document.getElementById('secretTrigger');
     secretTrigger.ondblclick = openWriterModal;
     let pressTimer = null;
@@ -1240,7 +1250,6 @@
 
     document.getElementById('closeWriter').onclick = closeWriterModal;
 
-    // 카테고리 버튼 선택
     document.querySelectorAll('.cat-option').forEach(opt => {
       opt.onclick = () => {
         document.querySelectorAll('.cat-option').forEach(o => o.classList.remove('selected'));
@@ -1249,7 +1258,6 @@
       };
     });
 
-    // 이미지 파일을 Base64로 읽어 깃허브 저장소 uploads/ 폴더에 자동 업로드하는 함수
     async function uploadImageToGitHub(file, token) {
       return new Promise((resolve, reject) => {
         const reader = new FileReader();
@@ -1283,12 +1291,12 @@
       });
     }
 
-    // 글 발행하기 버튼 클릭
     document.getElementById('publishBtn').onclick = async () => {
       const token = ghTokenInput.value.trim();
       const title = document.getElementById('postTitleInput').value.trim();
       const rawBody = document.getElementById('postBodyInput').value.trim();
       const coverFile = document.getElementById('coverFileInput').files[0];
+      const vinylFile = document.getElementById('vinylFileInput').files[0];
       const bodyImgFile = document.getElementById('bodyImgFileInput').files[0];
       const statusEl = document.getElementById('writerStatus');
       const btn = document.getElementById('publishBtn');
@@ -1302,7 +1310,6 @@
         return;
       }
 
-      // 토큰을 기기에 기억시킴
       localStorage.setItem('oblaat_gh_token', token);
       btn.disabled = true;
 
@@ -1313,6 +1320,12 @@
           statusEl.textContent = 'LP 커버 이미지 업로드 중...';
           const coverUrl = await uploadImageToGitHub(coverFile, token);
           finalBodyParts.push(`cover: ${coverUrl}`);
+        }
+
+        if (vinylFile) {
+          statusEl.textContent = 'LP 알판 이미지 업로드 중...';
+          const vinylUrl = await uploadImageToGitHub(vinylFile, token);
+          finalBodyParts.push(`vinyl: ${vinylUrl}`);
         }
 
         if (bodyImgFile) {
@@ -1346,13 +1359,14 @@
         document.getElementById('postTitleInput').value = '';
         document.getElementById('postBodyInput').value = '';
         document.getElementById('coverFileInput').value = '';
+        document.getElementById('vinylFileInput').value = '';
         document.getElementById('bodyImgFileInput').value = '';
 
         setTimeout(() => {
           closeWriterModal();
           statusEl.textContent = '';
           btn.disabled = false;
-          fetchPosts(); // 방금 올린 글 즉시 불러오기
+          fetchPosts();
         }, 700);
 
       } catch (err) {

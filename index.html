@@ -297,7 +297,7 @@
     }
 
     /* =========================================
-       재생 모드 턴테이블 본체 및 톤암
+       재생 모드 턴테이블 본체 및 부드러운 애니메이션
        ========================================= */
     .turntable-box {
       position: absolute;
@@ -328,6 +328,7 @@
       background-size: cover;
       background-position: center;
       z-index: 12;
+      transition: transform 0.6s cubic-bezier(0.22, 1, 0.36, 1);
     }
     .active-vinyl-disc.has-img {
       border: none;
@@ -369,13 +370,17 @@
       height: 138px;
       object-fit: contain;
       transform-origin: 46% 90%;
-      transform: rotate(22deg);
+      transform: rotate(0deg);
+      transition: transform 0.6s cubic-bezier(0.22, 1, 0.36, 1);
     }
     .tonearm-overlay.has-img .turntable-spindle {
       display: none;
     }
     .tonearm-overlay.has-img .tonearm-custom-img {
       display: block;
+    }
+    .tonearm-overlay.playing .tonearm-custom-img {
+      transform: rotate(22deg);
     }
 
     /* =========================================
@@ -492,13 +497,11 @@
       fill: currentColor;
     }
 
-    /* 트랙 목록: 히든 스크롤 적용 */
+    /* 트랙 목록: 글자 잘림 방지용 어울리는 디자인 스크롤바 */
     .mini-track-popover {
       max-height: 0;
       opacity: 0;
       overflow-y: auto;
-      scrollbar-width: none;
-      -ms-overflow-style: none;
       display: flex;
       flex-direction: column;
       gap: 4px;
@@ -510,7 +513,11 @@
                   border-color 0.3s ease;
     }
     .mini-track-popover::-webkit-scrollbar {
-      display: none;
+      width: 4px;
+    }
+    .mini-track-popover::-webkit-scrollbar-thumb {
+      background: #d8d8d8;
+      border-radius: 99px;
     }
     .mini-track-popover.open {
       max-height: 100px;
@@ -1040,7 +1047,7 @@
             </div>
           </div>
 
-          <aside class="track-drawer">
+          <aside class="track-drawer" style="width: 290px; opacity: 1; pointer-events: auto;">
             <div class="player-control-card" id="playerControlCard">
               <div class="ctrl-top-row">
                 <div class="ctrl-meta">
@@ -1202,7 +1209,6 @@
 
     function applyCustomPlayerAssets() {
       const turntableBox = document.getElementById('turntableBox');
-      const tonearmOverlay = document.getElementById('tonearmOverlay');
       const tonearmImg = document.getElementById('tonearmImg');
 
       if (CUSTOM_ASSETS.turntable) {
@@ -1211,7 +1217,7 @@
       }
       if (CUSTOM_ASSETS.tonearm) {
         tonearmImg.src = CUSTOM_ASSETS.tonearm;
-        tonearmOverlay.classList.add('has-img');
+        document.getElementById('tonearmOverlay').classList.add('has-img');
       }
     }
 
@@ -1570,14 +1576,13 @@
           commentBody.innerHTML = '';
         }
 
-        // 타래 렌더링 (threads: 글자나 점선 없이 깔끔한 블록 형태로 출력)
+        // 타래 렌더링
         const threadsContainer = document.getElementById('threadsContainer');
         threadsContainer.innerHTML = '';
 
         if (threadPart.trim()) {
           const blocks = threadPart.trim().split(/^---\s*$/gm).map(b => b.trim()).filter(Boolean);
           blocks.forEach(block => {
-            // 혹시라도 남아있을 수 있는 threads: 문자열 제거
             const cleanBlock = block.replace(/^threads:\s*/i, '').trim();
             if (!cleanBlock) return;
 

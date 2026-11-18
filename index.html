@@ -397,16 +397,17 @@
     .tonearm-custom-img {
       display: none;
       position: absolute;
-      bottom: 16px;
-      left: 12px;
-      width: 75px;
-      height: 160px;
+      bottom: 14px;
+      left: 10px;
+      width: 68px;
+      height: 162px;
       object-fit: contain;
-      transform-origin: 50% 88%;
-      transform: rotate(6deg);
+      transform-origin: 46% 90%;
+      transform: rotate(4deg);
       transition: transform 0.65s cubic-bezier(0.22, 1, 0.36, 1);
     }
 
+    .tonearm-overlay.has-img .turntable-spindle,
     .tonearm-overlay.has-img .tonearm-base,
     .tonearm-overlay.has-img .tonearm-stick {
       display: none;
@@ -419,7 +420,7 @@
       transform: rotate(38deg);
     }
     .tonearm-overlay.playing .tonearm-custom-img {
-      transform: rotate(34deg);
+      transform: rotate(35deg);
     }
 
     /* =========================================
@@ -1032,8 +1033,8 @@
     const CUSTOM_ASSETS = {
       defaultCover: "",
       vinylDisc: "",
-      turntable: "",
-      tonearm: ""
+      turntable: "./player.png",
+      tonearm: "./tonearm.png"
     };
 
     let allPosts = [];
@@ -1078,6 +1079,16 @@
       return match ? match[1].trim() : fallback;
     }
 
+    function matchesCategory(post, label) {
+      if (label === 'ALL') return true;
+      if (!Array.isArray(post.labels)) return false;
+      return post.labels.some(l => {
+        const name = l.name.trim().toUpperCase();
+        if (label === 'LOVE') return name === 'LOVE' || name === 'AND';
+        return name === label;
+      });
+    }
+
     async function fetchPosts() {
       applyCustomPlayerAssets();
       try {
@@ -1098,10 +1109,8 @@
           ];
         }
 
-        const activeFilter = document.querySelector('.filter-btn.active')?.dataset.label || 'ALL';
-        filteredPosts = activeFilter === 'ALL'
-          ? [...allPosts]
-          : allPosts.filter(p => p.labels.some(l => l.name.toUpperCase() === activeFilter));
+        const activeFilter = document.querySelector('.filter-btn.active')?.dataset.label?.trim().toUpperCase() || 'ALL';
+        filteredPosts = allPosts.filter(p => matchesCategory(p, activeFilter));
 
         bindFilterButtons();
         rebuildAll();
@@ -1116,12 +1125,8 @@
         btn.onclick = () => {
           document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
           btn.classList.add('active');
-          const label = btn.dataset.label;
-          if (label === 'ALL') {
-            filteredPosts = [...allPosts];
-          } else {
-            filteredPosts = allPosts.filter(p => p.labels.some(l => l.name.toUpperCase() === label));
-          }
+          const label = btn.dataset.label.trim().toUpperCase();
+          filteredPosts = allPosts.filter(p => matchesCategory(p, label));
           currentIndex = 0;
           rebuildAll();
         };
@@ -1521,10 +1526,8 @@
           });
         }
 
-        const activeFilter = document.querySelector('.filter-btn.active')?.dataset.label || 'ALL';
-        filteredPosts = activeFilter === 'ALL'
-          ? [...allPosts]
-          : allPosts.filter(p => p.labels.some(l => l.name.toUpperCase() === activeFilter));
+        const activeFilter = document.querySelector('.filter-btn.active')?.dataset.label?.trim().toUpperCase() || 'ALL';
+        filteredPosts = allPosts.filter(p => matchesCategory(p, activeFilter));
         rebuildAll();
 
         statusEl.textContent = '순서가 변경되었습니다.';
@@ -1563,8 +1566,8 @@
 
       document.getElementById('postTitleInput').value = post.title;
       document.getElementById('postBodyInput').value = pureText;
-      const cat = post.labels[0] ? post.labels[0].name.toUpperCase() : 'MADE';
-      setCategorySelection(cat === 'LOVE' ? 'LOVE' : 'MADE');
+      const cat = post.labels[0] ? post.labels[0].name.trim().toUpperCase() : 'MADE';
+      setCategorySelection(cat === 'LOVE' || cat === 'AND' ? 'LOVE' : 'MADE');
 
       document.getElementById('editModeBanner').classList.add('active');
       document.getElementById('editModeText').textContent = `수정 중: ${post.title}`;

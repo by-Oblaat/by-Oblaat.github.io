@@ -497,11 +497,11 @@
       fill: currentColor;
     }
 
-    /* 트랙 목록: 글자 잘림 방지용 스크롤바 */
+    /* 트랙 목록: 글자 잘림 방지 및 스크롤바 명시적 활성화 */
     .mini-track-popover {
       max-height: 0;
       opacity: 0;
-      overflow-y: auto;
+      overflow-y: auto !important;
       display: flex;
       flex-direction: column;
       gap: 4px;
@@ -520,7 +520,7 @@
       border-radius: 99px;
     }
     .mini-track-popover.open {
-      max-height: 100px;
+      max-height: 110px;
       opacity: 1;
       border-top-color: #f0f0f0;
       padding-top: 6px;
@@ -1598,14 +1598,13 @@
           commentBody.innerHTML = '';
         }
 
-        // 타래 렌더링 (렌더링 직전 'threads:' 텍스트 완벽 차단 처리)
+        // 타래 렌더링
         const threadsContainer = document.getElementById('threadsContainer');
         threadsContainer.innerHTML = '';
 
         if (threadPart.trim()) {
           const blocks = threadPart.trim().split(/^---\s*$/gm).map(b => b.trim()).filter(Boolean);
           blocks.forEach(block => {
-            // "threads:" 키워드가 맨 앞에 있거나 포함되어 있으면 빈 문자열로 대체하여 원천 제거
             const cleanBlock = block.replace(/^threads:\s*/i, '').replace(/threads:/gi, '').trim();
             if (!cleanBlock) return;
 
@@ -1659,7 +1658,6 @@
         } else {
           existingBody += '\n---\n';
         }
-        // 저장할 때도 'threads:' 텍스트가 붙지 않도록 순수 텍스트만 추가
         existingBody += threadText.replace(/^threads:\s*/i, '');
 
         const res = await fetch(`https://api.github.com/repos/${GITHUB_USER}/${GITHUB_REPO}/issues/${currentPost.number}`, {

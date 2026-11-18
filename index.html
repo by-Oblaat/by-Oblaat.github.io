@@ -17,7 +17,6 @@
 
     * { box-sizing: border-box; margin: 0; padding: 0; }
 
-    /* 모바일 가로 스크롤 및 바운스 이탈 완전 차단 */
     html, body {
       width: 100%;
       max-width: 100%;
@@ -122,6 +121,14 @@
       perspective: 750px;
       touch-action: none;
       z-index: 20;
+    }
+
+    /* ★ 핵심 수정: 커버가 위로 올라간 동안 투명 스테이지가 옆의 TRACK 클릭을 가로채지 못하게 완전 차단 ★ */
+    .carousel-stage.deck-up {
+      pointer-events: none !important;
+    }
+    .carousel-stage.deck-up .lp-slot {
+      pointer-events: none !important;
     }
 
     .stack-track {
@@ -273,7 +280,7 @@
       opacity: 0;
       transform: scale(0.96);
       pointer-events: none;
-      z-index: 10;
+      z-index: 25; /* deck-up 상태에서 턴테이블 본체만 클릭 가능하도록 상향 */
       transition: opacity 0.6s ease, transform 0.6s cubic-bezier(0.22, 1, 0.36, 1);
       cursor: pointer;
     }
@@ -351,14 +358,17 @@
     }
 
     /* =========================================
-       우측 TRACK 드로어 (플레이어 경계선 침범 방지 여백 확보)
+       우측 TRACK 드로어 (z-index 상향으로 터치/클릭 최우선 보장)
        ========================================= */
     .track-drawer {
+      position: relative;
+      z-index: 40;
       width: 0;
       opacity: 0;
       overflow: hidden;
       margin-left: 0;
       transform: translateX(-14px);
+      pointer-events: none;
       transition: width 0.75s cubic-bezier(0.22, 1, 0.36, 1),
                   margin-left 0.75s cubic-bezier(0.22, 1, 0.36, 1),
                   opacity 0.55s ease 0.15s,
@@ -367,9 +377,10 @@
 
     .showcase-row.is-open .track-drawer {
       width: 270px;
-      margin-left: 36px; /* 플레이어 외곽선과의 충분한 안전 거리 */
+      margin-left: 36px;
       opacity: 1;
       transform: translateX(0);
+      pointer-events: auto;
     }
 
     .track-inner {
@@ -423,7 +434,7 @@
     .track-item {
       font-size: 0.88rem;
       line-height: 1.7;
-      padding: 2px 0;
+      padding: 4px 0;
       color: var(--text-sub);
       cursor: pointer;
       transition: color 0.2s, transform 0.2s;
@@ -539,7 +550,7 @@
     }
 
     /* =========================================
-       모바일 반응형: 플레이어-트랙 침범 0% & 가로 스크롤 차단
+       모바일 반응형
        ========================================= */
     @media (max-width: 640px) {
       .global-header { padding: 32px 16px 16px; }
@@ -547,13 +558,11 @@
       .main-container { padding: 12px 16px 80px; }
       .showcase-row { min-height: 235px; }
 
-      /* 플레이어 영역 고정 박스(182px)로 설정하여 음수 마진 없이 깔끔 분리 */
       .player-stage {
         width: 182px;
         height: 225px;
       }
 
-      /* 내부 요소는 0.78배 축소하여 182px 박스 안에 정중앙 안착 */
       .carousel-stage,
       .turntable-box,
       .tonearm-overlay {
@@ -573,7 +582,6 @@
         transform: scale(0.78);
       }
 
-      /* 트랙 영역이 플레이어 외곽선 바깥쪽에서 시작하도록 명확한 간격(16px) 부여 */
       .showcase-row.is-open .track-drawer {
         width: calc(100vw - 230px);
         max-width: 185px;
@@ -750,15 +758,13 @@
         `;
 
         slot.onclick = () => {
+          // 이미 재생 중일 때는 커버 클릭이 동작하지 않도록 방어
+          if (isPlaying) return;
+
           if (idx === currentIndex) {
-            if (isPlaying) {
-              resetPlayerAnimation();
-            } else {
-              startPlayerSequence(slot);
-            }
+            startPlayerSequence(slot);
           } else {
             currentIndex = idx;
-            resetPlayerAnimation();
             updateCarouselPositions();
           }
         };
@@ -830,7 +836,8 @@
       `).join('');
 
       trackList.querySelectorAll('.track-item').forEach(item => {
-        item.onclick = () => {
+        item.onclick = (e) => {
+          e.stopPropagation();
           const clickedIdx = Number(item.dataset.idx);
           selectTrackAndOpenDetail(clickedIdx);
         };
@@ -914,12 +921,11 @@
     }
 
     function stepTrack(direction) {
-      if (isScrolling || filteredPosts.length === 0) return;
+      if (isPlaying || isScrolling || filteredPosts.length === 0) return;
       const nextIdx = currentIndex + direction;
       if (nextIdx >= 0 && nextIdx < filteredPosts.length) {
         isScrolling = true;
         currentIndex = nextIdx;
-        resetPlayerAnimation();
         updateCarouselPositions();
         setTimeout(() => { isScrolling = false; }, 320);
       }
@@ -928,6 +934,7 @@
     const carouselStage = document.getElementById('carouselStage');
 
     carouselStage.addEventListener('wheel', (e) => {
+      if (isPlaying) return;
       e.preventDefault();
       const delta = Math.abs(e.deltaX) > Math.abs(e.deltaY) ? e.deltaX : e.deltaY;
       if (Math.abs(delta) < 10) return;
@@ -936,10 +943,12 @@
 
     let touchStartX = 0;
     carouselStage.addEventListener('touchstart', (e) => {
+      if (isPlaying) return;
       touchStartX = e.touches[0].clientX;
     }, { passive: true });
 
     carouselStage.addEventListener('touchend', (e) => {
+      if (isPlaying) return;
       const diffX = touchStartX - e.changedTouches[0].clientX;
       if (Math.abs(diffX) > 30) {
         stepTrack(diffX > 0 ? 1 : -1);
@@ -947,6 +956,7 @@
     }, { passive: true });
 
     window.addEventListener('keydown', (e) => {
+      if (isPlaying) return;
       if (e.key === 'ArrowLeft') stepTrack(-1);
       if (e.key === 'ArrowRight') stepTrack(1);
     });

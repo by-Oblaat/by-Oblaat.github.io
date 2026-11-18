@@ -417,11 +417,11 @@
     }
 
     /* =========================================
-       우측 뮤직 컨트롤 카드 드로어 (부드러운 슬라이딩 및 높이 고정)
+       우측 뮤직 컨트롤 카드 드로어 (아코디언 슬라이딩 적용)
        ========================================= */
     .track-drawer {
       position: relative;
-      z-index: 5;
+      z-index: 15;
       width: 0;
       opacity: 0;
       overflow: hidden;
@@ -444,7 +444,7 @@
 
     .player-control-card {
       width: 280px;
-      height: 232px; /* LP 플레이어 본체 세로 길이와 완벽 일치 */
+      height: 145px; /* 평소에는 작게 유지 */
       background: #ffffff;
       border: 1px solid #ececec;
       border-radius: 18px;
@@ -454,7 +454,14 @@
       flex-direction: column;
       justify-content: space-between;
       position: relative;
-      margin-top: 20px; /* 플레이어 상단 마진과 수평 정렬 */
+      margin-top: 20px;
+      transition: height 0.4s cubic-bezier(0.22, 1, 0.36, 1);
+      overflow: hidden;
+    }
+
+    /* ☰ 버튼을 눌러 트랙 목록이 열렸을 때 높이가 LP 플레이어(232px)와 같아짐 */
+    .player-control-card.expanded {
+      height: 232px;
     }
 
     .ctrl-top-row {
@@ -491,10 +498,13 @@
       font-size: 1rem;
       cursor: pointer;
       padding: 2px 4px;
-      transition: color 0.2s;
+      transition: color 0.2s, transform 0.3s ease;
     }
     .ctrl-list-toggle:hover, .ctrl-list-toggle.active {
       color: var(--text-main);
+    }
+    .ctrl-list-toggle.active {
+      transform: rotate(90deg);
     }
 
     .ctrl-progress-wrap {
@@ -549,28 +559,31 @@
       fill: currentColor;
     }
 
+    /* 부드럽게 슬라이딩되며 내려오는 트랙 아코디언 영역 */
     .mini-track-popover {
-      display: none;
+      max-height: 0;
+      opacity: 0;
+      overflow-y: auto;
+      display: flex;
       flex-direction: column;
       gap: 4px;
-      max-height: 110px;
-      overflow-y: auto;
-      border-top: 1px solid #f0f0f0;
-      padding-top: 8px;
-      position: absolute;
-      top: 65px;
-      left: 20px;
-      right: 20px;
-      background: #ffffff;
-      z-index: 25;
+      border-top: 1px solid transparent;
+      padding-top: 0;
+      transition: max-height 0.4s cubic-bezier(0.22, 1, 0.36, 1),
+                  opacity 0.3s ease,
+                  padding 0.3s ease,
+                  border-color 0.3s ease;
     }
     .mini-track-popover.open {
-      display: flex;
+      max-height: 90px;
+      opacity: 1;
+      border-top-color: #f0f0f0;
+      padding-top: 6px;
     }
     .mini-track-row {
       font-size: 0.82rem;
       color: var(--text-sub);
-      padding: 6px 8px;
+      padding: 5px 8px;
       border-radius: 6px;
       cursor: pointer;
       white-space: nowrap;
@@ -970,6 +983,9 @@
         gap: 10px;
         margin-top: 15px;
       }
+      .player-control-card.expanded {
+        height: auto;
+      }
       .ctrl-title { font-size: 0.95rem; }
       .ctrl-btn { width: 32px; height: 32px; }
       .detail-drawer { max-width: 100%; }
@@ -1007,7 +1023,7 @@
         </div>
 
         <aside class="track-drawer" id="trackDrawer">
-          <div class="player-control-card">
+          <div class="player-control-card" id="playerControlCard">
             <div class="ctrl-top-row">
               <div class="ctrl-meta">
                 <div class="ctrl-title" id="ctrlTitle">TRACK TITLE</div>
@@ -1336,6 +1352,7 @@
       document.getElementById('commentSection').classList.remove('visible');
       document.getElementById('miniTrackPopover').classList.remove('open');
       document.getElementById('ctrlListToggle').classList.remove('active');
+      document.getElementById('playerControlCard').classList.remove('expanded');
 
       document.querySelectorAll('.mini-track-row').forEach(el => el.classList.remove('active'));
       slotElements.forEach(s => {
@@ -1402,8 +1419,13 @@
 
     document.getElementById('ctrlListToggle').onclick = (e) => {
       e.stopPropagation();
-      e.currentTarget.classList.toggle('active');
-      document.getElementById('miniTrackPopover').classList.toggle('open');
+      const toggleBtn = e.currentTarget;
+      const popover = document.getElementById('miniTrackPopover');
+      const card = document.getElementById('playerControlCard');
+
+      toggleBtn.classList.toggle('active');
+      popover.classList.toggle('open');
+      card.classList.toggle('expanded');
     };
 
     function renderTrackList() {
@@ -1561,7 +1583,7 @@
     });
 
     /* =========================================================================
-       전용 글쓰기 / 순서 변경 / 수정·삭제 관리자 로직
+       전용 글쓰기 / 순서 변경 / 수정·삭제 관리자 모달
        ========================================= */
     const writerOverlay = document.getElementById('writerOverlay');
     const ghTokenInput = document.getElementById('ghTokenInput');

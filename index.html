@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
- <title>Love the Loveless</title>
+  <title>Love the Loveless</title>
   <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+KR:wght@400;600&family=Pretendard:wght@300;400;500;600&display=swap" rel="stylesheet">
   <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
   <style>
@@ -42,7 +42,7 @@
     }
 
     /* =========================================
-       [상단 헤더] ARCHIVES 장체(Stella) 적용
+       [상단 헤더] Love the Loveless (Stella 장체)
        ========================================= */
     .global-header {
       width: 100%;
@@ -615,7 +615,7 @@
     }
 
     /* =========================================
-       전용 글쓰기 및 수정/삭제 관리자 모달 UI
+       전용 글쓰기 / 순서 변경 / 수정·삭제 관리자 모달 UI
        ========================================= */
     .writer-overlay {
       display: none;
@@ -795,11 +795,27 @@
     }
     .manage-actions {
       display: flex;
-      gap: 6px;
+      gap: 5px;
       flex-shrink: 0;
     }
+    .btn-order {
+      padding: 5px 7px;
+      font-size: 0.7rem;
+      border: 1px solid #dcdcdc;
+      background: #fff;
+      cursor: pointer;
+      color: var(--text-sub);
+    }
+    .btn-order:hover:not(:disabled) {
+      border-color: var(--text-main);
+      color: var(--text-main);
+    }
+    .btn-order:disabled {
+      opacity: 0.3;
+      cursor: default;
+    }
     .btn-edit, .btn-delete {
-      padding: 5px 10px;
+      padding: 5px 9px;
       font-size: 0.75rem;
       border: 1px solid #dcdcdc;
       background: #fff;
@@ -848,7 +864,7 @@
 
     @media (max-width: 640px) {
       .global-header { padding: 32px 16px 16px; }
-      .global-header h1 { font-size: 2.25rem; }
+      .global-header h1 { font-size: 2.15rem; }
       .main-container { padding: 12px 16px 80px; }
       .showcase-row { min-height: 220px; }
 
@@ -884,10 +900,10 @@
 <body>
 
   <div class="page-shell">
-<header class="global-header">
+    <header class="global-header">
       <h1 id="secretTrigger" title="더블클릭 또는 #write 접속 시 관리창">Love the Loveless</h1>
       <div class="filter-bar" id="filterBar">
-        <button class="filter-btn active" data-label="AL🩵</button>
+        <button class="filter-btn active" data-label="ALL">ALL</button>
         <button class="filter-btn" data-label="MADE">MADE</button>
         <button class="filter-btn" data-label="LOVE">LOVE</button>
       </div>
@@ -940,7 +956,7 @@
     </main>
   </div>
 
-  <!-- 전용 글쓰기 / 수정 / 삭제 관리자 모달 -->
+  <!-- 전용 글쓰기 / 순서 변경 / 수정·삭제 관리자 모달 -->
   <div class="writer-overlay" id="writerOverlay">
     <div class="writer-box">
       <div class="writer-header">
@@ -955,7 +971,7 @@
 
       <div class="admin-tabs">
         <button class="admin-tab active" id="tabWrite">새 트랙 작성</button>
-        <button class="admin-tab" id="tabManage">기존 트랙 관리 (수정 / 삭제)</button>
+        <button class="admin-tab" id="tabManage">기존 트랙 관리 (순서 / 수정 / 삭제)</button>
       </div>
 
       <div class="writer-form-body" id="writeFormPanel">
@@ -1030,7 +1046,7 @@
     let selectedCategory = "MADE";
 
     let editingIssueNumber = null;
-    let preservedAssets = { cover: "", vinyl: "", bodyImg: "" };
+    let preservedAssets = { cover: "", vinyl: "", bodyImg: "", order: "" };
 
     function applyCustomPlayerAssets() {
       const turntableBox = document.getElementById('turntableBox');
@@ -1055,6 +1071,13 @@
       return `${yy}.${mm}.${dd}`;
     }
 
+    function extractMetaUrl(bodyText, key, fallback) {
+      if (!bodyText) return fallback;
+      const regex = new RegExp(`^${key}:\\s*(.+)$`, 'im');
+      const match = bodyText.match(regex);
+      return match ? match[1].trim() : fallback;
+    }
+
     async function fetchPosts() {
       applyCustomPlayerAssets();
       try {
@@ -1063,13 +1086,23 @@
         const issues = Array.isArray(data) ? data.filter(item => !item.pull_request) : [];
 
         if (issues.length > 0) {
-          allPosts = issues;
+          allPosts = issues.sort((a, b) => {
+            const orderA = Number(extractMetaUrl(a.body, 'order', '9999'));
+            const orderB = Number(extractMetaUrl(b.body, 'order', '9999'));
+            if (orderA !== orderB) return orderA - orderB;
+            return new Date(b.created_at) - new Date(a.created_at);
+          });
         } else {
           allPosts = [
-            { number: 0, title: "SAMPLE 01", created_at: new Date().toISOString(), labels: [{ name: "MADE" }], body: "상단 ARCHIVES 제목을 더블클릭(또는 주소 뒤에 #write 입력)하면 글쓰기·수정·삭제 창이 열립니다." }
+            { number: 0, title: "SAMPLE 01", created_at: new Date().toISOString(), labels: [{ name: "MADE" }], body: "상단 Love the Loveless 제목을 더블클릭(또는 주소 뒤에 #write 입력)하면 글쓰기·순서변경·수정·삭제 창이 열립니다." }
           ];
         }
-        filteredPosts = [...allPosts];
+
+        const activeFilter = document.querySelector('.filter-btn.active')?.dataset.label || 'ALL';
+        filteredPosts = activeFilter === 'ALL'
+          ? [...allPosts]
+          : allPosts.filter(p => p.labels.some(l => l.name.toUpperCase() === activeFilter));
+
         bindFilterButtons();
         rebuildAll();
         renderManageList();
@@ -1100,13 +1133,6 @@
       buildStackDOM();
       renderTrackList();
       updateCarouselPositions();
-    }
-
-    function extractMetaUrl(bodyText, key, fallback) {
-      if (!bodyText) return fallback;
-      const regex = new RegExp(`^${key}:\\s*(.+)$`, 'im');
-      const match = bodyText.match(regex);
-      return match ? match[1].trim() : fallback;
     }
 
     function buildStackDOM() {
@@ -1261,6 +1287,7 @@
         const rawBody = (post.body || '')
           .replace(/^cover:\s*.+$/gim, '')
           .replace(/^vinyl:\s*.+$/gim, '')
+          .replace(/^order:\s*.+$/gim, '')
           .trim();
 
         const mdImgMatch = rawBody.match(/!\[.*?\]\((.*?)\)/);
@@ -1355,7 +1382,7 @@
     });
 
     /* =========================================================================
-       전용 글쓰기 / 수정 / 삭제 관리자 로직
+       전용 글쓰기 / 순서 변경 / 수정·삭제 관리자 로직
        ========================================================================= */
     const writerOverlay = document.getElementById('writerOverlay');
     const ghTokenInput = document.getElementById('ghTokenInput');
@@ -1434,16 +1461,18 @@
         return;
       }
 
-      manageListPanel.innerHTML = realPosts.map(post => {
+      manageListPanel.innerHTML = realPosts.map((post, idx) => {
         const cat = post.labels[0] ? post.labels[0].name : 'NONE';
         const date = formatYYMMDD(post.created_at);
         return `
           <div class="manage-item">
             <div class="manage-item-info">
-              <div class="manage-item-title">${post.title}</div>
+              <div class="manage-item-title">${idx + 1}. ${post.title}</div>
               <div class="manage-item-meta">[${cat}] · ${date}</div>
             </div>
             <div class="manage-actions">
+              <button class="btn-order" onclick="moveTrackOrder(${idx}, -1)" ${idx === 0 ? 'disabled' : ''}>▲</button>
+              <button class="btn-order" onclick="moveTrackOrder(${idx}, 1)" ${idx === realPosts.length - 1 ? 'disabled' : ''}>▼</button>
               <button class="btn-edit" onclick="startEditTrack(${post.number})">수정</button>
               <button class="btn-delete" onclick="deleteTrack(${post.number}, '${post.title.replace(/'/g, "\\'")}')">삭제</button>
             </div>
@@ -1451,6 +1480,59 @@
         `;
       }).join('');
     }
+
+    window.moveTrackOrder = async function(index, direction) {
+      const token = ghTokenInput.value.trim();
+      const statusEl = document.getElementById('writerStatus');
+      if (!token) {
+        statusEl.textContent = '상단 발행 비밀번호(GitHub Token)를 먼저 입력해 주세요.';
+        return;
+      }
+
+      const targetIndex = index + direction;
+      if (targetIndex < 0 || targetIndex >= allPosts.length) return;
+
+      const temp = allPosts[index];
+      allPosts[index] = allPosts[targetIndex];
+      allPosts[targetIndex] = temp;
+
+      renderManageList();
+      statusEl.textContent = '순서 저장 중...';
+
+      try {
+        for (let i = 0; i < allPosts.length; i++) {
+          const post = allPosts[i];
+          if (post.number <= 0) continue;
+          const newOrder = i + 1;
+          const currentOrder = Number(extractMetaUrl(post.body, 'order', '-1'));
+          if (currentOrder === newOrder) continue;
+
+          const cleanBody = (post.body || '').replace(/^order:\s*.+$/gim, '').trim();
+          const updatedBody = `order: ${newOrder}\n\n${cleanBody}`;
+          post.body = updatedBody;
+
+          await fetch(`https://api.github.com/repos/${GITHUB_USER}/${GITHUB_REPO}/issues/${post.number}`, {
+            method: 'PATCH',
+            headers: {
+              'Authorization': `token ${token}`,
+              'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ body: updatedBody })
+          });
+        }
+
+        const activeFilter = document.querySelector('.filter-btn.active')?.dataset.label || 'ALL';
+        filteredPosts = activeFilter === 'ALL'
+          ? [...allPosts]
+          : allPosts.filter(p => p.labels.some(l => l.name.toUpperCase() === activeFilter));
+        rebuildAll();
+
+        statusEl.textContent = '순서가 변경되었습니다.';
+        setTimeout(() => { statusEl.textContent = ''; }, 1000);
+      } catch (err) {
+        statusEl.textContent = '순서 저장 실패: 토큰을 확인해 주세요.';
+      }
+    };
 
     window.startEditTrack = function(issueNumber) {
       const post = allPosts.find(p => p.number === issueNumber);
@@ -1461,16 +1543,19 @@
 
       const coverUrl = extractMetaUrl(raw, 'cover', '');
       const vinylUrl = extractMetaUrl(raw, 'vinyl', '');
+      const orderVal = extractMetaUrl(raw, 'order', '');
+
       const cleanWithoutMeta = raw
         .replace(/^cover:\s*.+$/gim, '')
         .replace(/^vinyl:\s*.+$/gim, '')
+        .replace(/^order:\s*.+$/gim, '')
         .trim();
 
       const mdImgMatch = cleanWithoutMeta.match(/!\[.*?\]\((.*?)\)/);
       const bodyImgUrl = mdImgMatch ? mdImgMatch[1] : '';
       const pureText = mdImgMatch ? cleanWithoutMeta.replace(mdImgMatch[0], '').trim() : cleanWithoutMeta;
 
-      preservedAssets = { cover: coverUrl, vinyl: vinylUrl, bodyImg: bodyImgUrl };
+      preservedAssets = { cover: coverUrl, vinyl: vinylUrl, bodyImg: bodyImgUrl, order: orderVal };
 
       document.getElementById('existingCoverNote').textContent = coverUrl ? '※ 기존 커버 이미지 유지됨 (새 파일 선택 시 교체)' : '';
       document.getElementById('existingVinylNote').textContent = vinylUrl ? '※ 기존 LP 알판 이미지 유지됨 (새 파일 선택 시 교체)' : '';
@@ -1478,7 +1563,7 @@
 
       document.getElementById('postTitleInput').value = post.title;
       document.getElementById('postBodyInput').value = pureText;
-  const cat = post.labels[0] ? post.labels[0].name.toUpperCase() : 'MADE';
+      const cat = post.labels[0] ? post.labels[0].name.toUpperCase() : 'MADE';
       setCategorySelection(cat === 'LOVE' ? 'LOVE' : 'MADE');
 
       document.getElementById('editModeBanner').classList.add('active');
@@ -1490,7 +1575,7 @@
 
     function cancelEditMode() {
       editingIssueNumber = null;
-      preservedAssets = { cover: "", vinyl: "", bodyImg: "" };
+      preservedAssets = { cover: "", vinyl: "", bodyImg: "", order: "" };
       document.getElementById('existingCoverNote').textContent = '';
       document.getElementById('existingVinylNote').textContent = '';
       document.getElementById('existingBodyImgNote').textContent = '';
@@ -1595,6 +1680,10 @@
 
       try {
         let finalBodyParts = [];
+
+        if (preservedAssets.order) {
+          finalBodyParts.push(`order: ${preservedAssets.order}`);
+        }
 
         if (coverFile) {
           statusEl.textContent = 'LP 커버 이미지 업로드 중...';

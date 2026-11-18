@@ -35,20 +35,6 @@
       overflow-x: hidden;
     }
 
-    /* 이미지 및 커버 우클릭/드래그 차단 */
-    img, .lp-jacket, .vinyl-disc, .turntable-box {
-      -webkit-user-drag: none;
-      -khtml-user-drag: none;
-      -moz-user-drag: none;
-      -o-user-drag: none;
-      user-drag: none;
-      pointer-events: none;
-    }
-
-    .lp-slot, .carousel-stage, .ctrl-buttons, .player-control-right, .global-header, .writer-overlay {
-      pointer-events: auto;
-    }
-
     /* =========================================
        [상단 헤더] Love the Loveless (Monsieur La Doulaise)
        ========================================= */
@@ -108,7 +94,7 @@
       width: 100%;
       display: flex;
       justify-content: center;
-      align-items: flex-start; /* 상단 정렬을 통해 플레이어와 컨트롤 카드 상단 수평 맞춤 */
+      align-items: flex-start;
       min-height: 290px;
       position: relative;
     }
@@ -392,7 +378,7 @@
     }
 
     /* =========================================
-       우측 뮤직 컨트롤 카드 드로어 (마진 0으로 턴테이블 상단선과 완벽 일치)
+       우측 뮤직 컨트롤 카드 드로어
        ========================================= */
     .track-drawer {
       position: relative;
@@ -429,7 +415,7 @@
       flex-direction: column;
       justify-content: space-between;
       position: relative;
-      margin-top: 0; /* 턴테이블 상단 마진(20px)과 높이 라인 일치 */
+      margin-top: 0;
       transition: height 0.4s cubic-bezier(0.22, 1, 0.36, 1);
       overflow: hidden;
     }
@@ -533,13 +519,12 @@
       fill: currentColor;
     }
 
-    /* 트랙 목록 영역: 히든 스크롤(글자 잘림 방지 및 스크롤바 숨김) 적용 */
     .mini-track-popover {
       max-height: 0;
       opacity: 0;
       overflow-y: auto;
-      scrollbar-width: none; /* Firefox 스크롤바 숨김 */
-      -ms-overflow-style: none; /* IE/Edge 스크롤바 숨김 */
+      scrollbar-width: none;
+      -ms-overflow-style: none;
       display: flex;
       flex-direction: column;
       gap: 4px;
@@ -551,9 +536,8 @@
                   border-color 0.3s ease;
     }
     .mini-track-popover::-webkit-scrollbar {
-      display: none; /* Chrome/Safari/Opera 스크롤바 숨김 (히든 스크롤) */
+      display: none;
     }
-
     .mini-track-popover.open {
       max-height: 100px;
       opacity: 1;
@@ -704,6 +688,42 @@
     }
     .thread-body p { margin-bottom: 1em; }
     .thread-body img { max-width: 100%; margin: 10px 0; }
+
+    /* 타래글 작성 폼 스타일 */
+    .thread-write-box {
+      margin-top: 28px;
+      border: 1px solid #e5e5e5;
+      padding: 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      background: #fafafa;
+    }
+    .thread-write-box textarea {
+      width: 100%;
+      min-height: 80px;
+      border: 1px solid #dcdcdc;
+      padding: 8px 10px;
+      font-family: 'Gowun Batang', serif;
+      font-size: 0.9rem;
+      outline: none;
+    }
+    .thread-write-box textarea:focus { border-color: var(--line-blue); }
+    .thread-write-footer {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .thread-submit-btn {
+      background: var(--text-main);
+      color: #fff;
+      border: none;
+      padding: 6px 16px;
+      font-size: 0.85rem;
+      cursor: pointer;
+      font-family: 'Gowun Batang', serif;
+    }
+    .thread-submit-btn:disabled { opacity: 0.5; cursor: default; }
 
     /* =========================================
        전용 글쓰기 / 순서 변경 / 수정·삭제 관리자 모달 UI
@@ -1080,11 +1100,25 @@
           </div>
 
           <div class="fade-section comment-section" id="commentSection">
-            <div class="comment-label">
+            <div class="comment-label" id="commentLabelBox" style="display:none;">
               COMMENT <span id="activePostTitle"></span>
             </div>
             <div class="comment-body" id="commentBody"></div>
+            
             <div class="threads-container" id="threadsContainer"></div>
+
+            <!-- 타래글을 해당 트랙 하단에서 바로 추가할 수 있는 작성 박스 -->
+            <div class="thread-write-box" id="threadWriteBox" style="display:none;">
+              <textarea id="newThreadInput" placeholder="타래글을 작성하세요... (이미지 첨부 가능)"></textarea>
+              <div class="thread-write-footer">
+                <div>
+                  <label for="newThreadImgInput" style="font-size:0.75rem; color:var(--line-blue); cursor:pointer; text-decoration:underline;">+ 이미지 첨부</label>
+                  <input type="file" id="newThreadImgInput" accept="image/*" style="display:none;" />
+                </div>
+                <button class="thread-submit-btn" id="submitThreadBtn">타래 추가</button>
+              </div>
+              <div id="threadStatus" style="font-size:0.75rem; color:var(--line-orange);"></div>
+            </div>
           </div>
         </div>
       </section>
@@ -1147,17 +1181,8 @@
         </div>
 
         <div class="writer-field">
-          <label>COMMENT (메인 코멘트 본문)</label>
-          <textarea class="writer-textarea" id="postBodyInput" placeholder="첫 번째 코멘트를 작성하세요."></textarea>
-        </div>
-
-        <div class="writer-field">
-          <label>THREADS (추가 타래글들 - 구분선 `---`로 여러 개 작성 가능)</label>
-          <textarea class="writer-textarea" id="postThreadsInput" placeholder="---\n두 번째 타래글 내용...\n---\n세 번째 타래글 내용..."></textarea>
-          <div style="display:flex; justify-content:flex-end; margin-top:4px;">
-            <label for="threadImgFileInput" style="font-size:0.75rem; color:var(--line-blue); cursor:pointer; text-decoration:underline;">+ 타래글에 이미지 첨부하기</label>
-            <input type="file" id="threadImgFileInput" accept="image/*" style="display:none;" />
-          </div>
+          <label>COMMENT (메인 코멘트 본문 — 비워두면 출력되지 않습니다)</label>
+          <textarea class="writer-textarea" id="postBodyInput" placeholder="코멘트 내용을 입력하세요 (선택 사항)"></textarea>
         </div>
 
         <button class="writer-submit" id="publishBtn">발행하기 (PUBLISH)</button>
@@ -1194,7 +1219,7 @@
     let progressPercent = 28;
 
     let editingIssueNumber = null;
-    let preservedAssets = { cover: "", vinyl: "", bodyImg: "", order: "", threads: "" };
+    let preservedAssets = { cover: "", vinyl: "", bodyImg: "", order: "" };
 
     function applyCustomPlayerAssets() {
       const turntableBox = document.getElementById('turntableBox');
@@ -1521,45 +1546,73 @@
       detailDrawer.classList.add('open');
 
       setTimeout(() => {
-        const rawBody = (post.body || '')
-          .replace(/^cover:\s*.+$/gim, '')
-          .replace(/^vinyl:\s*.+$/gim, '')
-          .replace(/^order:\s*.+$/gim, '')
-          .replace(/^threads:[\s\S]*?(?=^#|\Z)/gim, '')
+        const fullBody = post.body || '';
+        const lines = fullBody.split('\n');
+        
+        let metaLines = [];
+        let commentLines = [];
+        let threadLines = [];
+        let mode = 'comment';
+
+        for (let line of lines) {
+          if (line.trim().startsWith('cover:') || line.trim().startsWith('vinyl:') || line.trim().startsWith('order:')) {
+            metaLines.push(line);
+            continue;
+          }
+          if (line.trim() === '---threads---') {
+            mode = 'threads';
+            continue;
+          }
+          if (mode === 'comment') {
+            commentLines.push(line);
+          } else {
+            threadLines.push(line);
+          }
+        }
+
+        const cleanComment = commentLines.join('\n')
+          .replace(/^(cover|vinyl|order):\s*.+$/gim, '')
           .trim();
 
-        const mdImgMatch = rawBody.match(/!\[.*?\]\((.*?)\)/);
-        const htmlImgMatch = rawBody.match(/<img[^>]+src=["']([^"']+)["']/i);
+        const mdImgMatch = cleanComment.match(/!\[.*?\]\((.*?)\)/);
+        const htmlImgMatch = cleanComment.match(/<img[^>]+src=["']([^"']+)["']/i);
         const imageFrame = document.getElementById('imageFrame');
 
-        let textOnlyBody = rawBody;
+        let textOnlyBody = cleanComment;
         if (mdImgMatch) {
           imageFrame.innerHTML = `<img src="${mdImgMatch[1]}" alt="cover" />`;
-          textOnlyBody = rawBody.replace(mdImgMatch[0], '').trim();
+          textOnlyBody = cleanComment.replace(mdImgMatch[0], '').trim();
         } else if (htmlImgMatch) {
           imageFrame.innerHTML = `<img src="${htmlImgMatch[1]}" alt="cover" />`;
-          textOnlyBody = rawBody.replace(htmlImgMatch[0], '').trim();
+          textOnlyBody = cleanComment.replace(htmlImgMatch[0], '').trim();
         } else {
           imageFrame.innerHTML = `<div class="image-placeholder">IMAGE</div>`;
         }
 
-        document.getElementById('activePostTitle').textContent = `— ${post.title}`;
-        marked.setOptions({ breaks: true });
-        document.getElementById('commentBody').innerHTML = marked.parse(textOnlyBody || '(작성된 코멘트가 없습니다.)');
+        const commentLabelBox = document.getElementById('commentLabelBox');
+        const commentBody = document.getElementById('commentBody');
 
+        if (textOnlyBody.length > 0) {
+          document.getElementById('activePostTitle').textContent = `— ${post.title}`;
+          commentLabelBox.style.display = 'flex';
+          marked.setOptions({ breaks: true });
+          commentBody.innerHTML = marked.parse(textOnlyBody);
+        } else {
+          commentLabelBox.style.display = 'none';
+          commentBody.innerHTML = '';
+        }
+
+        // 타래 렌더링
         const threadsContainer = document.getElementById('threadsContainer');
         threadsContainer.innerHTML = '';
 
-        const threadMatch = (post.body || '').match(/^threads:\s*\n([\s\S]*)$/im);
-        if (threadMatch && threadMatch[1]) {
-          const rawThreads = threadMatch[1].trim();
-          const threadBlocks = rawThreads.split(/^---\s*$/gm).map(b => b.trim()).filter(Boolean);
-
-          threadBlocks.forEach(block => {
+        const rawThreadsText = threadLines.join('\n').trim();
+        if (rawThreadsText) {
+          const blocks = rawThreadsText.split(/^---\s*$/gm).map(b => b.trim()).filter(Boolean);
+          blocks.forEach(block => {
             const itemEl = document.createElement('div');
             itemEl.className = 'thread-item';
             const dateStr = formatYYMMDD(post.created_at);
-
             itemEl.innerHTML = `
               <div class="thread-date">${dateStr}</div>
               <div class="thread-body">${marked.parse(block)}</div>
@@ -1568,10 +1621,92 @@
           });
         }
 
+        // 타래 작성 박스 활성화 (토큰이 있을 때만 노출 또는 항상 노출 후 제출 시 체크)
+        document.getElementById('threadWriteBox').style.display = 'flex';
+
         imageSection.classList.add('visible');
         commentSection.classList.add('visible');
       }, 160);
     }
+
+    // 하단 타래글 추가 제출 버튼 이벤트
+    document.getElementById('submitThreadBtn').onclick = async () => {
+      const token = ghTokenInput.value.trim();
+      const statusEl = document.getElementById('threadStatus');
+      const threadInput = document.getElementById('newThreadInput');
+      const threadText = threadInput.value.trim();
+
+      if (!token) {
+        statusEl.textContent = '타래를 작성하려면 상단 관리창 또는 토큰을 먼저 입력해 주세요.';
+        return;
+      }
+      if (!threadText) {
+        statusEl.textContent = '타래 내용을 입력해 주세요.';
+        return;
+      }
+
+      const currentPost = filteredPosts[currentIndex];
+      if (!currentPost || currentPost.number <= 0) {
+        statusEl.textContent = '샘플 게시글에는 타래를 추가할 수 없습니다.';
+        return;
+      }
+
+      statusEl.textContent = '타래 추가 중...';
+      document.getElementById('submitThreadBtn').disabled = true;
+
+      try {
+        let existingBody = currentPost.body || '';
+        if (!existingBody.includes('---threads---')) {
+          existingBody += '\n\n---threads---\n';
+        } else {
+          existingBody += '\n---\n';
+        }
+        existingBody += threadText;
+
+        const res = await fetch(`https://api.github.com/repos/${GITHUB_USER}/${GITHUB_REPO}/issues/${currentPost.number}`, {
+          method: 'PATCH',
+          headers: {
+            'Authorization': `token ${token}`,
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({ body: existingBody })
+        });
+
+        if (!res.ok) throw new Error('타래 추가 실패: 토큰 권한을 확인해 주세요.');
+
+        statusEl.textContent = '타래가 추가되었습니다!';
+        threadInput.value = '';
+        document.getElementById('submitThreadBtn').disabled = false;
+        await fetchPosts();
+        openTrackDetail(currentIndex);
+        setTimeout(() => { statusEl.textContent = ''; }, 1200);
+      } catch (err) {
+        statusEl.textContent = err.message;
+        document.getElementById('submitThreadBtn').disabled = false;
+      }
+    };
+
+    // 타래 작성란 이미지 첨부 핸들러
+    document.getElementById('newThreadImgInput').onchange = async (e) => {
+      const file = e.target.files[0];
+      const token = ghTokenInput.value.trim();
+      const statusEl = document.getElementById('threadStatus');
+      if (!file) return;
+      if (!token) {
+        statusEl.textContent = '이미지를 업로드하려면 토큰을 입력해 주세요.';
+        return;
+      }
+      statusEl.textContent = '타래 이미지 업로드 중...';
+      try {
+        const url = await uploadImageToGitHub(file, token);
+        const threadTextArea = document.getElementById('newThreadInput');
+        threadTextArea.value += `\n![image](${url})\n`;
+        statusEl.textContent = '이미지 첨부 완료!';
+        setTimeout(() => { statusEl.textContent = ''; }, 1000);
+      } catch (err) {
+        statusEl.textContent = err.message;
+      }
+    };
 
     function updateCarouselPositions() {
       slotElements.forEach((slot, idx) => {
@@ -1641,7 +1776,7 @@
     });
 
     /* =========================================================================
-       전용 글쓰기 / 순서 변경 / 수정·삭제 관리자 모달 및 타래 이미지 업로드
+       전용 글쓰기 / 순서 변경 / 수정·삭제 관리자 모달
        ========================================= */
     const writerOverlay = document.getElementById('writerOverlay');
     const ghTokenInput = document.getElementById('ghTokenInput');
@@ -1712,28 +1847,6 @@
     document.querySelectorAll('.cat-option').forEach(opt => {
       opt.onclick = () => setCategorySelection(opt.dataset.cat);
     });
-
-    // 타래 글 이미지 업로드 핸들러
-    document.getElementById('threadImgFileInput').onchange = async (e) => {
-      const file = e.target.files[0];
-      const token = ghTokenInput.value.trim();
-      const statusEl = document.getElementById('writerStatus');
-      if (!file) return;
-      if (!token) {
-        statusEl.textContent = '이미지를 업로드하려면 상단에 GitHub Token을 먼저 입력해 주세요.';
-        return;
-      }
-      statusEl.textContent = '타래 이미지 업로드 중...';
-      try {
-        const url = await uploadImageToGitHub(file, token);
-        const threadTextArea = document.getElementById('postThreadsInput');
-        threadTextArea.value += `\n![image](${url})\n`;
-        statusEl.textContent = '타래 이미지 첨부 완료!';
-        setTimeout(() => { statusEl.textContent = ''; }, 1000);
-      } catch (err) {
-        statusEl.textContent = err.message;
-      }
-    };
 
     function renderManageList() {
       const realPosts = allPosts.filter(p => p.number > 0);
@@ -1824,21 +1937,21 @@
       const vinylUrl = extractMetaUrl(raw, 'vinyl', '');
       const orderVal = extractMetaUrl(raw, 'order', '');
 
-      const cleanWithoutMeta = raw
+      let commentPart = raw;
+      const parts = raw.split('---threads---');
+      if (parts[0]) commentPart = parts[0];
+
+      const cleanWithoutMeta = commentPart
         .replace(/^cover:\s*.+$/gim, '')
         .replace(/^vinyl:\s*.+$/gim, '')
         .replace(/^order:\s*.+$/gim, '')
-        .replace(/^threads:[\s\S]*?(?=^#|\Z)/gim, '')
         .trim();
-
-      const threadMatch = raw.match(/^threads:\s*\n([\s\S]*)$/im);
-      const threadsVal = threadMatch ? threadMatch[1].trim() : '';
 
       const mdImgMatch = cleanWithoutMeta.match(/!\[.*?\]\((.*?)\)/);
       const bodyImgUrl = mdImgMatch ? mdImgMatch[1] : '';
       const pureText = mdImgMatch ? cleanWithoutMeta.replace(mdImgMatch[0], '').trim() : cleanWithoutMeta;
 
-      preservedAssets = { cover: coverUrl, vinyl: vinylUrl, bodyImg: bodyImgUrl, order: orderVal, threads: threadsVal };
+      preservedAssets = { cover: coverUrl, vinyl: vinylUrl, bodyImg: bodyImgUrl, order: orderVal };
 
       document.getElementById('existingCoverNote').textContent = coverUrl ? '※ 기존 커버 이미지 유지됨 (새 파일 선택 시 교체)' : '';
       document.getElementById('existingVinylNote').textContent = vinylUrl ? '※ 기존 LP 알판 이미지 유지됨 (새 파일 선택 시 교체)' : '';
@@ -1846,7 +1959,6 @@
 
       document.getElementById('postTitleInput').value = post.title;
       document.getElementById('postBodyInput').value = pureText;
-      document.getElementById('postThreadsInput').value = threadsVal;
       const cat = post.labels[0] ? post.labels[0].name.trim().toUpperCase() : 'MADE';
       setCategorySelection(cat === 'LOVE' || cat === 'AND' ? 'LOVE' : 'MADE');
 
@@ -1859,13 +1971,12 @@
 
     function cancelEditMode() {
       editingIssueNumber = null;
-      preservedAssets = { cover: "", vinyl: "", bodyImg: "", order: "", threads: "" };
+      preservedAssets = { cover: "", vinyl: "", bodyImg: "", order: "" };
       document.getElementById('existingCoverNote').textContent = '';
       document.getElementById('existingVinylNote').textContent = '';
       document.getElementById('existingBodyImgNote').textContent = '';
       document.getElementById('postTitleInput').value = '';
       document.getElementById('postBodyInput').value = '';
-      document.getElementById('postThreadsInput').value = '';
       document.getElementById('coverFileInput').value = '';
       document.getElementById('vinylFileInput').value = '';
       document.getElementById('bodyImgFileInput').value = '';
@@ -1945,7 +2056,6 @@
       const token = ghTokenInput.value.trim();
       const title = document.getElementById('postTitleInput').value.trim();
       const rawBody = document.getElementById('postBodyInput').value.trim();
-      const rawThreads = document.getElementById('postThreadsInput').value.trim();
       const coverFile = document.getElementById('coverFileInput').files[0];
       const vinylFile = document.getElementById('vinylFileInput').files[0];
       const bodyImgFile = document.getElementById('bodyImgFileInput').files[0];
@@ -1999,9 +2109,13 @@
           finalBodyParts.push(rawBody);
         }
 
-        const threadsVal = rawThreads || preservedAssets.threads;
-        if (threadsVal) {
-          finalBodyParts.push(`threads:\n${threadsVal}`);
+        // 수정 시 기존 타래(threads) 내용 보존
+        if (editingIssueNumber !== null) {
+          const oldPost = allPosts.find(p => p.number === editingIssueNumber);
+          if (oldPost && oldPost.body && oldPost.body.includes('---threads---')) {
+            const threadPart = oldPost.body.split('---threads---')[1];
+            if (threadPart) finalBodyParts.push(`---threads---\n${threadPart.trim()}`);
+          }
         }
 
         const isEditing = editingIssueNumber !== null;

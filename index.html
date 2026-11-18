@@ -78,7 +78,7 @@
     }
 
     /* =========================================
-       메인 컨테이너
+       메인 컨테이너 및 통합 플레이어 카드 레이아웃
        ========================================= */
     .main-container {
       width: 100%;
@@ -95,34 +95,44 @@
       display: flex;
       justify-content: center;
       align-items: center;
-      min-height: 290px;
+      min-height: 340px;
       position: relative;
     }
 
+    /* 레퍼런스 스타일 통합 백그라운드 카드 컨테이너 */
+    .player-unified-card {
+      position: relative;
+      width: 660px;
+      height: 232px;
+      background: #ffffff;
+      border: 1px solid #ececec;
+      border-radius: 18px;
+      box-shadow: 0 14px 36px rgba(0, 0, 0, 0.07);
+      display: flex;
+      align-items: center;
+      padding: 0 40px 0 24px;
+      justify-content: space-between;
+      gap: 40px;
+    }
+
+    /* 좌측: 턴테이블(플레이어) 스테이지 */
     .player-stage {
       position: relative;
-      width: 240px;
-      height: 275px;
+      width: 200px;
+      height: 200px;
       flex-shrink: 0;
       display: flex;
       justify-content: center;
-      align-items: flex-start;
-      transition: transform 0.75s cubic-bezier(0.22, 1, 0.36, 1);
+      align-items: center;
     }
 
-    /* =========================================
-       커버플로우(Cover Flow) 3D 스테이지
-       ========================================= */
+    /* 커버플로우(Cover Flow) 3D 스테이지 */
     .carousel-stage {
       position: absolute;
-      top: 10px;
-      left: 50%;
-      margin-left: -260px;
-      width: 520px;
-      height: 260px;
+      inset: 0;
       display: flex;
       justify-content: center;
-      align-items: flex-start;
+      align-items: center;
       perspective: 750px;
       touch-action: none;
       z-index: 20;
@@ -135,16 +145,16 @@
 
     .stack-track {
       position: relative;
-      width: 210px;
-      height: 210px;
+      width: 180px;
+      height: 180px;
       transform-style: preserve-3d;
     }
 
     .lp-slot {
       position: absolute;
       inset: 0;
-      width: 210px;
-      height: 210px;
+      width: 180px;
+      height: 180px;
       transform-style: preserve-3d;
       transition: transform 0.6s cubic-bezier(0.22, 1, 0.36, 1), opacity 0.45s ease;
       cursor: pointer;
@@ -164,7 +174,7 @@
       justify-content: space-between;
       align-items: center;
       text-align: center;
-      padding: 24px 16px;
+      padding: 20px 14px;
       transition: transform 0.7s cubic-bezier(0.22, 1, 0.36, 1), opacity 0.55s ease, box-shadow 0.4s ease;
     }
 
@@ -178,42 +188,42 @@
     }
 
     .lp-slot.active .lp-jacket {
-      box-shadow: 0 12px 28px rgba(107, 158, 255, 0.14);
+      box-shadow: 0 10px 24px rgba(107, 158, 255, 0.16);
     }
 
     .carousel-stage.deck-up .lp-jacket {
-      transform: translateY(-190px);
+      transform: translateY(-160px);
       opacity: 0;
       pointer-events: none;
     }
 
     .lp-card-label {
-      font-size: 0.8rem;
+      font-size: 0.74rem;
       color: var(--line-blue);
       letter-spacing: 0.14em;
       font-weight: 500;
     }
 
     .lp-card-title {
-      font-size: 1.1rem;
+      font-size: 0.98rem;
       font-weight: 600;
       color: var(--text-main);
       word-break: keep-all;
-      line-height: 1.45;
+      line-height: 1.4;
     }
 
     .lp-card-date {
-      font-size: 0.78rem;
+      font-size: 0.7rem;
       color: var(--text-sub);
       letter-spacing: 0.08em;
     }
 
     .vinyl-disc {
       position: absolute;
-      top: 9px;
-      left: 9px;
-      width: 192px;
-      height: 192px;
+      top: 8px;
+      left: 8px;
+      width: 164px;
+      height: 164px;
       border-radius: 50%;
       border: 1.5px solid var(--line-orange);
       background-color: #ffffff;
@@ -224,7 +234,7 @@
       flex-direction: column;
       justify-content: flex-end;
       align-items: center;
-      padding-bottom: 13px;
+      padding-bottom: 12px;
       opacity: 0;
       pointer-events: none;
       transition: transform 0.7s cubic-bezier(0.22, 1, 0.36, 1), opacity 0.35s ease;
@@ -245,9 +255,9 @@
       position: absolute;
       top: 50%;
       left: 50%;
-      width: 56px;
-      height: 56px;
-      margin: -28px 0 0 -28px;
+      width: 48px;
+      height: 48px;
+      margin: -24px 0 0 -24px;
       border-radius: 50%;
       border: 1px solid rgba(255, 107, 74, 0.55);
     }
@@ -255,14 +265,14 @@
     .vinyl-disc::after {
       content: "";
       position: absolute;
-      inset: 14px;
+      inset: 12px;
       border-radius: 50%;
       border: 1px solid rgba(255, 107, 74, 0.18);
       border-top-color: var(--line-orange);
     }
 
     .sliding-text {
-      font-size: 0.65rem;
+      font-size: 0.58rem;
       color: var(--line-orange);
       letter-spacing: 0.18em;
       font-weight: 500;
@@ -271,15 +281,15 @@
     .lp-slot.active .vinyl-disc {
       opacity: 1;
       pointer-events: auto;
-      transform: translateY(40px);
+      transform: translateY(32px);
     }
 
     .lp-slot.active:hover .vinyl-disc {
-      transform: translateY(56px);
+      transform: translateY(44px);
     }
 
     .lp-slot.active.on-player .vinyl-disc {
-      transform: translateY(21px);
+      transform: translateY(16px);
       pointer-events: auto !important;
       cursor: pointer;
     }
@@ -288,20 +298,16 @@
     }
 
     @keyframes spinVinyl {
-      from { transform: translateY(21px) rotate(0deg); }
-      to   { transform: translateY(21px) rotate(360deg); }
+      from { transform: translateY(16px) rotate(0deg); }
+      to   { transform: translateY(16px) rotate(360deg); }
     }
 
-    /* =========================================
-       LP 플레이어 본체 및 톤암 레이어
-       ========================================= */
+    /* 턴테이블 본체 및 톤암 레이어 */
     .turntable-box {
       position: absolute;
-      top: 20px;
-      left: 50%;
-      margin-left: -116px;
-      width: 232px;
-      height: 232px;
+      inset: 0;
+      width: 200px;
+      height: 200px;
       border: 1.5px solid var(--line-blue);
       background-color: #ffffff;
       background-size: cover;
@@ -327,11 +333,9 @@
 
     .tonearm-overlay {
       position: absolute;
-      top: 20px;
-      left: 50%;
-      margin-left: -116px;
-      width: 232px;
-      height: 232px;
+      inset: 0;
+      width: 200px;
+      height: 200px;
       z-index: 35;
       pointer-events: none;
       opacity: 0;
@@ -355,45 +359,33 @@
 
     .tonearm-base {
       position: absolute;
-      bottom: 18px;
-      left: 16px;
-      width: 14px;
-      height: 22px;
+      bottom: 16px;
+      left: 14px;
+      width: 12px;
+      height: 20px;
       border: 1.5px solid var(--line-blue);
       background: #ffffff;
     }
 
     .tonearm-stick {
       position: absolute;
-      bottom: 34px;
-      left: 22px;
+      bottom: 30px;
+      left: 19px;
       width: 1.5px;
-      height: 142px;
+      height: 124px;
       background: var(--line-blue);
       transform-origin: bottom center;
       transform: rotate(8deg);
       transition: transform 0.65s cubic-bezier(0.22, 1, 0.36, 1);
     }
 
-    .tonearm-stick::after {
-      content: "";
-      position: absolute;
-      top: -4px;
-      left: -3.5px;
-      width: 8px;
-      height: 8px;
-      border-radius: 50%;
-      border: 1.5px solid var(--line-blue);
-      background: #ffffff;
-    }
-
     .tonearm-custom-img {
       display: none;
       position: absolute;
-      bottom: 24px;
-      left: 20px;
-      width: 58px;
-      height: 138px;
+      bottom: 18px;
+      left: 14px;
+      width: 50px;
+      height: 120px;
       object-fit: contain;
       transform-origin: 46% 90%;
       transform: rotate(0deg);
@@ -416,58 +408,22 @@
       transform: rotate(22deg);
     }
 
-    /* =========================================
-       우측 뮤직 컨트롤 카드 드로어
-       ========================================= */
-    .track-drawer {
-      position: relative;
-      z-index: 15;
-      width: 0;
-      opacity: 0;
-      overflow: hidden;
-      margin-left: 0;
-      transform: translateX(-16px);
-      pointer-events: none;
-      transition: width 0.75s cubic-bezier(0.22, 1, 0.36, 1),
-                  margin-left 0.75s cubic-bezier(0.22, 1, 0.36, 1),
-                  opacity 0.5s ease 0.1s,
-                  transform 0.75s cubic-bezier(0.22, 1, 0.36, 1);
-    }
-
-    .showcase-row.is-open .track-drawer {
-      width: 290px;
-      margin-left: -12px;
-      opacity: 1;
-      transform: translateX(0);
-      pointer-events: auto;
-    }
-
-    .player-control-card {
-      width: 280px;
-      height: 145px;
-      background: #ffffff;
-      border: 1px solid #ececec;
-      border-radius: 18px;
-      box-shadow: 0 10px 28px rgba(0, 0, 0, 0.06);
-      padding: 22px 24px 20px 28px;
+    /* 우측: 뮤직 컨트롤 패널 (레퍼런스 스타일) */
+    .player-control-right {
+      flex: 1;
+      height: 100%;
       display: flex;
       flex-direction: column;
-      justify-content: space-between;
+      justify-content: center;
+      gap: 16px;
       position: relative;
-      margin-top: 0;
-      transition: height 0.4s cubic-bezier(0.22, 1, 0.36, 1);
-      overflow: hidden;
-    }
-
-    .player-control-card.expanded {
-      height: 232px;
     }
 
     .ctrl-top-row {
       display: flex;
       justify-content: space-between;
       align-items: flex-start;
-      gap: 8px;
+      gap: 12px;
     }
 
     .ctrl-meta {
@@ -475,28 +431,29 @@
     }
 
     .ctrl-title {
-      font-size: 1.05rem;
+      font-size: 1.25rem;
       font-weight: 600;
       color: var(--text-main);
       white-space: nowrap;
       overflow: hidden;
       text-overflow: ellipsis;
-      margin-bottom: 3px;
+      margin-bottom: 4px;
+      letter-spacing: 0.04em;
     }
 
     .ctrl-sub {
-      font-size: 0.8rem;
+      font-size: 0.84rem;
       color: var(--text-sub);
-      letter-spacing: 0.04em;
+      letter-spacing: 0.06em;
     }
 
     .ctrl-list-toggle {
       background: none;
       border: none;
       color: #b0b0b0;
-      font-size: 1rem;
+      font-size: 1.1rem;
       cursor: pointer;
-      padding: 2px 4px;
+      padding: 4px;
       transition: color 0.2s, transform 0.3s ease;
     }
     .ctrl-list-toggle:hover, .ctrl-list-toggle.active {
@@ -518,7 +475,7 @@
     .ctrl-progress-fill {
       width: 32%;
       height: 100%;
-      background: #C6D5FF;
+      background: #C6D5FF; /* 요청하신 #C6D5FF 컬러 적용 */
       border-radius: 99px;
       transition: width 0.35s ease;
     }
@@ -527,14 +484,14 @@
       display: flex;
       justify-content: space-between;
       align-items: center;
-      padding: 0 6px;
+      padding: 0 10px;
     }
 
     .ctrl-btn {
       background: none;
       border: 1.5px solid transparent;
-      width: 38px;
-      height: 38px;
+      width: 40px;
+      height: 40px;
       border-radius: 50%;
       display: flex;
       justify-content: center;
@@ -558,6 +515,7 @@
       fill: currentColor;
     }
 
+    /* 트랙 목록 드롭다운 (카드 내부 오버레이) */
     .mini-track-popover {
       max-height: 0;
       opacity: 0;
@@ -565,23 +523,29 @@
       display: flex;
       flex-direction: column;
       gap: 4px;
+      position: absolute;
+      top: 65px;
+      left: 0;
+      right: 0;
+      background: #ffffff;
       border-top: 1px solid transparent;
       padding-top: 0;
+      z-index: 30;
       transition: max-height 0.4s cubic-bezier(0.22, 1, 0.36, 1),
                   opacity 0.3s ease,
                   padding 0.3s ease,
                   border-color 0.3s ease;
     }
     .mini-track-popover.open {
-      max-height: 90px;
+      max-height: 110px;
       opacity: 1;
       border-top-color: #f0f0f0;
-      padding-top: 6px;
+      padding-top: 8px;
     }
     .mini-track-row {
-      font-size: 0.82rem;
+      font-size: 0.85rem;
       color: var(--text-sub);
-      padding: 5px 8px;
+      padding: 6px 8px;
       border-radius: 6px;
       cursor: pointer;
       white-space: nowrap;
@@ -614,7 +578,7 @@
     .detail-drawer.open {
       max-height: 5000px;
       opacity: 1;
-      margin-top: 24px;
+      margin-top: 36px;
       transform: translateY(0);
     }
 
@@ -947,45 +911,31 @@
       min-height: 18px;
     }
 
-    @media (max-width: 640px) {
+    @media (max-width: 680px) {
       .global-header { padding: 32px 16px 16px; }
       .global-header h1 { font-size: 2.15rem; }
       .main-container { padding: 12px 16px 80px; }
-      .showcase-row { min-height: 220px; }
+      .showcase-row { min-height: auto; }
 
-      .player-stage {
-        width: 182px;
-        height: 215px;
-      }
-
-      .carousel-stage,
-      .turntable-box,
-      .tonearm-overlay {
-        transform-origin: top center;
-      }
-
-      .carousel-stage { transform: scale(0.78); }
-      .turntable-box { transform: scale(0.74); }
-      .turntable-box.visible { transform: scale(0.78); }
-      .tonearm-overlay { transform: scale(0.78); }
-
-      .showcase-row.is-open .track-drawer {
-        width: calc(100vw - 195px);
-        max-width: 230px;
-        margin-left: -10px;
-      }
-      .player-control-card {
+      .player-unified-card {
         width: 100%;
+        max-width: 360px;
         height: auto;
-        padding: 14px 14px 14px 20px;
-        gap: 10px;
-        margin-top: 0;
+        flex-direction: column;
+        padding: 24px 20px;
+        gap: 20px;
       }
-      .player-control-card.expanded {
-        height: auto;
+      .player-stage {
+        width: 200px;
+        height: 200px;
       }
-      .ctrl-title { font-size: 0.95rem; }
-      .ctrl-btn { width: 32px; height: 32px; }
+      .player-control-right {
+        width: 100%;
+      }
+      .mini-track-popover {
+        top: auto;
+        bottom: 100%;
+      }
       .detail-drawer { max-width: 100%; }
       .image-frame { min-height: 240px; }
     }
@@ -1005,23 +955,25 @@
 
     <main class="main-container">
       <div class="showcase-row" id="showcaseRow">
-        <div class="player-stage">
-          <div class="carousel-stage" id="carouselStage" title="스크롤/스와이프로 카드 넘기기 · 클릭하여 재생">
-            <div class="stack-track" id="stackTrack"></div>
+        <div class="player-unified-card">
+          <!-- 좌측: 턴테이블 및 3D LP 스테이지 -->
+          <div class="player-stage">
+            <div class="carousel-stage" id="carouselStage" title="스크롤/스와이프로 카드 넘기기 · 클릭하여 재생">
+              <div class="stack-track" id="stackTrack"></div>
+            </div>
+
+            <div class="turntable-box" id="turntableBox" title="클릭하여 커버 덱으로 돌아가기"></div>
+
+            <div class="tonearm-overlay" id="tonearmOverlay">
+              <div class="turntable-spindle"></div>
+              <div class="tonearm-base"></div>
+              <div class="tonearm-stick"></div>
+              <img class="tonearm-custom-img" id="tonearmImg" src="" alt="tonearm" />
+            </div>
           </div>
 
-          <div class="turntable-box" id="turntableBox" title="클릭하여 커버 덱으로 돌아가기"></div>
-
-          <div class="tonearm-overlay" id="tonearmOverlay">
-            <div class="turntable-spindle"></div>
-            <div class="turntable-base"></div>
-            <div class="turntable-stick"></div>
-            <img class="tonearm-custom-img" id="tonearmImg" src="" alt="tonearm" />
-          </div>
-        </div>
-
-        <aside class="track-drawer" id="trackDrawer">
-          <div class="player-control-card" id="playerControlCard">
+          <!-- 우측: 음악 플레이어 컨트롤 패널 -->
+          <div class="player-control-right">
             <div class="ctrl-top-row">
               <div class="ctrl-meta">
                 <div class="ctrl-title" id="ctrlTitle">TRACK TITLE</div>
@@ -1048,7 +1000,7 @@
 
             <div class="mini-track-popover" id="miniTrackPopover"></div>
           </div>
-        </aside>
+        </div>
       </div>
 
       <section class="detail-drawer" id="detailDrawer">
@@ -1233,7 +1185,6 @@
         rebuildAll();
         renderManageList();
 
-        // 모바일 웹폰트 렌더링 완료 타이밍을 기다려 3D 위치 강제 동기화
         if (document.fonts && document.fonts.ready) {
           document.fonts.ready.then(() => {
             updateCarouselPositions();
@@ -1320,7 +1271,6 @@
       resetPlayerAnimation();
       isPlaying = true;
 
-      const showcaseRow = document.getElementById('showcaseRow');
       const turntable = document.getElementById('turntableBox');
       const tonearm = document.getElementById('tonearmOverlay');
       const stage = document.getElementById('carouselStage');
@@ -1331,7 +1281,6 @@
         turntable.classList.add('visible');
         tonearm.classList.add('visible');
         stage.classList.add('deck-up');
-        showcaseRow.classList.add('is-open');
         openTrackDetail(idx);
       }, 220);
 
@@ -1350,7 +1299,6 @@
       isPlaying = false;
       isDiscPaused = false;
 
-      document.getElementById('showcaseRow').classList.remove('is-open');
       document.getElementById('turntableBox').classList.remove('visible');
       document.getElementById('tonearmOverlay').classList.remove('visible', 'playing');
       document.getElementById('carouselStage').classList.remove('deck-up');
@@ -1359,9 +1307,7 @@
       document.getElementById('commentSection').classList.remove('visible');
       document.getElementById('miniTrackPopover').classList.remove('open');
       document.getElementById('ctrlListToggle').classList.remove('active');
-      document.getElementById('playerControlCard').classList.remove('expanded');
 
-      document.querySelectorAll('.mini-track-row').forEach(el => el.classList.remove('active'));
       slotElements.forEach(s => {
         s.classList.remove('on-player', 'spinning');
       });
@@ -1428,11 +1374,9 @@
       e.stopPropagation();
       const toggleBtn = e.currentTarget;
       const popover = document.getElementById('miniTrackPopover');
-      const card = document.getElementById('playerControlCard');
 
       toggleBtn.classList.toggle('active');
       popover.classList.toggle('open');
-      card.classList.toggle('expanded');
     };
 
     function renderTrackList() {
@@ -1536,9 +1480,9 @@
           slot.classList.remove('active', 'on-player', 'spinning');
           const sign = offset > 0 ? 1 : -1;
           const abs = Math.abs(offset);
-          const translateX = sign * (112 + abs * 34);
-          const translateZ = -55 - abs * 38;
-          const rotateY = -sign * 58;
+          const translateX = sign * (95 + abs * 28);
+          const translateZ = -45 - abs * 30;
+          const rotateY = -sign * 52;
 
           slot.style.transform = `translateX(${translateX}px) translateZ(${translateZ}px) rotateY(${rotateY}deg)`;
           slot.style.zIndex = Math.max(1, 25 - abs);

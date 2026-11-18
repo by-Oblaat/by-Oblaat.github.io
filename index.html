@@ -92,7 +92,7 @@
     }
 
     /* =========================================
-       메인 컨테이너
+       메인 컨테이너 및 플레이어 스테이지 (완벽한 수직 중앙 정렬 구조)
        ========================================= */
     .main-container {
       width: 100%;
@@ -106,15 +106,18 @@
 
     .showcase-row {
       width: 100%;
+      height: 275px;
       display: flex;
       justify-content: center;
-      align-items: flex-start; /* 상단 라인 기준 정렬로 수정하여 위로 치우치는 현상 원천 차단 */
-      min-height: 290px;
+      align-items: center;
       position: relative;
     }
 
     .player-stage {
-      position: relative;
+      position: absolute;
+      left: 50%;
+      top: 50%;
+      transform: translate(-50%, -50%);
       width: 240px;
       height: 275px;
       flex-shrink: 0;
@@ -392,28 +395,27 @@
     }
 
     /* =========================================
-       우측 뮤직 컨트롤 카드 드로어 (마진 제거하여 턴테이블 본체와 상단 수평 일치)
+       우측 뮤직 컨트롤 카드 드로어 (절대좌표로 턴테이블 본체와 완벽한 세로 수평 중앙 정렬)
        ========================================= */
     .track-drawer {
-      position: relative;
+      position: absolute;
+      left: 50%;
+      top: 50%;
+      transform: translate(-50%, -50%) translateX(-16px);
       z-index: 15;
       width: 0;
       opacity: 0;
       overflow: hidden;
-      margin-left: 0;
-      transform: translateX(-16px);
       pointer-events: none;
       transition: width 0.75s cubic-bezier(0.22, 1, 0.36, 1),
-                  margin-left 0.75s cubic-bezier(0.22, 1, 0.36, 1),
                   opacity 0.5s ease 0.1s,
                   transform 0.75s cubic-bezier(0.22, 1, 0.36, 1);
     }
 
     .showcase-row.is-open .track-drawer {
       width: 290px;
-      margin-left: -12px;
       opacity: 1;
-      transform: translateX(0);
+      transform: translate(-50%, -50%) translateX(132px); /* 턴테이블 우측에 정확히 맞물림 */
       pointer-events: auto;
     }
 
@@ -429,7 +431,7 @@
       flex-direction: column;
       justify-content: space-between;
       position: relative;
-      margin-top: 20px; /* 턴테이블 상단 여백(top: 20px)과 정확히 수평 일치 */
+      margin-top: 0;
       transition: height 0.4s cubic-bezier(0.22, 1, 0.36, 1);
       overflow: hidden;
     }
@@ -1017,14 +1019,14 @@
       .showcase-row.is-open .track-drawer {
         width: calc(100vw - 195px);
         max-width: 230px;
-        margin-left: -10px;
+        transform: translate(-50%, -50%) translateX(90px);
       }
       .player-control-card {
         width: 100%;
         height: auto;
         padding: 14px 14px 14px 20px;
         gap: 10px;
-        margin-top: 20px;
+        margin-top: 0;
       }
       .player-control-card.expanded {
         height: auto;
@@ -1068,8 +1070,8 @@
 
           <div class="tonearm-overlay" id="tonearmOverlay">
             <div class="turntable-spindle"></div>
-            <div class="tonearm-base"></div>
-            <div class="tonearm-stick"></div>
+            <div class="turntable-base"></div>
+            <div class="turntable-stick"></div>
             <img class="tonearm-custom-img" id="tonearmImg" src="" alt="tonearm" />
           </div>
         </div>

@@ -35,6 +35,21 @@
       overflow-x: hidden;
     }
 
+    /* 모든 이미지 및 커버 요소 우클릭/드래그 원천 차단 */
+    img, .lp-jacket, .vinyl-disc, .turntable-box {
+      -webkit-user-drag: none;
+      -khtml-user-drag: none;
+      -moz-user-drag: none;
+      -o-user-drag: none;
+      user-drag: none;
+      pointer-events: none;
+    }
+
+    /* 단, 클릭이나 스크롤 상호작용이 필요한 슬롯 자체는 클릭 가능하게 예외 처리 */
+    .lp-slot, .carousel-stage, .ctrl-buttons, .player-control-right, .global-header, .writer-overlay {
+      pointer-events: auto;
+    }
+
     /* =========================================
        [상단 헤더] Love the Loveless (Monsieur La Doulaise)
        ========================================= */
@@ -78,7 +93,7 @@
     }
 
     /* =========================================
-       메인 컨테이너 및 턴테이블 레이아웃 (원래 형태 복원)
+       메인 컨테이너
        ========================================= */
     .main-container {
       width: 100%;
@@ -94,7 +109,7 @@
       width: 100%;
       display: flex;
       justify-content: center;
-      align-items: center;
+      align-items: flex-start; /* 상단 기준으로 정렬하여 플레이어와 컨트롤 카드 정렬 고정 */
       min-height: 290px;
       position: relative;
     }
@@ -293,7 +308,7 @@
     }
 
     /* =========================================
-       LP 플레이어 본체 및 톤암 레이어
+       LP 플레이어 본체 및 톤암 레이어 (불필요한 기본 도형 박스 제거 완료)
        ========================================= */
     .turntable-box {
       position: absolute;
@@ -353,40 +368,6 @@
       background: #ffffff;
     }
 
-    .tonearm-base {
-      position: absolute;
-      bottom: 18px;
-      left: 16px;
-      width: 14px;
-      height: 22px;
-      border: 1.5px solid var(--line-blue);
-      background: #ffffff;
-    }
-
-    .tonearm-stick {
-      position: absolute;
-      bottom: 34px;
-      left: 22px;
-      width: 1.5px;
-      height: 142px;
-      background: var(--line-blue);
-      transform-origin: bottom center;
-      transform: rotate(8deg);
-      transition: transform 0.65s cubic-bezier(0.22, 1, 0.36, 1);
-    }
-
-    .tonearm-stick::after {
-      content: "";
-      position: absolute;
-      top: -4px;
-      left: -3.5px;
-      width: 8px;
-      height: 8px;
-      border-radius: 50%;
-      border: 1.5px solid var(--line-blue);
-      background: #ffffff;
-    }
-
     .tonearm-custom-img {
       display: none;
       position: absolute;
@@ -400,24 +381,19 @@
       transition: transform 0.65s cubic-bezier(0.22, 1, 0.36, 1);
     }
 
-    .tonearm-overlay.has-img .turntable-spindle,
-    .tonearm-overlay.has-img .turntable-base,
-    .tonearm-overlay.has-img .tonearm-stick {
+    .tonearm-overlay.has-img .turntable-spindle {
       display: none;
     }
     .tonearm-overlay.has-img .tonearm-custom-img {
       display: block;
     }
 
-    .tonearm-overlay.playing .tonearm-stick {
-      transform: rotate(38deg);
-    }
     .tonearm-overlay.playing .tonearm-custom-img {
       transform: rotate(22deg);
     }
 
     /* =========================================
-       우측 뮤직 컨트롤 카드 드로어 (재생 시 우측에서 슬라이딩)
+       우측 뮤직 컨트롤 카드 드로어 (LP 플레이어 아래 하단 라인 기준 배치)
        ========================================= */
     .track-drawer {
       position: relative;
@@ -454,7 +430,7 @@
       flex-direction: column;
       justify-content: space-between;
       position: relative;
-      margin-top: 20px;
+      margin-top: 20px; /* LP 플레이어 상단(top:20px)과 하단 라인을 나란히 일치시킴 */
       transition: height 0.4s cubic-bezier(0.22, 1, 0.36, 1);
       overflow: hidden;
     }
@@ -1051,8 +1027,6 @@
 
           <div class="tonearm-overlay" id="tonearmOverlay">
             <div class="turntable-spindle"></div>
-            <div class="tonearm-base"></div>
-            <div class="tonearm-stick"></div>
             <img class="tonearm-custom-img" id="tonearmImg" src="" alt="tonearm" />
           </div>
         </div>
@@ -1101,7 +1075,6 @@
               COMMENT <span id="activePostTitle"></span>
             </div>
             <div class="comment-body" id="commentBody"></div>
-            <!-- 스레드(타래) 글들이 추가되는 영역 -->
             <div class="threads-container" id="threadsContainer"></div>
           </div>
         </div>
@@ -1561,7 +1534,6 @@
         marked.setOptions({ breaks: true });
         document.getElementById('commentBody').innerHTML = marked.parse(textOnlyBody || '(작성된 코멘트가 없습니다.)');
 
-        // 타래(Threads) 렌더링
         const threadsContainer = document.getElementById('threadsContainer');
         threadsContainer.innerHTML = '';
 

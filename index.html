@@ -74,7 +74,7 @@
     }
 
     /* =========================================
-       [왼쪽 패널] 카드형 LP 커버 + 정밀 정렬된 LP 플레이어
+       [왼쪽 패널] 3D 플립 카드형 LP 커버 + LP 플레이어
        ========================================= */
     .left-pane {
       position: sticky;
@@ -106,7 +106,7 @@
       display: flex;
       justify-content: center;
       align-items: flex-start;
-      perspective: 1100px;
+      perspective: 900px; /* 플립 시 입체감이 도드라지도록 원근 깊이 강화 */
       touch-action: none;
       z-index: 20;
     }
@@ -124,10 +124,11 @@
       width: 224px;
       height: 224px;
       transform-style: preserve-3d;
-      transition: transform 0.6s cubic-bezier(0.22, 1, 0.36, 1), opacity 0.45s ease;
+      transition: transform 0.65s cubic-bezier(0.22, 1, 0.36, 1), opacity 0.45s ease;
       cursor: pointer;
     }
 
+    /* 정사각형 LP 커버 (슬라이딩 시 플립 기울기 애니메이션 적용) */
     .lp-jacket {
       position: relative;
       width: 100%;
@@ -141,11 +142,32 @@
       align-items: center;
       text-align: center;
       padding: 26px 18px;
+      transform-style: preserve-3d;
       transition: transform 0.7s cubic-bezier(0.22, 1, 0.36, 1), opacity 0.55s ease, box-shadow 0.4s ease;
     }
 
     .lp-slot.active .lp-jacket {
       box-shadow: 0 12px 28px rgba(107, 158, 255, 0.14);
+    }
+
+    /* ★ 옆으로 슬라이딩할 때 LP 커버가 책장/레코드처럼 플립(Flip)되는 키프레임 ★ */
+    .lp-slot.flip-next .lp-jacket {
+      animation: flipCardNext 0.62s cubic-bezier(0.22, 1, 0.36, 1);
+    }
+    .lp-slot.flip-prev .lp-jacket {
+      animation: flipCardPrev 0.62s cubic-bezier(0.22, 1, 0.36, 1);
+    }
+
+    @keyframes flipCardNext {
+      0%   { transform: rotateY(0deg) scale(1); }
+      38%  { transform: rotateY(-34deg) rotateZ(-2.5deg) translateZ(24px) scale(1.03); }
+      100% { transform: rotateY(0deg) scale(1); }
+    }
+
+    @keyframes flipCardPrev {
+      0%   { transform: rotateY(0deg) scale(1); }
+      38%  { transform: rotateY(34deg) rotateZ(2.5deg) translateZ(24px) scale(1.03); }
+      100% { transform: rotateY(0deg) scale(1); }
     }
 
     .carousel-stage.deck-up .lp-jacket {
@@ -350,7 +372,6 @@
       flex-direction: column;
     }
 
-    /* 1단계: LP 선택 시 열리는 TRACK 메뉴 */
     .track-drawer {
       max-width: 520px;
       max-height: 0;
@@ -432,7 +453,6 @@
       transform: translateX(4px);
     }
 
-    /* ★ 2단계: TRACK 항목 클릭 시에만 슬라이딩으로 펼쳐지는 IMAGE & COMMENT 드로어 ★ */
     .detail-drawer {
       max-height: 0;
       opacity: 0;
@@ -444,7 +464,7 @@
     }
 
     .detail-drawer.open {
-      max-height: 5000px; /* 긴 썰/연성 본문도 잘리지 않도록 충분한 높이 허용 */
+      max-height: 5000px;
       opacity: 1;
       transform: translateY(0);
     }
@@ -526,7 +546,6 @@
       margin: 14px 0;
     }
 
-    /* 모바일 반응형 */
     @media (max-width: 920px) {
       .layout-wrapper {
         grid-template-columns: 1fr;
@@ -555,7 +574,6 @@
   </header>
 
   <div class="layout-wrapper">
-    <!-- [왼쪽] LP 커버 스택 + 정중앙 일치 LP 플레이어 -->
     <aside class="left-pane">
       <div class="player-stage">
         <div class="carousel-stage" id="carouselStage" title="스크롤/스와이프로 카드 넘기기 · 클릭하여 재생">
@@ -572,7 +590,6 @@
       </div>
     </aside>
 
-    <!-- [오른쪽] 1단계 TRACK 드로어 -> 2단계 IMAGE & COMMENT 드로어 -->
     <main class="right-pane">
       <section class="track-drawer" id="trackDrawer">
         <div class="track-box-title">TRACK</div>
@@ -609,7 +626,6 @@
     let filteredPosts = [];
     let slotElements = [];
     let currentIndex = 0;
-    let selectedTrackIndex = -1; // 아직 트랙이 선택되지 않은 초기 상태
     let isScrolling = false;
     let isPlaying = false;
     let playTimers = [];
@@ -669,7 +685,7 @@
       resetPlayerAnimation();
       buildStackDOM();
       renderTrackList();
-      updateCarouselPositions();
+      updateCarouselPositions(0);
     }
 
     function buildStackDOM() {
@@ -703,9 +719,10 @@
               startPlayerSequence(slot);
             }
           } else {
+            const dir = idx > currentIndex ? 1 : -1;
             currentIndex = idx;
             resetPlayerAnimation();
-            updateCarouselPositions();
+            updateCarouselPositions(dir);
           }
         };
 
@@ -714,7 +731,6 @@
       });
     }
 
-    // 1단계: LP 클릭 시 -> 플레이어 작동 + TRACK 메뉴만 오픈 (IMAGE/COMMENT는 아직 닫힘)
     function startPlayerSequence(slot) {
       resetPlayerAnimation();
       isPlaying = true;
@@ -741,12 +757,10 @@
       playTimers.push(t1, t2);
     }
 
-    // 초기화: 플레이어 정지 + TRACK 및 IMAGE/COMMENT 모두 닫기
     function resetPlayerAnimation() {
       playTimers.forEach(t => clearTimeout(t));
       playTimers = [];
       isPlaying = false;
-      selectedTrackIndex = -1;
 
       document.getElementById('turntableBox').classList.remove('visible');
       document.getElementById('tonearmOverlay').classList.remove('visible', 'playing');
@@ -766,7 +780,6 @@
       if (isPlaying) resetPlayerAnimation();
     };
 
-    // TRACK 목록 렌더링 (초기에는 아무 트랙도 선택되지 않은 상태)
     function renderTrackList() {
       const trackList = document.getElementById('trackList');
       if (filteredPosts.length === 0) {
@@ -787,14 +800,11 @@
       });
     }
 
-    // ★ 2단계: TRACK 목록에서 항목을 선택했을 때만 IMAGE와 COMMENT가 슬라이딩 오픈 ★
     function selectTrackAndOpenDetail(idx) {
-      selectedTrackIndex = idx;
-
-      // 다른 트랙을 골랐다면 왼쪽 LP판도 해당 트랙으로 자연스럽게 전환
       if (currentIndex !== idx) {
+        const dir = idx > currentIndex ? 1 : -1;
         currentIndex = idx;
-        updateCarouselPositions();
+        updateCarouselPositions(dir);
         if (slotElements[currentIndex]) {
           slotElements[currentIndex].classList.add('on-player', 'spinning');
         }
@@ -811,7 +821,6 @@
       const imageSection = document.getElementById('imageSection');
       const commentSection = document.getElementById('commentSection');
 
-      // 이미 열려 있는 상태에서 다른 트랙을 눌렀을 때도 부드럽게 교체되도록 페이드 리셋
       imageSection.classList.remove('visible');
       commentSection.classList.remove('visible');
       detailDrawer.classList.add('open');
@@ -842,9 +851,17 @@
       }, 150);
     }
 
-    function updateCarouselPositions() {
+    // ★ 슬라이딩 방향(direction: 1 또는 -1)에 따라 카드가 Flip 되듯 3D로 기울어지며 전환 ★
+    function updateCarouselPositions(direction = 0) {
       slotElements.forEach((slot, idx) => {
         const offset = idx - currentIndex;
+
+        // 플립 애니메이션 클래스 재트리거
+        slot.classList.remove('flip-next', 'flip-prev');
+        if (direction !== 0 && Math.abs(offset) <= 1) {
+          void slot.offsetWidth; // 리플로우로 애니메이션 초기화
+          slot.classList.add(direction > 0 ? 'flip-next' : 'flip-prev');
+        }
 
         if (offset === 0) {
           slot.classList.add('active');
@@ -856,9 +873,10 @@
           slot.classList.remove('active', 'on-player', 'spinning');
           const sign = offset > 0 ? 1 : -1;
           const abs = Math.abs(offset);
-          const translateX = sign * (86 + abs * 34);
-          const translateZ = -65 - abs * 45;
-          const rotateY = -sign * 46;
+          const translateX = sign * (88 + abs * 36);
+          const translateZ = -70 - abs * 48;
+          // 양옆 카드도 한층 더 젖혀진 플립 각도(-sign * 56deg)로 배치
+          const rotateY = -sign * 56;
 
           slot.style.transform = `translateX(${translateX}px) translateZ(${translateZ}px) rotateY(${rotateY}deg)`;
           slot.style.zIndex = Math.max(1, 25 - abs);
@@ -875,7 +893,7 @@
         isScrolling = true;
         currentIndex = nextIdx;
         resetPlayerAnimation();
-        updateCarouselPositions();
+        updateCarouselPositions(direction);
         setTimeout(() => { isScrolling = false; }, 320);
       }
     }

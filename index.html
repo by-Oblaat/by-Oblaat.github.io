@@ -100,7 +100,7 @@
       width: 100%;
       display: flex;
       justify-content: center;
-      align-items: flex-start;
+      align-items: center;
       min-height: 290px;
       position: relative;
     }
@@ -403,7 +403,7 @@
       height: 138px;
       object-fit: contain;
       transform-origin: 46% 90%;
-      transform: rotate(0deg); /* 대기 시 기기 좌측 테두리에 맞춰 반듯하게 대기 */
+      transform: rotate(0deg);
       transition: transform 0.65s cubic-bezier(0.22, 1, 0.36, 1);
     }
 
@@ -420,99 +420,166 @@
       transform: rotate(38deg);
     }
     .tonearm-overlay.playing .tonearm-custom-img {
-      transform: rotate(22deg); /* 바늘 끝이 검은 소리골 시작점에 안착 */
+      transform: rotate(22deg);
     }
 
     /* =========================================
-       우측 TRACK 드로어
+       우측 뮤직 컨트롤 카드 드로어
        ========================================= */
     .track-drawer {
       position: relative;
-      z-index: 40;
+      z-index: 15;
       width: 0;
       opacity: 0;
       overflow: hidden;
       margin-left: 0;
-      transform: translateX(-14px);
+      transform: translateX(-24px);
       pointer-events: none;
-      transition: width 0.75s cubic-bezier(0.22, 1, 0.36, 1),
-                  margin-left 0.75s cubic-bezier(0.22, 1, 0.36, 1),
-                  opacity 0.55s ease 0.15s,
-                  transform 0.65s cubic-bezier(0.22, 1, 0.36, 1) 0.1s;
+      transition: width 0.7s cubic-bezier(0.22, 1, 0.36, 1),
+                  margin-left 0.7s cubic-bezier(0.22, 1, 0.36, 1),
+                  opacity 0.5s ease 0.12s,
+                  transform 0.65s cubic-bezier(0.22, 1, 0.36, 1) 0.08s;
     }
 
     .showcase-row.is-open .track-drawer {
-      width: 270px;
-      margin-left: 36px;
+      width: 290px;
+      margin-left: -12px;
       opacity: 1;
       transform: translateX(0);
       pointer-events: auto;
     }
 
-    .track-inner {
-      width: 270px;
-      padding-top: 20px;
-    }
-
-    .track-box-title {
-      font-size: 0.85rem;
-      font-weight: 600;
-      letter-spacing: 0.12em;
-      margin-bottom: 12px;
-      color: var(--text-main);
-    }
-    .track-scroll-wrapper {
-      position: relative;
-      height: 205px;
-    }
-    .track-list {
-      list-style: none;
-      height: 100%;
-      overflow-y: auto;
-      overflow-x: hidden;
-      padding-top: 2px;
-      padding-bottom: 64px;
+    .player-control-card {
+      width: 280px;
+      background: #ffffff;
+      border: 1px solid #ececec;
+      border-radius: 18px;
+      box-shadow: 0 10px 28px rgba(0, 0, 0, 0.06);
+      padding: 20px 22px 18px 28px;
       display: flex;
       flex-direction: column;
-      gap: 6px;
-      scrollbar-width: none;
-      -ms-overflow-style: none;
-    }
-    .track-list::-webkit-scrollbar {
-      display: none;
+      gap: 14px;
+      position: relative;
     }
 
-    .track-fade-overlay {
-      position: absolute;
-      left: 0;
-      right: 0;
-      bottom: 0;
-      height: 68px;
-      background: linear-gradient(
-        to bottom,
-        rgba(255, 255, 255, 0) 0%,
-        rgba(255, 255, 255, 0.88) 60%,
-        #ffffff 100%
-      );
-      pointer-events: none;
+    .ctrl-top-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      gap: 8px;
     }
 
-    .track-item {
-      font-size: 0.88rem;
-      line-height: 1.7;
-      padding: 4px 0;
-      color: var(--text-sub);
-      cursor: pointer;
-      transition: color 0.2s, transform 0.2s;
+    .ctrl-meta {
+      overflow: hidden;
+    }
+
+    .ctrl-title {
+      font-size: 1.02rem;
+      font-weight: 600;
+      color: var(--text-main);
       white-space: nowrap;
       overflow: hidden;
       text-overflow: ellipsis;
-      flex-shrink: 0;
+      margin-bottom: 3px;
     }
-    .track-item:hover, .track-item.active {
-      color: var(--line-orange);
+
+    .ctrl-sub {
+      font-size: 0.76rem;
+      color: var(--text-sub);
+      letter-spacing: 0.04em;
+    }
+
+    .ctrl-list-toggle {
+      background: none;
+      border: none;
+      color: #b0b0b0;
+      font-size: 1rem;
+      cursor: pointer;
+      padding: 2px 4px;
+      transition: color 0.2s;
+    }
+    .ctrl-list-toggle:hover, .ctrl-list-toggle.active {
+      color: var(--text-main);
+    }
+
+    .ctrl-progress-wrap {
+      width: 100%;
+      height: 4px;
+      background: #e6e8ec;
+      border-radius: 99px;
+      overflow: hidden;
+      cursor: pointer;
+    }
+
+    .ctrl-progress-fill {
+      width: 32%;
+      height: 100%;
+      background: #2b59c3;
+      border-radius: 99px;
+      transition: width 0.35s ease;
+    }
+
+    .ctrl-buttons {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 2px 6px 0;
+    }
+
+    .ctrl-btn {
+      background: none;
+      border: 1.5px solid transparent;
+      width: 38px;
+      height: 38px;
+      border-radius: 50%;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      cursor: pointer;
+      color: #111111;
+      transition: 0.2s;
+    }
+
+    .ctrl-btn:hover {
+      background: #f5f6f8;
+    }
+
+    .ctrl-btn.next-ring {
+      border-color: #c8ccd4;
+    }
+
+    .ctrl-btn svg {
+      width: 16px;
+      height: 16px;
+      fill: currentColor;
+    }
+
+    .mini-track-popover {
+      display: none;
+      flex-direction: column;
+      gap: 4px;
+      max-height: 110px;
+      overflow-y: auto;
+      border-top: 1px solid #f0f0f0;
+      padding-top: 8px;
+    }
+    .mini-track-popover.open {
+      display: flex;
+    }
+    .mini-track-row {
+      font-size: 0.78rem;
+      color: var(--text-sub);
+      padding: 4px 6px;
+      border-radius: 6px;
+      cursor: pointer;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .mini-track-row:hover, .mini-track-row.active {
+      background: #f4f7ff;
+      color: var(--line-blue);
       font-weight: 500;
-      transform: translateX(4px);
     }
 
     /* =========================================
@@ -886,13 +953,17 @@
       .tonearm-overlay { transform: scale(0.78); }
 
       .showcase-row.is-open .track-drawer {
-        width: calc(100vw - 230px);
-        max-width: 185px;
-        margin-left: 16px;
+        width: calc(100vw - 195px);
+        max-width: 230px;
+        margin-left: -10px;
       }
-      .track-inner { width: 100%; padding-top: 14px; }
-      .track-scroll-wrapper { height: 175px; }
-      .track-item { font-size: 0.82rem; }
+      .player-control-card {
+        width: 100%;
+        padding: 14px 14px 14px 20px;
+        gap: 10px;
+      }
+      .ctrl-title { font-size: 0.9rem; }
+      .ctrl-btn { width: 32px; height: 32px; }
       .detail-drawer { max-width: 100%; }
       .image-frame { min-height: 240px; }
     }
@@ -928,12 +999,32 @@
         </div>
 
         <aside class="track-drawer" id="trackDrawer">
-          <div class="track-inner">
-            <div class="track-box-title">TRACK</div>
-            <div class="track-scroll-wrapper">
-              <ul class="track-list" id="trackList"></ul>
-              <div class="track-fade-overlay"></div>
+          <div class="player-control-card">
+            <div class="ctrl-top-row">
+              <div class="ctrl-meta">
+                <div class="ctrl-title" id="ctrlTitle">TRACK TITLE</div>
+                <div class="ctrl-sub" id="ctrlSub">MADE · 26.11.18</div>
+              </div>
+              <button class="ctrl-list-toggle" id="ctrlListToggle" title="전체 트랙 목록">☰</button>
             </div>
+
+            <div class="ctrl-progress-wrap" id="ctrlProgressWrap">
+              <div class="ctrl-progress-fill" id="ctrlProgressFill"></div>
+            </div>
+
+            <div class="ctrl-buttons">
+              <button class="ctrl-btn" id="btnPrevTrack" title="이전 트랙">
+                <svg viewBox="0 0 24 24"><path d="M11 18V6l-8.5 6 8.5 6zm.5-6l8.5 6V6l-8.5 6z"/></svg>
+              </button>
+              <button class="ctrl-btn" id="btnPlayPause" title="재생 / 일시정지">
+                <svg id="playPauseIcon" viewBox="0 0 24 24"><path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/></svg>
+              </button>
+              <button class="ctrl-btn next-ring" id="btnNextTrack" title="다음 트랙">
+                <svg viewBox="0 0 24 24"><path d="M4 18l8.5-6L4 6v12zm9-12v12l8.5-6L13 6z"/></svg>
+              </button>
+            </div>
+
+            <div class="mini-track-popover" id="miniTrackPopover"></div>
           </div>
         </aside>
       </div>
@@ -1045,6 +1136,10 @@
     let isPlaying = false;
     let playTimers = [];
     let selectedCategory = "MADE";
+
+    let isDiscPaused = false;
+    let progressTimer = null;
+    let progressPercent = 28;
 
     let editingIssueNumber = null;
     let preservedAssets = { cover: "", vinyl: "", bodyImg: "", order: "" };
@@ -1220,7 +1315,9 @@
     function resetPlayerAnimation() {
       playTimers.forEach(t => clearTimeout(t));
       playTimers = [];
+      clearInterval(progressTimer);
       isPlaying = false;
+      isDiscPaused = false;
 
       document.getElementById('showcaseRow').classList.remove('is-open');
       document.getElementById('turntableBox').classList.remove('visible');
@@ -1229,8 +1326,10 @@
       document.getElementById('detailDrawer').classList.remove('open');
       document.getElementById('imageSection').classList.remove('visible');
       document.getElementById('commentSection').classList.remove('visible');
+      document.getElementById('miniTrackPopover').classList.remove('open');
+      document.getElementById('ctrlListToggle').classList.remove('active');
 
-      document.querySelectorAll('.track-item').forEach(el => el.classList.remove('active'));
+      document.querySelectorAll('.mini-track-row').forEach(el => el.classList.remove('active'));
       slotElements.forEach(s => {
         s.classList.remove('on-player', 'spinning');
       });
@@ -1240,23 +1339,82 @@
       if (isPlaying) resetPlayerAnimation();
     };
 
+    function startProgressSimulation() {
+      clearInterval(progressTimer);
+      progressTimer = setInterval(() => {
+        if (isDiscPaused || !isPlaying) return;
+        progressPercent = progressPercent >= 100 ? 0 : progressPercent + 0.5;
+        const fill = document.getElementById('ctrlProgressFill');
+        if (fill) fill.style.width = `${progressPercent}%`;
+      }, 300);
+    }
+
+    function setDiscPlayState(playingState) {
+      isDiscPaused = !playingState;
+      const tonearm = document.getElementById('tonearmOverlay');
+      const activeSlot = slotElements[currentIndex];
+      const icon = document.getElementById('playPauseIcon');
+
+      if (playingState) {
+        tonearm.classList.add('playing');
+        if (activeSlot) activeSlot.classList.add('spinning');
+        if (icon) icon.innerHTML = `<path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/>`;
+      } else {
+        tonearm.classList.remove('playing');
+        if (activeSlot) activeSlot.classList.remove('spinning');
+        if (icon) icon.innerHTML = `<path d="M8 5v14l11-7z"/>`;
+      }
+    }
+
+    document.getElementById('btnPrevTrack').onclick = (e) => {
+      e.stopPropagation();
+      if (filteredPosts.length === 0) return;
+      const prevIdx = (currentIndex - 1 + filteredPosts.length) % filteredPosts.length;
+      switchTrackWhilePlaying(prevIdx);
+    };
+
+    document.getElementById('btnNextTrack').onclick = (e) => {
+      e.stopPropagation();
+      if (filteredPosts.length === 0) return;
+      const nextIdx = (currentIndex + 1) % filteredPosts.length;
+      switchTrackWhilePlaying(nextIdx);
+    };
+
+    document.getElementById('btnPlayPause').onclick = (e) => {
+      e.stopPropagation();
+      setDiscPlayState(isDiscPaused);
+    };
+
+    document.getElementById('ctrlProgressWrap').onclick = (e) => {
+      e.stopPropagation();
+      const rect = e.currentTarget.getBoundingClientRect();
+      progressPercent = Math.max(0, Math.min(100, ((e.clientX - rect.left) / rect.width) * 100));
+      document.getElementById('ctrlProgressFill').style.width = `${progressPercent}%`;
+    };
+
+    document.getElementById('ctrlListToggle').onclick = (e) => {
+      e.stopPropagation();
+      e.currentTarget.classList.toggle('active');
+      document.getElementById('miniTrackPopover').classList.toggle('open');
+    };
+
     function renderTrackList() {
-      const trackList = document.getElementById('trackList');
+      const popover = document.getElementById('miniTrackPopover');
+      if (!popover) return;
       if (filteredPosts.length === 0) {
-        trackList.innerHTML = `<li class="track-item">등록된 트랙이 없습니다.</li>`;
+        popover.innerHTML = `<div class="mini-track-row">등록된 트랙이 없습니다.</div>`;
         return;
       }
-      trackList.innerHTML = filteredPosts.map((post, idx) => `
-        <li class="track-item" data-idx="${idx}">
-          - ${idx + 1}. ${post.title}
-        </li>
+      popover.innerHTML = filteredPosts.map((post, idx) => `
+        <div class="mini-track-row" data-idx="${idx}">
+          ${idx + 1}. ${post.title}
+        </div>
       `).join('');
 
-      trackList.querySelectorAll('.track-item').forEach(item => {
+      popover.querySelectorAll('.mini-track-row').forEach(item => {
         item.onclick = (e) => {
           e.stopPropagation();
-          const clickedIdx = Number(item.dataset.idx);
-          switchTrackWhilePlaying(clickedIdx);
+          switchTrackWhilePlaying(Number(item.dataset.idx));
         };
       });
     }
@@ -1273,12 +1431,20 @@
     }
 
     function openTrackDetail(idx) {
-      document.querySelectorAll('.track-item').forEach((el, i) => {
+      document.querySelectorAll('.mini-track-row').forEach((el, i) => {
         el.classList.toggle('active', i === idx);
       });
 
       const post = filteredPosts[idx];
       if (!post) return;
+
+      const cat = post.labels[0] ? post.labels[0].name.toUpperCase() : 'ARCHIVE';
+      document.getElementById('ctrlTitle').textContent = post.title;
+      document.getElementById('ctrlSub').textContent = `${cat} · ${formatYYMMDD(post.created_at)}`;
+      progressPercent = 18;
+      document.getElementById('ctrlProgressFill').style.width = `${progressPercent}%`;
+      setDiscPlayState(true);
+      startProgressSimulation();
 
       const detailDrawer = document.getElementById('detailDrawer');
       const imageSection = document.getElementById('imageSection');

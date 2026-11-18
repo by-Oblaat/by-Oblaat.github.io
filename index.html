@@ -7,6 +7,14 @@
   <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+KR:wght@400;600&family=Pretendard:wght@300;400;500;600&display=swap" rel="stylesheet">
   <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
   <style>
+    @font-face {
+      font-family: 'Stella';
+      src: url('https://cdn.jsdelivr.net/gh/Project-Noonnu/2608201622@stellar-serif/stellar-serif/Stellar_Serif_Bold_Condensed.woff2') format('woff2');
+      font-weight: 400;
+      font-display: swap;
+      font-stretch: 75%;
+    }
+
     :root {
       --bg-color: #ffffff;
       --line-blue: #6b9eff;
@@ -34,7 +42,7 @@
     }
 
     /* =========================================
-       [상단 헤더]
+       [상단 헤더] ARCHIVES 장체(Stella) 적용
        ========================================= */
     .global-header {
       width: 100%;
@@ -44,9 +52,11 @@
       z-index: 50;
     }
     .global-header h1 {
-      font-weight: 300;
-      font-size: 2.3rem;
-      letter-spacing: 0.2em;
+      font-family: 'Stella', serif;
+      font-stretch: 75%;
+      font-weight: 400;
+      font-size: 2.6rem;
+      letter-spacing: 0.14em;
       margin-bottom: 14px;
       color: var(--text-main);
       cursor: pointer;
@@ -505,7 +515,7 @@
     }
 
     /* =========================================
-       [하단 영역] LP 클릭 시 함께 자연스럽게 나오는 IMAGE & COMMENT
+       [하단 영역] IMAGE & COMMENT
        ========================================= */
     .detail-drawer {
       width: 100%;
@@ -605,7 +615,7 @@
     }
 
     /* =========================================
-       전용 글쓰기(포스팅) 관리자 모달 UI
+       전용 글쓰기 및 수정/삭제 관리자 모달 UI
        ========================================= */
     .writer-overlay {
       display: none;
@@ -628,7 +638,7 @@
       max-height: 90vh;
       overflow-y: auto;
       border: 1.5px solid var(--line-blue);
-      padding: 28px 24px;
+      padding: 24px;
       display: flex;
       flex-direction: column;
       gap: 14px;
@@ -641,7 +651,7 @@
       padding-bottom: 12px;
     }
     .writer-header h2 {
-      font-size: 1rem;
+      font-size: 0.95rem;
       font-weight: 600;
       letter-spacing: 0.14em;
     }
@@ -652,6 +662,29 @@
       cursor: pointer;
       color: var(--text-sub);
     }
+
+    .admin-tabs {
+      display: flex;
+      border-bottom: 1px solid #e5e5e5;
+      gap: 8px;
+    }
+    .admin-tab {
+      flex: 1;
+      background: none;
+      border: none;
+      border-bottom: 2px solid transparent;
+      padding: 8px 4px;
+      font-size: 0.82rem;
+      color: var(--text-sub);
+      cursor: pointer;
+      transition: 0.2s;
+    }
+    .admin-tab.active {
+      color: var(--text-main);
+      font-weight: 600;
+      border-bottom-color: var(--line-blue);
+    }
+
     .writer-field {
       display: flex;
       flex-direction: column;
@@ -697,6 +730,100 @@
       color: var(--line-orange);
       font-weight: 600;
     }
+
+    .edit-mode-banner {
+      display: none;
+      justify-content: space-between;
+      align-items: center;
+      background: #f4f7ff;
+      border: 1px solid var(--line-blue);
+      padding: 8px 12px;
+      font-size: 0.78rem;
+      color: var(--line-blue);
+    }
+    .edit-mode-banner.active {
+      display: flex;
+    }
+    .cancel-edit-btn {
+      background: none;
+      border: 1px solid var(--line-blue);
+      color: var(--line-blue);
+      padding: 2px 8px;
+      font-size: 0.72rem;
+      cursor: pointer;
+    }
+
+    .existing-asset-note {
+      font-size: 0.72rem;
+      color: var(--line-blue);
+    }
+
+    .manage-list {
+      display: none;
+      flex-direction: column;
+      gap: 8px;
+      max-height: 340px;
+      overflow-y: auto;
+    }
+    .manage-list.active {
+      display: flex;
+    }
+    .manage-item {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border: 1px solid #e8e8e8;
+      padding: 10px 12px;
+      gap: 10px;
+    }
+    .manage-item-info {
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+      overflow: hidden;
+    }
+    .manage-item-title {
+      font-size: 0.88rem;
+      font-weight: 500;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .manage-item-meta {
+      font-size: 0.72rem;
+      color: var(--text-sub);
+    }
+    .manage-actions {
+      display: flex;
+      gap: 6px;
+      flex-shrink: 0;
+    }
+    .btn-edit, .btn-delete {
+      padding: 5px 10px;
+      font-size: 0.75rem;
+      border: 1px solid #dcdcdc;
+      background: #fff;
+      cursor: pointer;
+      transition: 0.2s;
+    }
+    .btn-edit:hover {
+      border-color: var(--line-blue);
+      color: var(--line-blue);
+    }
+    .btn-delete:hover {
+      border-color: var(--line-orange);
+      color: var(--line-orange);
+    }
+
+    .writer-form-body {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+    .writer-form-body.hidden {
+      display: none;
+    }
+
     .writer-submit {
       background: var(--text-main);
       color: #ffffff;
@@ -721,7 +848,7 @@
 
     @media (max-width: 640px) {
       .global-header { padding: 32px 16px 16px; }
-      .global-header h1 { font-size: 2rem; }
+      .global-header h1 { font-size: 2.25rem; }
       .main-container { padding: 12px 16px 80px; }
       .showcase-row { min-height: 220px; }
 
@@ -758,7 +885,7 @@
 
   <div class="page-shell">
     <header class="global-header">
-      <h1 id="secretTrigger" title="더블클릭 또는 #write 접속 시 글쓰기">ARCHIVES</h1>
+      <h1 id="secretTrigger" title="더블클릭 또는 #write 접속 시 관리창">ARCHIVES</h1>
       <div class="filter-bar" id="filterBar">
         <button class="filter-btn active" data-label="ALL">ALL</button>
         <button class="filter-btn" data-label="MADE">MADE</button>
@@ -813,11 +940,11 @@
     </main>
   </div>
 
-  <!-- 전용 글쓰기(포스팅) 관리자 모달 -->
+  <!-- 전용 글쓰기 / 수정 / 삭제 관리자 모달 -->
   <div class="writer-overlay" id="writerOverlay">
     <div class="writer-box">
       <div class="writer-header">
-        <h2>NEW TRACK POST</h2>
+        <h2>TRACK MANAGER</h2>
         <button class="writer-close" id="closeWriter">✕</button>
       </div>
 
@@ -826,41 +953,59 @@
         <input type="password" class="writer-input" id="ghTokenInput" placeholder="ghp_..." />
       </div>
 
-      <div class="writer-field">
-        <label>카테고리</label>
-        <div class="cat-select-row">
-          <div class="cat-option selected" data-cat="MADE">MADE</div>
-          <div class="cat-option" data-cat="AND">AND</div>
+      <div class="admin-tabs">
+        <button class="admin-tab active" id="tabWrite">새 트랙 작성</button>
+        <button class="admin-tab" id="tabManage">기존 트랙 관리 (수정 / 삭제)</button>
+      </div>
+
+      <div class="writer-form-body" id="writeFormPanel">
+        <div class="edit-mode-banner" id="editModeBanner">
+          <span id="editModeText">기존 트랙 수정 중</span>
+          <button class="cancel-edit-btn" id="cancelEditBtn">수정 취소</button>
         </div>
+
+        <div class="writer-field">
+          <label>카테고리</label>
+          <div class="cat-select-row">
+            <div class="cat-option selected" data-cat="MADE">MADE</div>
+            <div class="cat-option" data-cat="AND">AND</div>
+          </div>
+        </div>
+
+        <div class="writer-field">
+          <label>트랙 제목 (TITLE)</label>
+          <input type="text" class="writer-input" id="postTitleInput" placeholder="제목을 입력하세요" />
+        </div>
+
+        <div class="writer-field">
+          <label>① LP 커버 이미지 (420×420 권장)</label>
+          <span class="existing-asset-note" id="existingCoverNote"></span>
+          <input type="file" id="coverFileInput" accept="image/*" />
+        </div>
+
+        <div class="writer-field">
+          <label>② LP 알판 이미지 (384×384 투명 PNG 권장)</label>
+          <span class="existing-asset-note" id="existingVinylNote"></span>
+          <input type="file" id="vinylFileInput" accept="image/*" />
+        </div>
+
+        <div class="writer-field">
+          <label>③ 본문 IMAGE 첨부</label>
+          <span class="existing-asset-note" id="existingBodyImgNote"></span>
+          <input type="file" id="bodyImgFileInput" accept="image/*" />
+        </div>
+
+        <div class="writer-field">
+          <label>COMMENT (본문 내용)</label>
+          <textarea class="writer-textarea" id="postBodyInput" placeholder="썰이나 연성, 코멘트를 자유롭게 작성하세요."></textarea>
+        </div>
+
+        <button class="writer-submit" id="publishBtn">발행하기 (PUBLISH)</button>
       </div>
 
-      <div class="writer-field">
-        <label>트랙 제목 (TITLE)</label>
-        <input type="text" class="writer-input" id="postTitleInput" placeholder="제목을 입력하세요" />
-      </div>
-
-      <div class="writer-field">
-        <label>① LP 커버 이미지 (420×420 권장 / 선택)</label>
-        <input type="file" id="coverFileInput" accept="image/*" />
-      </div>
-
-      <div class="writer-field">
-        <label>② LP 알판 이미지 (384×384 투명 PNG 권장 / 선택)</label>
-        <input type="file" id="vinylFileInput" accept="image/*" />
-      </div>
-
-      <div class="writer-field">
-        <label>③ 본문 IMAGE 첨부 (선택)</label>
-        <input type="file" id="bodyImgFileInput" accept="image/*" />
-      </div>
-
-      <div class="writer-field">
-        <label>COMMENT (본문 내용)</label>
-        <textarea class="writer-textarea" id="postBodyInput" placeholder="썰이나 연성, 코멘트를 자유롭게 작성하세요."></textarea>
-      </div>
+      <div class="manage-list" id="manageListPanel"></div>
 
       <div class="writer-status" id="writerStatus"></div>
-      <button class="writer-submit" id="publishBtn">발행하기 (PUBLISH)</button>
     </div>
   </div>
 
@@ -883,6 +1028,9 @@
     let isPlaying = false;
     let playTimers = [];
     let selectedCategory = "MADE";
+
+    let editingIssueNumber = null;
+    let preservedAssets = { cover: "", vinyl: "", bodyImg: "" };
 
     function applyCustomPlayerAssets() {
       const turntableBox = document.getElementById('turntableBox');
@@ -918,14 +1066,13 @@
           allPosts = issues;
         } else {
           allPosts = [
-            { number: 1, title: "SAMPLE 01", created_at: new Date().toISOString(), labels: [{ name: "MADE" }], body: "상단 ARCHIVES 제목을 더블클릭(또는 주소 뒤에 #write 입력)하면 전용 글쓰기 창이 열립니다." },
-            { number: 2, title: "SAMPLE 02", created_at: new Date().toISOString(), labels: [{ name: "AND" }], body: "두 번째 트랙입니다." },
-            { number: 3, title: "SAMPLE 03", created_at: new Date().toISOString(), labels: [{ name: "MADE" }], body: "세 번째 트랙 코멘트입니다." }
+            { number: 0, title: "SAMPLE 01", created_at: new Date().toISOString(), labels: [{ name: "MADE" }], body: "상단 ARCHIVES 제목을 더블클릭(또는 주소 뒤에 #write 입력)하면 글쓰기·수정·삭제 창이 열립니다." }
           ];
         }
         filteredPosts = [...allPosts];
         bindFilterButtons();
         rebuildAll();
+        renderManageList();
       } catch (err) {
         console.error(err);
       }
@@ -1012,7 +1159,6 @@
       });
     }
 
-    /* ★ LP 클릭 시: 플레이어 작동 + 우측 TRACK 메뉴 + 하단 IMAGE & COMMENT까지 자연스럽게 동시 오픈 ★ */
     function startPlayerSequence(slot, idx = currentIndex) {
       resetPlayerAnimation();
       isPlaying = true;
@@ -1022,10 +1168,8 @@
       const tonearm = document.getElementById('tonearmOverlay');
       const stage = document.getElementById('carouselStage');
 
-      // ① LP가 커버에서 빠져나와 턴테이블 위치로 이동
       slot.classList.add('on-player');
 
-      // ② 플레이어 페이드인 + 우측 TRACK 오픈 + 하단 IMAGE/COMMENT 슬라이딩 오픈
       const t1 = setTimeout(() => {
         turntable.classList.add('visible');
         tonearm.classList.add('visible');
@@ -1034,7 +1178,6 @@
         openTrackDetail(idx);
       }, 220);
 
-      // ③ 톤암 이동 및 LP 회전 시작
       const t2 = setTimeout(() => {
         tonearm.classList.add('playing');
         slot.classList.add('spinning');
@@ -1087,7 +1230,6 @@
       });
     }
 
-    /* 우측 TRACK 목록에서 다른 트랙 클릭 시 곡 교체 */
     function switchTrackWhilePlaying(idx) {
       if (currentIndex !== idx) {
         currentIndex = idx;
@@ -1099,7 +1241,6 @@
       openTrackDetail(idx);
     }
 
-    /* 하단 IMAGE & COMMENT 콘텐츠 렌더링 및 슬라이딩 오픈 */
     function openTrackDetail(idx) {
       document.querySelectorAll('.track-item').forEach((el, i) => {
         el.classList.toggle('active', i === idx);
@@ -1214,7 +1355,7 @@
     });
 
     /* =========================================================================
-       전용 글쓰기 관리자 로직
+       전용 글쓰기 / 수정 / 삭제 관리자 로직
        ========================================================================= */
     const writerOverlay = document.getElementById('writerOverlay');
     const ghTokenInput = document.getElementById('ghTokenInput');
@@ -1223,9 +1364,11 @@
     if (savedToken) ghTokenInput.value = savedToken;
 
     function openWriterModal() {
+      renderManageList();
       writerOverlay.classList.add('open');
     }
     function closeWriterModal() {
+      cancelEditMode();
       writerOverlay.classList.remove('open');
       if (window.location.hash === '#write') {
         history.replaceState(null, null, ' ');
@@ -1249,13 +1392,151 @@
 
     document.getElementById('closeWriter').onclick = closeWriterModal;
 
+    const tabWrite = document.getElementById('tabWrite');
+    const tabManage = document.getElementById('tabManage');
+    const writeFormPanel = document.getElementById('writeFormPanel');
+    const manageListPanel = document.getElementById('manageListPanel');
+
+    function switchAdminTab(mode) {
+      document.getElementById('writerStatus').textContent = '';
+      if (mode === 'write') {
+        tabWrite.classList.add('active');
+        tabManage.classList.remove('active');
+        writeFormPanel.classList.remove('hidden');
+        manageListPanel.classList.remove('active');
+      } else {
+        tabManage.classList.add('active');
+        tabWrite.classList.remove('active');
+        writeFormPanel.classList.add('hidden');
+        manageListPanel.classList.add('active');
+        renderManageList();
+      }
+    }
+
+    tabWrite.onclick = () => switchAdminTab('write');
+    tabManage.onclick = () => switchAdminTab('manage');
+
+    function setCategorySelection(catName) {
+      selectedCategory = catName;
+      document.querySelectorAll('.cat-option').forEach(o => {
+        o.classList.toggle('selected', o.dataset.cat === catName);
+      });
+    }
+
     document.querySelectorAll('.cat-option').forEach(opt => {
-      opt.onclick = () => {
-        document.querySelectorAll('.cat-option').forEach(o => o.classList.remove('selected'));
-        opt.classList.add('selected');
-        selectedCategory = opt.dataset.cat;
-      };
+      opt.onclick = () => setCategorySelection(opt.dataset.cat);
     });
+
+    function renderManageList() {
+      const realPosts = allPosts.filter(p => p.number > 0);
+      if (realPosts.length === 0) {
+        manageListPanel.innerHTML = `<p style="font-size:0.84rem; color:#888; text-align:center; padding:24px 0;">등록된 트랙이 없습니다.</p>`;
+        return;
+      }
+
+      manageListPanel.innerHTML = realPosts.map(post => {
+        const cat = post.labels[0] ? post.labels[0].name : 'NONE';
+        const date = formatYYMMDD(post.created_at);
+        return `
+          <div class="manage-item">
+            <div class="manage-item-info">
+              <div class="manage-item-title">${post.title}</div>
+              <div class="manage-item-meta">[${cat}] · ${date}</div>
+            </div>
+            <div class="manage-actions">
+              <button class="btn-edit" onclick="startEditTrack(${post.number})">수정</button>
+              <button class="btn-delete" onclick="deleteTrack(${post.number}, '${post.title.replace(/'/g, "\\'")}')">삭제</button>
+            </div>
+          </div>
+        `;
+      }).join('');
+    }
+
+    window.startEditTrack = function(issueNumber) {
+      const post = allPosts.find(p => p.number === issueNumber);
+      if (!post) return;
+
+      editingIssueNumber = issueNumber;
+      const raw = post.body || '';
+
+      const coverUrl = extractMetaUrl(raw, 'cover', '');
+      const vinylUrl = extractMetaUrl(raw, 'vinyl', '');
+      const cleanWithoutMeta = raw
+        .replace(/^cover:\s*.+$/gim, '')
+        .replace(/^vinyl:\s*.+$/gim, '')
+        .trim();
+
+      const mdImgMatch = cleanWithoutMeta.match(/!\[.*?\]\((.*?)\)/);
+      const bodyImgUrl = mdImgMatch ? mdImgMatch[1] : '';
+      const pureText = mdImgMatch ? cleanWithoutMeta.replace(mdImgMatch[0], '').trim() : cleanWithoutMeta;
+
+      preservedAssets = { cover: coverUrl, vinyl: vinylUrl, bodyImg: bodyImgUrl };
+
+      document.getElementById('existingCoverNote').textContent = coverUrl ? '※ 기존 커버 이미지 유지됨 (새 파일 선택 시 교체)' : '';
+      document.getElementById('existingVinylNote').textContent = vinylUrl ? '※ 기존 LP 알판 이미지 유지됨 (새 파일 선택 시 교체)' : '';
+      document.getElementById('existingBodyImgNote').textContent = bodyImgUrl ? '※ 기존 본문 이미지 유지됨 (새 파일 선택 시 교체)' : '';
+
+      document.getElementById('postTitleInput').value = post.title;
+      document.getElementById('postBodyInput').value = pureText;
+      const cat = post.labels[0] ? post.labels[0].name.toUpperCase() : 'MADE';
+      setCategorySelection(cat === 'AND' ? 'AND' : 'MADE');
+
+      document.getElementById('editModeBanner').classList.add('active');
+      document.getElementById('editModeText').textContent = `수정 중: ${post.title}`;
+      document.getElementById('publishBtn').textContent = '수정 완료 (UPDATE)';
+
+      switchAdminTab('write');
+    };
+
+    function cancelEditMode() {
+      editingIssueNumber = null;
+      preservedAssets = { cover: "", vinyl: "", bodyImg: "" };
+      document.getElementById('existingCoverNote').textContent = '';
+      document.getElementById('existingVinylNote').textContent = '';
+      document.getElementById('existingBodyImgNote').textContent = '';
+      document.getElementById('postTitleInput').value = '';
+      document.getElementById('postBodyInput').value = '';
+      document.getElementById('coverFileInput').value = '';
+      document.getElementById('vinylFileInput').value = '';
+      document.getElementById('bodyImgFileInput').value = '';
+      document.getElementById('editModeBanner').classList.remove('active');
+      document.getElementById('publishBtn').textContent = '발행하기 (PUBLISH)';
+    }
+
+    document.getElementById('cancelEditBtn').onclick = cancelEditMode;
+
+    window.deleteTrack = async function(issueNumber, title) {
+      const token = ghTokenInput.value.trim();
+      const statusEl = document.getElementById('writerStatus');
+
+      if (!token) {
+        statusEl.textContent = '상단 발행 비밀번호(GitHub Token)를 먼저 입력해 주세요.';
+        return;
+      }
+      if (!confirm(`"${title}" 트랙을 정말 삭제할까요?`)) return;
+
+      localStorage.setItem('oblaat_gh_token', token);
+      statusEl.textContent = '트랙 삭제 중...';
+
+      try {
+        const res = await fetch(`https://api.github.com/repos/${GITHUB_USER}/${GITHUB_REPO}/issues/${issueNumber}`, {
+          method: 'PATCH',
+          headers: {
+            'Authorization': `token ${token}`,
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({ state: 'closed' })
+        });
+
+        if (!res.ok) throw new Error('삭제 실패: 토큰 권한을 확인해 주세요.');
+
+        statusEl.textContent = '삭제되었습니다.';
+        await fetchPosts();
+        setTimeout(() => { statusEl.textContent = ''; }, 1200);
+      } catch (err) {
+        statusEl.textContent = err.message;
+      }
+    };
 
     async function uploadImageToGitHub(file, token) {
       return new Promise((resolve, reject) => {
@@ -1319,28 +1600,39 @@
           statusEl.textContent = 'LP 커버 이미지 업로드 중...';
           const coverUrl = await uploadImageToGitHub(coverFile, token);
           finalBodyParts.push(`cover: ${coverUrl}`);
+        } else if (preservedAssets.cover) {
+          finalBodyParts.push(`cover: ${preservedAssets.cover}`);
         }
 
         if (vinylFile) {
           statusEl.textContent = 'LP 알판 이미지 업로드 중...';
           const vinylUrl = await uploadImageToGitHub(vinylFile, token);
           finalBodyParts.push(`vinyl: ${vinylUrl}`);
+        } else if (preservedAssets.vinyl) {
+          finalBodyParts.push(`vinyl: ${preservedAssets.vinyl}`);
         }
 
         if (bodyImgFile) {
           statusEl.textContent = '본문 이미지 업로드 중...';
           const bodyImgUrl = await uploadImageToGitHub(bodyImgFile, token);
           finalBodyParts.push(`![image](${bodyImgUrl})`);
+        } else if (preservedAssets.bodyImg) {
+          finalBodyParts.push(`![image](${preservedAssets.bodyImg})`);
         }
 
         if (rawBody) {
           finalBodyParts.push(rawBody);
         }
 
-        statusEl.textContent = '트랙 발행 중...';
+        const isEditing = editingIssueNumber !== null;
+        statusEl.textContent = isEditing ? '트랙 수정 저장 중...' : '트랙 발행 중...';
 
-        const res = await fetch(`https://api.github.com/repos/${GITHUB_USER}/${GITHUB_REPO}/issues`, {
-          method: 'POST',
+        const endpoint = isEditing
+          ? `https://api.github.com/repos/${GITHUB_USER}/${GITHUB_REPO}/issues/${editingIssueNumber}`
+          : `https://api.github.com/repos/${GITHUB_USER}/${GITHUB_REPO}/issues`;
+
+        const res = await fetch(endpoint, {
+          method: isEditing ? 'PATCH' : 'POST',
           headers: {
             'Authorization': `token ${token}`,
             'Content-Type': 'application/json'
@@ -1352,14 +1644,9 @@
           })
         });
 
-        if (!res.ok) throw new Error('발행 실패: 토큰이 올바른지 확인해 주세요.');
+        if (!res.ok) throw new Error('저장 실패: 토큰이 올바른지 확인해 주세요.');
 
-        statusEl.textContent = '발행 완료! 새로고침합니다...';
-        document.getElementById('postTitleInput').value = '';
-        document.getElementById('postBodyInput').value = '';
-        document.getElementById('coverFileInput').value = '';
-        document.getElementById('vinylFileInput').value = '';
-        document.getElementById('bodyImgFileInput').value = '';
+        statusEl.textContent = isEditing ? '수정 완료!' : '발행 완료!';
 
         setTimeout(() => {
           closeWriterModal();

@@ -388,26 +388,22 @@
     }
 
     /* =========================================
-       우측 뮤직 컨트롤 카드 (2개 트랙 고정 높이 + 내부 독립 스크롤)
+       우측 뮤직 컨트롤 카드 (처음부터 트랙 목록이 하단에 고정 노출되는 디자인)
        ========================================= */
     .player-control-card {
       width: 270px;
-      height: 145px;
+      height: 215px; /* 처음부터 트랙 2개와 스크롤 영역이 포함된 고정 높이 */
       background: #ffffff;
       border: 1px solid #ececec;
       border-radius: 18px;
       box-shadow: 0 10px 28px rgba(0, 0, 0, 0.06);
-      padding: 18px 20px;
+      padding: 16px 18px;
       display: flex;
       flex-direction: column;
       justify-content: space-between;
       position: relative;
+      overflow: hidden;
       flex-shrink: 0;
-      transition: height 0.4s cubic-bezier(0.22, 1, 0.36, 1);
-    }
-
-    .player-control-card.expanded {
-      height: 215px; /* 정확히 2개 트랙과 스크롤바 영역이 들어오도록 고정[cite: 30, 31] */
     }
 
     .ctrl-top-row {
@@ -431,21 +427,9 @@
       text-overflow: ellipsis;
     }
 
+    /* 토글 버튼은 이제 필요 없으므로 숨김 처리 */
     .ctrl-list-toggle {
-      background: none;
-      border: none;
-      color: #b0b0b0;
-      font-size: 1rem;
-      cursor: pointer;
-      padding: 2px 4px;
-      transition: color 0.2s, transform 0.3s ease;
-      flex-shrink: 0;
-    }
-    .ctrl-list-toggle:hover, .ctrl-list-toggle.active {
-      color: var(--text-main);
-    }
-    .ctrl-list-toggle.active {
-      transform: rotate(90deg);
+      display: none;
     }
 
     .ctrl-progress-wrap {
@@ -500,20 +484,16 @@
       fill: currentColor;
     }
 
-    /* 트랙 목록: 카드를 깨지 않고 내부에서만 깔끔하게 스크롤되도록 설정 */
+    /* 트랙 목록: 처음부터 항상 열려있고 딱 2개만 보이며 스크롤 제공[cite: 32, 33] */
     .mini-track-popover {
-      max-height: 0;
-      opacity: 0;
+      max-height: 58px !important; /* 정확히 2개 트랙 높이 */
+      opacity: 1 !important;
       overflow-y: auto !important;
       display: flex;
       flex-direction: column;
       gap: 3px;
-      border-top: 1px solid transparent;
-      padding-top: 0;
-      transition: max-height 0.4s cubic-bezier(0.22, 1, 0.36, 1),
-                  opacity 0.3s ease,
-                  padding 0.3s ease,
-                  border-color 0.3s ease;
+      border-top: 1px solid #f0f0f0;
+      padding-top: 4px;
     }
     .mini-track-popover::-webkit-scrollbar {
       width: 4px;
@@ -521,12 +501,6 @@
     .mini-track-popover::-webkit-scrollbar-thumb {
       background: #d8d8d8;
       border-radius: 99px;
-    }
-    .mini-track-popover.open {
-      max-height: 56px !important; /* 딱 2개 트랙만 보이도록 높이 제한[cite: 30, 31] */
-      opacity: 1;
-      border-top-color: #f0f0f0;
-      padding-top: 4px;
     }
     .mini-track-row {
       font-size: 0.78rem;
@@ -1012,10 +986,7 @@
       }
       .player-control-card {
         width: 100% !important;
-        height: 145px !important;
-      }
-      .player-control-card.expanded {
-        height: 215px !important;
+        height: 215px !important; /* 모바일에서도 처음부터 트랙 목록이 포함된 높이로 고정 */
       }
       .ctrl-title { font-size: 0.72rem; }
       .ctrl-btn { width: 24px; height: 24px; }
@@ -1055,7 +1026,7 @@
           </div>
         </div>
 
-        <!-- 2. 재생 상태: 턴테이블과 뮤직 플레이어가 나란히 배치 -->
+        <!-- 2. 재생 상태: 턴테이블과 뮤직 플레이어 (처음부터 트랙 목록이 열려있는 구조) -->
         <div class="player-active-row" id="playerActiveRow">
           <div class="active-turntable-stage" id="turntableTriggerBox" title="클릭하여 커버 덱으로 돌아가기">
             <div class="turntable-box" id="turntableBox"></div>
@@ -1069,12 +1040,11 @@
           </div>
 
           <aside class="track-drawer" style="width: 270px; opacity: 1; pointer-events: auto;">
-            <div class="player-control-card" id="playerControlCard">
+            <div class="player-control-card expanded" id="playerControlCard">
               <div class="ctrl-top-row">
                 <div class="ctrl-meta">
                   <div class="ctrl-title" id="ctrlTitle">TRACK TITLE</div>
                 </div>
-                <button class="ctrl-list-toggle" id="ctrlListToggle" title="전체 트랙 목록">☰</button>
               </div>
 
               <div class="ctrl-progress-wrap" id="ctrlProgressWrap">
@@ -1093,7 +1063,8 @@
                 </button>
               </div>
 
-              <div class="mini-track-popover" id="miniTrackPopover"></div>
+              <!-- 처음부터 열려있고 2개 트랙만 보이며 스크롤이 적용되는 영역[cite: 32, 33] -->
+              <div class="mini-track-popover open" id="miniTrackPopover"></div>
             </div>
           </aside>
         </div>
@@ -1425,9 +1396,8 @@
       document.getElementById('detailDrawer').classList.remove('open');
       document.getElementById('imageSection').classList.remove('visible');
       document.getElementById('commentSection').classList.remove('visible');
-      document.getElementById('miniTrackPopover').classList.remove('open');
-      document.getElementById('ctrlListToggle').classList.remove('active');
-      document.getElementById('playerControlCard').classList.remove('expanded');
+      document.getElementById('playerControlCard').classList.add('expanded');
+      document.getElementById('miniTrackPopover').classList.add('open');
 
       document.querySelectorAll('.mini-track-row').forEach(el => el.classList.remove('active'));
       slotElements.forEach(s => {
@@ -1494,17 +1464,6 @@
       const rect = e.currentTarget.getBoundingClientRect();
       progressPercent = Math.max(0, Math.min(100, ((e.clientX - rect.left) / rect.width) * 100));
       document.getElementById('ctrlProgressFill').style.width = `${progressPercent}%`;
-    };
-
-    document.getElementById('ctrlListToggle').onclick = (e) => {
-      e.stopPropagation();
-      const toggleBtn = e.currentTarget;
-      const popover = document.getElementById('miniTrackPopover');
-      const card = document.getElementById('playerControlCard');
-
-      toggleBtn.classList.toggle('active');
-      popover.classList.toggle('open');
-      card.classList.toggle('expanded');
     };
 
     function renderTrackList() {
@@ -1608,7 +1567,7 @@
           commentBody.innerHTML = '';
         }
 
-        // 타래 렌더링
+        // 타래 렌더링 (날짜 대신 '+' 기호 출력)
         const threadsContainer = document.getElementById('threadsContainer');
         threadsContainer.innerHTML = '';
 

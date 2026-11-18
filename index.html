@@ -124,10 +124,11 @@
       transition: transform 0.75s cubic-bezier(0.22, 1, 0.36, 1);
     }
 
+    /* 모바일에서도 턴테이블 우측에 나란히 오도록 flex-direction: row 유지 */
     .player-active-row {
       display: none;
       align-items: center;
-      gap: 16px;
+      gap: 12px;
     }
     .showcase-row.is-open .player-stage {
       display: none;
@@ -387,13 +388,13 @@
        우측 뮤직 컨트롤 카드
        ========================================= */
     .player-control-card {
-      width: 280px;
+      width: 270px;
       height: 145px;
       background: #ffffff;
       border: 1px solid #ececec;
       border-radius: 18px;
       box-shadow: 0 10px 28px rgba(0, 0, 0, 0.06);
-      padding: 22px 24px 20px 28px;
+      padding: 20px 20px 18px 22px;
       display: flex;
       flex-direction: column;
       justify-content: space-between;
@@ -420,7 +421,7 @@
     }
 
     .ctrl-title {
-      font-size: 1.05rem;
+      font-size: 1rem;
       font-weight: 600;
       color: var(--text-main);
       white-space: nowrap;
@@ -466,14 +467,14 @@
       display: flex;
       justify-content: space-between;
       align-items: center;
-      padding: 0 6px;
+      padding: 0 4px;
     }
 
     .ctrl-btn {
       background: none;
       border: 1.5px solid transparent;
-      width: 38px;
-      height: 38px;
+      width: 36px;
+      height: 36px;
       border-radius: 50%;
       display: flex;
       justify-content: center;
@@ -492,8 +493,8 @@
     }
 
     .ctrl-btn svg {
-      width: 16px;
-      height: 16px;
+      width: 15px;
+      height: 15px;
       fill: currentColor;
     }
 
@@ -526,7 +527,7 @@
       padding-top: 6px;
     }
     .mini-track-row {
-      font-size: 0.82rem;
+      font-size: 0.8rem;
       color: var(--text-sub);
       padding: 5px 8px;
       border-radius: 6px;
@@ -958,47 +959,58 @@
       min-height: 18px;
     }
 
-    @media (max-width: 640px) {
+    /* 모바일 반응형: 화면이 좁을 때 턴테이블과 컨트롤 카드가 좌우로 나란히 들어가도록 스케일 조정 */
+    @media (max-width: 680px) {
       .global-header { padding: 32px 16px 16px; }
       .global-header h1 { font-size: 2.15rem; }
       .main-container { padding: 12px 16px 80px; }
       .showcase-row { min-height: 220px; }
 
       .player-active-row {
-        flex-direction: column;
-        gap: 20px;
+        flex-direction: row !important; /* 모바일에서도 나란히 유지 */
+        gap: 8px !important;
+        transform: scale(0.85); /* 전체 크기를 살짝 축소하여 화면 이탈 방지 */
+        transform-origin: center;
       }
       .player-stage {
-        width: 182px;
-        height: 215px;
+        width: 210px;
+        height: 230px;
       }
       .active-turntable-stage {
-        width: 190px;
-        height: 190px;
+        width: 175px;
+        height: 175px;
       }
       .turntable-box {
-        width: 190px;
-        height: 190px;
+        width: 175px;
+        height: 175px;
       }
       .active-vinyl-disc {
-        top: 16px;
-        left: 16px;
-        width: 158px;
-        height: 158px;
+        top: 15px;
+        left: 15px;
+        width: 145px;
+        height: 145px;
       }
       .tonearm-overlay {
-        width: 190px;
-        height: 190px;
+        width: 175px;
+        height: 175px;
+      }
+      .tonearm-custom-img {
+        width: 44px;
+        height: 104px;
+        bottom: 18px;
+        left: 15px;
       }
       .player-control-card {
-        width: 100%;
-        max-width: 280px;
-        height: auto;
-        padding: 16px;
+        width: 175px;
+        height: 175px;
+        padding: 14px;
       }
       .player-control-card.expanded {
-        height: auto;
+        height: 175px;
       }
+      .ctrl-title { font-size: 0.85rem; }
+      .ctrl-btn { width: 30px; height: 30px; }
+      .ctrl-btn svg { width: 12px; height: 12px; }
       .detail-drawer { max-width: 100%; }
       .image-frame { min-height: 240px; }
     }
@@ -1034,7 +1046,7 @@
           </div>
         </div>
 
-        <!-- 2. 재생 상태: 턴테이블과 뮤직 플레이어가 나란히 배치되는 행 -->
+        <!-- 2. 재생 상태: 턴테이블과 뮤직 플레이어가 모바일에서도 나란히 배치 -->
         <div class="player-active-row" id="playerActiveRow">
           <div class="active-turntable-stage" id="turntableTriggerBox" title="클릭하여 커버 덱으로 돌아가기">
             <div class="turntable-box" id="turntableBox"></div>
@@ -1047,7 +1059,7 @@
             </div>
           </div>
 
-          <aside class="track-drawer" style="width: 290px; opacity: 1; pointer-events: auto;">
+          <aside class="track-drawer" style="width: 280px; opacity: 1; pointer-events: auto;">
             <div class="player-control-card" id="playerControlCard">
               <div class="ctrl-top-row">
                 <div class="ctrl-meta">
@@ -1273,7 +1285,6 @@
         rebuildAll();
         renderManageList();
 
-        // 모바일/웹 폰트 및 이미지 로딩 완료 직후 3D 위치 강제 동기화 (새로고침 시 평평하게 깨지는 현상 방지)
         const forceSync3D = () => {
           updateCarouselPositions();
         };
@@ -1359,7 +1370,6 @@
         slotElements.push(slot);
       });
       
-      // DOM 생성 직후 즉시 3D 위치 재계산
       updateCarouselPositions();
     }
 
@@ -1414,7 +1424,6 @@
         s.classList.remove('on-player', 'spinning');
       });
 
-      // 대기 화면으로 부드럽게 돌아올 때 3D 위치 즉시 동기화
       setTimeout(() => {
         updateCarouselPositions();
       }, 50);

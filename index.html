@@ -88,7 +88,6 @@
       user-select: none;
     }
 
-    /* 좌표 기준이 되는 고정 스테이지 (높이 300px 고정으로 오차 제거) */
     .player-stage {
       position: relative;
       width: 320px;
@@ -98,7 +97,6 @@
       align-items: flex-start;
     }
 
-    /* 상단 카드형 LP 커버 스테이지 */
     .carousel-stage {
       position: absolute;
       top: 10px;
@@ -130,7 +128,6 @@
       cursor: pointer;
     }
 
-    /* 정사각형 LP 커버 */
     .lp-jacket {
       position: relative;
       width: 100%;
@@ -151,7 +148,6 @@
       box-shadow: 0 12px 28px rgba(107, 158, 255, 0.14);
     }
 
-    /* LP 선택 시 커버 덱 전체가 상단으로 부드럽게 퇴장 */
     .carousel-stage.deck-up .lp-jacket {
       transform: translateY(-190px);
       opacity: 0;
@@ -180,7 +176,6 @@
       letter-spacing: 0.08em;
     }
 
-    /* 원형 LP판 (204x204, 중심좌표: top 112px, left 112px) */
     .vinyl-disc {
       position: absolute;
       top: 10px;
@@ -229,7 +224,6 @@
       font-weight: 500;
     }
 
-    /* 대기 상태: LP판이 커버 하단으로 42px 돌출 */
     .lp-slot.active .vinyl-disc {
       opacity: 1;
       pointer-events: auto;
@@ -240,8 +234,6 @@
       transform: translateY(58px);
     }
 
-    /* ★ 플레이어 중심(top: 142px)과 100% 일치하는 LP 안착 좌표 (translateY: 20px) ★ */
-    /* 계산: carousel-stage(top:10) + vinyl(top:10) + translateY(20) + 반지름(102) = 142px */
     .lp-slot.active.on-player .vinyl-disc {
       transform: translateY(20px);
     }
@@ -255,7 +247,7 @@
     }
 
     /* =========================================
-       [2단계] LP 플레이어 본체 (중심좌표: top: 20 + 반지름 122 = 142px로 LP와 완전 일치)
+       [2단계] LP 플레이어 본체 및 톤암 레이어
        ========================================= */
     .turntable-box {
       position: absolute;
@@ -269,7 +261,7 @@
       opacity: 0;
       transform: scale(0.96);
       pointer-events: none;
-      z-index: 10; /* LP판(z-index: 20)보다 아래에 배치 */
+      z-index: 10;
       transition: opacity 0.6s ease, transform 0.6s cubic-bezier(0.22, 1, 0.36, 1);
       display: flex;
       justify-content: center;
@@ -283,7 +275,6 @@
       pointer-events: auto;
     }
 
-    /* ★ 톤암 전용 최상위 레이어 (LP판 위를 가로질러 올라오도록 z-index: 35 분리) ★ */
     .tonearm-overlay {
       position: absolute;
       top: 20px;
@@ -300,7 +291,6 @@
       opacity: 1;
     }
 
-    /* 중앙 스핀들 축 (LP판 구멍 정중앙 위에 정확히 위치) */
     .turntable-spindle {
       position: absolute;
       top: 50%;
@@ -313,7 +303,6 @@
       background: #ffffff;
     }
 
-    /* 좌측 하단 톤암 지지대 */
     .tonearm-base {
       position: absolute;
       bottom: 20px;
@@ -324,7 +313,6 @@
       background: #ffffff;
     }
 
-    /* 톤암 막대 & 바늘 헤드 (회전 시 LP판 소리골 위로 정확히 안착) */
     .tonearm-stick {
       position: absolute;
       bottom: 36px;
@@ -349,13 +337,12 @@
       background: #ffffff;
     }
 
-    /* 재생 시 톤암이 LP판 위로 올라옴 */
     .tonearm-overlay.playing .tonearm-stick {
       transform: rotate(38deg);
     }
 
     /* =========================================
-       [오른쪽 패널] LP 선택 시 아래로 슬라이딩 오픈되는 TRACK + 본문
+       [오른쪽 패널] 1단계 TRACK 드로어 -> 2단계 IMAGE & COMMENT 드로어
        ========================================= */
     .right-pane {
       padding: 12px 56px 120px 24px;
@@ -363,7 +350,7 @@
       flex-direction: column;
     }
 
-    /* ★ TRACK 아코디언 드롭다운 래퍼 (LP 선택 시에만 아래로 슬라이딩 펼쳐짐) ★ */
+    /* 1단계: LP 선택 시 열리는 TRACK 메뉴 */
     .track-drawer {
       max-width: 520px;
       max-height: 0;
@@ -445,17 +432,34 @@
       transform: translateX(4px);
     }
 
-    /* 본문 컨테이너 */
+    /* ★ 2단계: TRACK 항목 클릭 시에만 슬라이딩으로 펼쳐지는 IMAGE & COMMENT 드로어 ★ */
+    .detail-drawer {
+      max-height: 0;
+      opacity: 0;
+      overflow: hidden;
+      transform: translateY(-14px);
+      transition: max-height 0.85s cubic-bezier(0.22, 1, 0.36, 1),
+                  opacity 0.6s ease,
+                  transform 0.65s cubic-bezier(0.22, 1, 0.36, 1);
+    }
+
+    .detail-drawer.open {
+      max-height: 5000px; /* 긴 썰/연성 본문도 잘리지 않도록 충분한 높이 허용 */
+      opacity: 1;
+      transform: translateY(0);
+    }
+
     .content-stage {
       display: flex;
       flex-direction: column;
       gap: 32px;
+      padding-top: 4px;
     }
 
     .fade-section {
       opacity: 0;
-      transform: translateY(18px);
-      transition: opacity 0.6s ease, transform 0.6s cubic-bezier(0.22, 1, 0.36, 1);
+      transform: translateY(14px);
+      transition: opacity 0.55s ease, transform 0.55s cubic-bezier(0.22, 1, 0.36, 1);
     }
     .fade-section.visible {
       opacity: 1;
@@ -554,15 +558,12 @@
     <!-- [왼쪽] LP 커버 스택 + 정중앙 일치 LP 플레이어 -->
     <aside class="left-pane">
       <div class="player-stage">
-        <!-- 카드형 커버 덱 -->
         <div class="carousel-stage" id="carouselStage" title="스크롤/스와이프로 카드 넘기기 · 클릭하여 재생">
           <div class="stack-track" id="stackTrack"></div>
         </div>
 
-        <!-- 턴테이블 본체 (LP 아래 레이어) -->
         <div class="turntable-box" id="turntableBox" title="클릭하여 커버 덱으로 돌아가기"></div>
 
-        <!-- 스핀들 & 톤암 (LP 위 최상단 레이어) -->
         <div class="tonearm-overlay" id="tonearmOverlay">
           <div class="turntable-spindle"></div>
           <div class="tonearm-base"></div>
@@ -571,7 +572,7 @@
       </div>
     </aside>
 
-    <!-- [오른쪽] LP 선택 시 아래로 슬라이딩 펼쳐지는 TRACK + 본문 -->
+    <!-- [오른쪽] 1단계 TRACK 드로어 -> 2단계 IMAGE & COMMENT 드로어 -->
     <main class="right-pane">
       <section class="track-drawer" id="trackDrawer">
         <div class="track-box-title">TRACK</div>
@@ -581,18 +582,20 @@
         </div>
       </section>
 
-      <section class="content-stage">
-        <div class="fade-section" id="imageSection">
-          <div class="image-frame" id="imageFrame">
-            <div class="image-placeholder">IMAGE</div>
+      <section class="detail-drawer" id="detailDrawer">
+        <div class="content-stage">
+          <div class="fade-section" id="imageSection">
+            <div class="image-frame" id="imageFrame">
+              <div class="image-placeholder">IMAGE</div>
+            </div>
           </div>
-        </div>
 
-        <div class="fade-section comment-section" id="commentSection">
-          <div class="comment-label">
-            COMMENT <span id="activePostTitle"></span>
+          <div class="fade-section comment-section" id="commentSection">
+            <div class="comment-label">
+              COMMENT <span id="activePostTitle"></span>
+            </div>
+            <div class="comment-body" id="commentBody"></div>
           </div>
-          <div class="comment-body" id="commentBody"></div>
         </div>
       </section>
     </main>
@@ -606,6 +609,7 @@
     let filteredPosts = [];
     let slotElements = [];
     let currentIndex = 0;
+    let selectedTrackIndex = -1; // 아직 트랙이 선택되지 않은 초기 상태
     let isScrolling = false;
     let isPlaying = false;
     let playTimers = [];
@@ -628,7 +632,7 @@
           allPosts = issues;
         } else {
           allPosts = [
-            { number: 1, title: "SAMPLE 01", created_at: new Date().toISOString(), labels: [{ name: "MADE" }], body: "중앙 LP 커버나 LP판을 클릭하면 ① LP가 플레이어 정중앙에 안착하고 ② 톤암이 LP 위로 올라가 회전하며 ③ 아래쪽에 TRACK 메뉴가 부드럽게 펼쳐집니다.\n\n깃허브 `Issues`에 `MADE` 또는 `AND` 라벨을 달아 글을 올리면 자동으로 반영됩니다." },
+            { number: 1, title: "SAMPLE 01", created_at: new Date().toISOString(), labels: [{ name: "MADE" }], body: "1단계: LP 커버를 누르면 TRACK 메뉴가 열립니다.\n2단계: TRACK 목록에서 곡을 누르면 IMAGE와 COMMENT가 아래로 슬라이딩되며 펼쳐집니다.\n\n깃허브 `Issues`에 `MADE` 또는 `AND` 라벨을 달아 글을 올리면 자동으로 반영됩니다." },
             { number: 2, title: "SAMPLE 02", created_at: new Date().toISOString(), labels: [{ name: "AND" }], body: "두 번째 트랙입니다." },
             { number: 3, title: "SAMPLE 03", created_at: new Date().toISOString(), labels: [{ name: "MADE" }], body: "세 번째 트랙 코멘트입니다." },
             { number: 4, title: "SAMPLE 04", created_at: new Date().toISOString(), labels: [{ name: "AND" }], body: "네 번째 트랙 코멘트입니다." },
@@ -665,7 +669,7 @@
       resetPlayerAnimation();
       buildStackDOM();
       renderTrackList();
-      updateActiveState(false); // 초기엔 TRACK 메뉴 닫힌 상태 유지
+      updateCarouselPositions();
     }
 
     function buildStackDOM() {
@@ -700,7 +704,8 @@
             }
           } else {
             currentIndex = idx;
-            updateActiveState(false);
+            resetPlayerAnimation();
+            updateCarouselPositions();
           }
         };
 
@@ -709,7 +714,7 @@
       });
     }
 
-    // ★ LP 선택 시 실행: 플레이어 정중앙 안착 + 톤암 이동 + TRACK 메뉴 슬라이딩 오픈 ★
+    // 1단계: LP 클릭 시 -> 플레이어 작동 + TRACK 메뉴만 오픈 (IMAGE/COMMENT는 아직 닫힘)
     function startPlayerSequence(slot) {
       resetPlayerAnimation();
       isPlaying = true;
@@ -719,10 +724,8 @@
       const stage = document.getElementById('carouselStage');
       const trackDrawer = document.getElementById('trackDrawer');
 
-      // ① LP가 슬라이딩되어 플레이어 정중앙 위치로 이동
       slot.classList.add('on-player');
 
-      // ② LP 플레이어 본체 및 톤암 페이드인 + 커버 덱 상단 퇴장 + TRACK 메뉴 슬라이딩 오픈
       const t1 = setTimeout(() => {
         turntable.classList.add('visible');
         tonearm.classList.add('visible');
@@ -730,7 +733,6 @@
         trackDrawer.classList.add('open');
       }, 220);
 
-      // ③ 톤암이 LP 위로 올라가고 LP 회전 시작
       const t2 = setTimeout(() => {
         tonearm.classList.add('playing');
         slot.classList.add('spinning');
@@ -739,22 +741,22 @@
       playTimers.push(t1, t2);
     }
 
-    // 플레이어 종료 및 TRACK 메뉴 다시 접기
+    // 초기화: 플레이어 정지 + TRACK 및 IMAGE/COMMENT 모두 닫기
     function resetPlayerAnimation() {
       playTimers.forEach(t => clearTimeout(t));
       playTimers = [];
       isPlaying = false;
+      selectedTrackIndex = -1;
 
-      const turntable = document.getElementById('turntableBox');
-      const tonearm = document.getElementById('tonearmOverlay');
-      const stage = document.getElementById('carouselStage');
-      const trackDrawer = document.getElementById('trackDrawer');
+      document.getElementById('turntableBox').classList.remove('visible');
+      document.getElementById('tonearmOverlay').classList.remove('visible', 'playing');
+      document.getElementById('carouselStage').classList.remove('deck-up');
+      document.getElementById('trackDrawer').classList.remove('open');
+      document.getElementById('detailDrawer').classList.remove('open');
+      document.getElementById('imageSection').classList.remove('visible');
+      document.getElementById('commentSection').classList.remove('visible');
 
-      turntable.classList.remove('visible');
-      tonearm.classList.remove('visible', 'playing');
-      stage.classList.remove('deck-up');
-      trackDrawer.classList.remove('open');
-
+      document.querySelectorAll('.track-item').forEach(el => el.classList.remove('active'));
       slotElements.forEach(s => {
         s.classList.remove('on-player', 'spinning');
       });
@@ -764,6 +766,7 @@
       if (isPlaying) resetPlayerAnimation();
     };
 
+    // TRACK 목록 렌더링 (초기에는 아무 트랙도 선택되지 않은 상태)
     function renderTrackList() {
       const trackList = document.getElementById('trackList');
       if (filteredPosts.length === 0) {
@@ -771,73 +774,47 @@
         return;
       }
       trackList.innerHTML = filteredPosts.map((post, idx) => `
-        <li class="track-item ${idx === currentIndex ? 'active' : ''}" data-idx="${idx}">
+        <li class="track-item" data-idx="${idx}">
           - ${idx + 1}. ${post.title}
         </li>
       `).join('');
 
       trackList.querySelectorAll('.track-item').forEach(item => {
         item.onclick = () => {
-          currentIndex = Number(item.dataset.idx);
-          // TRACK 리스트에서 직접 다른 곡을 누르면 재생 상태(열린 상태)를 유지한 채 곡만 교체
-          updateActiveState(true);
+          const clickedIdx = Number(item.dataset.idx);
+          selectTrackAndOpenDetail(clickedIdx);
         };
       });
     }
 
-    function updateActiveState(keepPlaying = false) {
-      if (!keepPlaying) {
-        resetPlayerAnimation();
+    // ★ 2단계: TRACK 목록에서 항목을 선택했을 때만 IMAGE와 COMMENT가 슬라이딩 오픈 ★
+    function selectTrackAndOpenDetail(idx) {
+      selectedTrackIndex = idx;
+
+      // 다른 트랙을 골랐다면 왼쪽 LP판도 해당 트랙으로 자연스럽게 전환
+      if (currentIndex !== idx) {
+        currentIndex = idx;
+        updateCarouselPositions();
+        if (slotElements[currentIndex]) {
+          slotElements[currentIndex].classList.add('on-player', 'spinning');
+        }
       }
 
-      const trackItems = document.querySelectorAll('.track-item');
-      trackItems.forEach((el, i) => {
-        el.classList.toggle('active', i === currentIndex);
-        if (i === currentIndex) {
-          el.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
-        }
+      document.querySelectorAll('.track-item').forEach((el, i) => {
+        el.classList.toggle('active', i === idx);
       });
 
-      slotElements.forEach((slot, idx) => {
-        const offset = idx - currentIndex;
+      const post = filteredPosts[idx];
+      if (!post) return;
 
-        if (offset === 0) {
-          slot.classList.add('active');
-          slot.style.transform = `translateX(0px) translateZ(0px) rotateY(0deg)`;
-          slot.style.zIndex = 30;
-          slot.style.opacity = 1;
-          slot.style.pointerEvents = 'auto';
-          if (keepPlaying) {
-            startPlayerSequence(slot);
-          }
-        } else {
-          slot.classList.remove('active', 'on-player', 'spinning');
-          const sign = offset > 0 ? 1 : -1;
-          const abs = Math.abs(offset);
-          const translateX = sign * (86 + abs * 34);
-          const translateZ = -65 - abs * 45;
-          const rotateY = -sign * 46;
-
-          slot.style.transform = `translateX(${translateX}px) translateZ(${translateZ}px) rotateY(${rotateY}deg)`;
-          slot.style.zIndex = Math.max(1, 25 - abs);
-          slot.style.opacity = abs > 3 ? 0 : Math.max(0.32, 1 - abs * 0.22);
-          slot.style.pointerEvents = abs > 3 ? 'none' : 'auto';
-        }
-      });
-
-      const post = filteredPosts[currentIndex];
+      const detailDrawer = document.getElementById('detailDrawer');
       const imageSection = document.getElementById('imageSection');
       const commentSection = document.getElementById('commentSection');
 
-      if (!post) {
-        document.getElementById('imageFrame').innerHTML = `<div class="image-placeholder">IMAGE</div>`;
-        document.getElementById('activePostTitle').textContent = '';
-        document.getElementById('commentBody').innerHTML = '';
-        return;
-      }
-
+      // 이미 열려 있는 상태에서 다른 트랙을 눌렀을 때도 부드럽게 교체되도록 페이드 리셋
       imageSection.classList.remove('visible');
       commentSection.classList.remove('visible');
+      detailDrawer.classList.add('open');
 
       setTimeout(() => {
         const rawBody = post.body || '';
@@ -862,7 +839,33 @@
 
         imageSection.classList.add('visible');
         commentSection.classList.add('visible');
-      }, 140);
+      }, 150);
+    }
+
+    function updateCarouselPositions() {
+      slotElements.forEach((slot, idx) => {
+        const offset = idx - currentIndex;
+
+        if (offset === 0) {
+          slot.classList.add('active');
+          slot.style.transform = `translateX(0px) translateZ(0px) rotateY(0deg)`;
+          slot.style.zIndex = 30;
+          slot.style.opacity = 1;
+          slot.style.pointerEvents = 'auto';
+        } else {
+          slot.classList.remove('active', 'on-player', 'spinning');
+          const sign = offset > 0 ? 1 : -1;
+          const abs = Math.abs(offset);
+          const translateX = sign * (86 + abs * 34);
+          const translateZ = -65 - abs * 45;
+          const rotateY = -sign * 46;
+
+          slot.style.transform = `translateX(${translateX}px) translateZ(${translateZ}px) rotateY(${rotateY}deg)`;
+          slot.style.zIndex = Math.max(1, 25 - abs);
+          slot.style.opacity = abs > 3 ? 0 : Math.max(0.32, 1 - abs * 0.22);
+          slot.style.pointerEvents = abs > 3 ? 'none' : 'auto';
+        }
+      });
     }
 
     function stepTrack(direction) {
@@ -871,7 +874,8 @@
       if (nextIdx >= 0 && nextIdx < filteredPosts.length) {
         isScrolling = true;
         currentIndex = nextIdx;
-        updateActiveState(false);
+        resetPlayerAnimation();
+        updateCarouselPositions();
         setTimeout(() => { isScrolling = false; }, 320);
       }
     }

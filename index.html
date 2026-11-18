@@ -92,7 +92,7 @@
     }
 
     /* =========================================
-       메인 컨테이너 및 겹침 방지 플렉스 구조
+       메인 컨테이너
        ========================================= */
     .main-container {
       width: 100%;
@@ -113,7 +113,6 @@
       position: relative;
     }
 
-    /* 평소 대기 상태: 3D 커버플로우 중앙 정렬 */
     .player-stage {
       position: relative;
       width: 240px;
@@ -125,20 +124,18 @@
       transition: transform 0.75s cubic-bezier(0.22, 1, 0.36, 1);
     }
 
-    /* 재생 상태: 턴테이블과 우측 플레이어가 절대 겹치지 않고 나란히 배치되는 래퍼 */
     .player-active-row {
       display: none;
       align-items: center;
       gap: 16px;
     }
     .showcase-row.is-open .player-stage {
-      display: none; /* 대기용 앨범 스택 숨김 */
+      display: none;
     }
     .showcase-row.is-open .player-active-row {
-      display: flex; /* 재생용 턴테이블 + 뮤직플레이어 나란히 노출 */
+      display: flex;
     }
 
-    /* 재생 모드 내 턴테이블 본체 스테이지 */
     .active-turntable-stage {
       position: relative;
       width: 232px;
@@ -1030,7 +1027,7 @@
           </div>
         </div>
 
-        <!-- 2. 재생 상태: 턴테이블과 뮤직 플레이어가 절대 겹치지 않고 나란히 배치되는 행 -->
+        <!-- 2. 재생 상태: 턴테이블과 뮤직 플레이어가 나란히 배치되는 행 -->
         <div class="player-active-row" id="playerActiveRow">
           <div class="active-turntable-stage" id="turntableTriggerBox" title="클릭하여 커버 덱으로 돌아가기">
             <div class="turntable-box" id="turntableBox"></div>
@@ -1509,7 +1506,6 @@
       const post = filteredPosts[idx];
       if (!post) return;
 
-      // 카테고리와 날짜를 지우고 오직 트랙 제목만 표시
       document.getElementById('ctrlTitle').textContent = post.title;
       progressPercent = 18;
       document.getElementById('ctrlProgressFill').style.width = `${progressPercent}%`;
@@ -1574,19 +1570,23 @@
           commentBody.innerHTML = '';
         }
 
-        // 타래 렌더링
+        // 타래 렌더링 (threads: 글자나 점선 없이 깔끔한 블록 형태로 출력)
         const threadsContainer = document.getElementById('threadsContainer');
         threadsContainer.innerHTML = '';
 
         if (threadPart.trim()) {
           const blocks = threadPart.trim().split(/^---\s*$/gm).map(b => b.trim()).filter(Boolean);
           blocks.forEach(block => {
+            // 혹시라도 남아있을 수 있는 threads: 문자열 제거
+            const cleanBlock = block.replace(/^threads:\s*/i, '').trim();
+            if (!cleanBlock) return;
+
             const itemEl = document.createElement('div');
             itemEl.className = 'thread-item';
             const dateStr = formatYYMMDD(post.created_at);
             itemEl.innerHTML = `
               <div class="thread-date">${dateStr}</div>
-              <div class="thread-body">${marked.parse(block)}</div>
+              <div class="thread-body">${marked.parse(cleanBlock)}</div>
             `;
             threadsContainer.appendChild(itemEl);
           });

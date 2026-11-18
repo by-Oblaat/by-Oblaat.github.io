@@ -4,13 +4,14 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>ARCHIVES</title>
-  <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+KR:wght@400;600&family=Pretendard:wght@300;500;600&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+KR:wght@400;600&family=Pretendard:wght@300;400;500;600&display=swap" rel="stylesheet">
   <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
   <style>
     :root {
       --bg-color: #ffffff;
-      --line-blue: #6b9eff;     /* LP 커버 도형 선 */
-      --line-orange: #ff6b4a;   /* LP 알판 도형 선 */
+      --line-blue: #6b9eff;
+      --line-orange: #ff6b4a;
+      --line-dashed: #bdbdbd;
       --text-main: #1a1a1a;
       --text-sub: #777777;
     }
@@ -21,210 +22,196 @@
       color: var(--text-main);
       font-family: 'Pretendard', sans-serif;
       min-height: 100vh;
+      overflow-x: hidden;
+    }
+
+    /* 전체 2단 분할 레이아웃 */
+    .layout-wrapper {
+      display: grid;
+      grid-template-columns: 440px 1fr;
+      min-height: 100vh;
+      max-width: 1320px;
+      margin: 0 auto;
+    }
+
+    /* =========================================
+       [왼쪽 패널] 세로 3D LP 스택 + 우측 슬라이딩 LP
+       ========================================= */
+    .left-pane {
+      position: sticky;
+      top: 0;
+      height: 100vh;
       display: flex;
       flex-direction: column;
+      justify-content: center;
       align-items: center;
-      overflow-x: hidden;
-      padding: 48px 16px 80px;
-    }
-
-    /* 1. 상단 타이틀 */
-    header {
-      text-align: center;
-      margin-bottom: 32px;
-      z-index: 30;
-    }
-    header h1 {
-      font-weight: 300;
-      font-size: 2.4rem;
-      letter-spacing: 0.14em;
-      color: var(--text-main);
-    }
-
-    /* 카테고리 필터 */
-    .filter-bar {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 8px;
-      justify-content: center;
-      margin-top: 14px;
-    }
-    .filter-btn {
-      background: transparent;
-      border: 1px solid #ddd;
-      padding: 4px 12px;
-      border-radius: 99px;
-      font-size: 0.78rem;
-      color: var(--text-sub);
-      cursor: pointer;
-      transition: all 0.25s ease;
-    }
-    .filter-btn.active, .filter-btn:hover {
-      border-color: var(--text-main);
-      color: var(--text-main);
-    }
-
-    /* 2. 3D 커버플로우 + 슬라이딩 LP 스테이지 */
-    .stage {
-      position: relative;
-      width: 100%;
-      max-width: 960px;
-      height: 460px;
-      display: flex;
-      justify-content: center;
-      align-items: flex-start;
-      padding-top: 12px;
-      perspective: 1200px;
+      padding: 40px 24px;
+      border-right: 1.5px dashed var(--line-dashed);
       user-select: none;
     }
 
-    .carousel-track {
+    .vertical-stage {
       position: relative;
-      width: 280px;
-      height: 280px;
+      width: 340px;
+      height: 400px;
+      display: flex;
+      justify-content: flex-start;
+      align-items: flex-end;
+      padding-left: 16px;
+      padding-bottom: 20px;
+      perspective: 1000px;
+    }
+
+    .stack-track {
+      position: relative;
+      width: 240px;
+      height: 240px;
       transform-style: preserve-3d;
     }
 
-    /* 개별 LP 커버 래퍼 (커버 + 내부 LP판을 함께 묶음) */
+    /* 개별 LP 슬롯 (커버 + 우측 LP판 묶음) */
     .lp-slot {
       position: absolute;
       inset: 0;
-      width: 280px;
-      height: 280px;
-      /* 부드러운 관성 이동 애니메이션 */
-      transition: transform 0.65s cubic-bezier(0.22, 1, 0.36, 1), opacity 0.55s ease;
+      width: 240px;
+      height: 240px;
       transform-style: preserve-3d;
+      transition: transform 0.65s cubic-bezier(0.22, 1, 0.36, 1), opacity 0.5s ease;
       cursor: pointer;
     }
 
-    /* 실제 정사각형 LP 커버(재킷) 도형 - 앞면 */
+    /* 정사각형 LP 커버 (세로 텍스트 스타일) */
     .lp-jacket {
       position: relative;
       width: 100%;
       height: 100%;
-      background: #ffffff; /* 불투명 배경으로 뒤쪽 LP판을 가림 */
+      background: #ffffff;
       border: 1.5px solid var(--line-blue);
+      z-index: 2;
       display: flex;
       flex-direction: column;
       justify-content: center;
       align-items: center;
-      text-align: center;
-      padding: 24px;
-      z-index: 2; /* LP판보다 위 레이어 */
-      transition: box-shadow 0.45s ease, border-color 0.45s ease;
+      padding: 20px;
+      transition: box-shadow 0.4s ease;
     }
 
     .lp-slot.active .lp-jacket {
-      box-shadow: 0 14px 34px rgba(107, 158, 255, 0.14);
+      box-shadow: 0 10px 28px rgba(107, 158, 255, 0.14);
+    }
+
+    /* 스케치처럼 세로 방향으로 회전된 커버 내부 텍스트 */
+    .jacket-vertical-inner {
+      writing-mode: vertical-rl;
+      transform: rotate(180deg);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      height: 100%;
+      text-align: center;
     }
 
     .lp-card-label {
-      font-size: 0.72rem;
+      font-size: 0.7rem;
       color: var(--line-blue);
-      letter-spacing: 0.08em;
-      margin-bottom: 10px;
       border: 1px solid var(--line-blue);
-      padding: 2px 8px;
+      padding: 5px 2px;
+      letter-spacing: 0.05em;
     }
 
     .lp-card-title {
       font-family: 'Noto Serif KR', serif;
-      font-size: 1.15rem;
+      font-size: 1rem;
       font-weight: 600;
       color: var(--text-main);
-      word-break: keep-all;
-      line-height: 1.45;
+      max-height: 175px;
+      overflow: hidden;
     }
 
     .lp-card-date {
-      font-size: 0.75rem;
+      font-size: 0.72rem;
       color: var(--text-sub);
-      margin-top: 12px;
     }
 
-    /* 3. 재킷 안쪽에서 아래로 슬라이드되어 나오는 원형 LP판 도형 */
+    /* 커버 안쪽에서 오른쪽으로 슬라이드되는 원형 LP판 */
     .vinyl-disc {
       position: absolute;
-      top: 14px;
-      left: 14px;
-      width: 252px;
-      height: 252px;
+      top: 12px;
+      left: 12px;
+      width: 216px;
+      height: 216px;
       border-radius: 50%;
       border: 1.5px solid var(--line-orange);
       background: #ffffff;
-      z-index: 1; /* 재킷(.lp-jacket) 바로 뒤쪽 레이어 */
+      z-index: 1;
       display: flex;
-      flex-direction: column;
-      justify-content: flex-end;
       align-items: center;
-      padding-bottom: 24px;
+      justify-content: flex-end;
+      padding-right: 18px;
       opacity: 0;
       pointer-events: none;
       transition: transform 0.6s cubic-bezier(0.22, 1, 0.36, 1), opacity 0.35s ease;
     }
 
-    /* LP 중앙 라벨 홀 도형 */
+    /* LP 중앙 라벨 원 */
     .vinyl-disc::before {
       content: "";
       position: absolute;
       top: 50%;
       left: 50%;
-      width: 76px;
-      height: 76px;
-      margin: -38px 0 0 -38px;
+      width: 64px;
+      height: 64px;
+      margin: -32px 0 0 -32px;
       border-radius: 50%;
       border: 1px dashed var(--line-orange);
-      opacity: 0.55;
+      opacity: 0.6;
     }
 
-    /* LP 소리골(홈) 느낌을 주는 얇은 보조 원 */
+    /* LP 소리골 보조 원 */
     .vinyl-disc::after {
       content: "";
       position: absolute;
-      inset: 18px;
+      inset: 14px;
       border-radius: 50%;
       border: 1px solid rgba(255, 107, 74, 0.18);
     }
 
-    /* 활성화된 중앙 카드일 때 LP판이 재킷 아래로 살짝 얼굴을 내밈 */
+    /* 활성화된 맨 앞 LP는 오른쪽으로 슬라이드 아웃 */
     .lp-slot.active .vinyl-disc {
       opacity: 1;
       pointer-events: auto;
-      transform: translateY(42px);
+      transform: translateX(78px);
     }
 
-    /* 중앙 카드에 마우스를 올리면 반쯤 슬라이드 아웃 */
-    .lp-slot.active:hover .vinyl-disc {
-      transform: translateY(115px) rotate(35deg);
-    }
-
-    /* 클릭해서 열 때 완전히 슬라이드 아웃 */
+    .lp-slot.active:hover .vinyl-disc,
     .lp-slot.active.sliding-out .vinyl-disc {
-      transform: translateY(165px) rotate(90deg);
+      transform: translateX(108px) rotate(45deg);
     }
 
-    .sliding-guide {
+    .sliding-text {
+      writing-mode: vertical-rl;
+      transform: rotate(180deg);
+      font-size: 0.72rem;
       color: var(--line-orange);
-      font-size: 0.78rem;
-      font-weight: 500;
       letter-spacing: 0.12em;
+      font-weight: 500;
     }
 
-    /* 좌우 컨트롤 영역 */
-    .nav-hint {
-      margin-top: 48px;
+    /* 좌우 넘김 버튼 */
+    .nav-controls {
+      margin-top: 24px;
       display: flex;
-      gap: 20px;
       align-items: center;
-      font-size: 0.8rem;
+      gap: 18px;
+      font-size: 0.82rem;
       color: var(--text-sub);
-      z-index: 20;
     }
     .nav-btn {
       background: #fff;
       border: 1px solid #ddd;
-      width: 36px;
-      height: 36px;
+      width: 34px;
+      height: 34px;
       border-radius: 50%;
       cursor: pointer;
       color: var(--text-main);
@@ -235,108 +222,249 @@
       color: var(--line-blue);
     }
 
-    /* 4. 글 본문 모달(팝업) */
-    .modal-overlay {
-      display: none;
-      position: fixed;
-      inset: 0;
-      background: rgba(0, 0, 0, 0.4);
-      z-index: 100;
+    /* =========================================
+       [오른쪽 패널] ARCHIVES 헤더 + TRACK + 스크롤 페이드인 본문
+       ========================================= */
+    .right-pane {
+      padding: 48px 56px 120px;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .right-header {
+      text-align: center;
+      margin-bottom: 36px;
+    }
+    .right-header h1 {
+      font-weight: 300;
+      font-size: 2.3rem;
+      letter-spacing: 0.18em;
+      margin-bottom: 14px;
+    }
+
+    .filter-bar {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      justify-content: center;
+    }
+    .filter-btn {
+      background: #fff;
+      border: 1px solid #dcdcdc;
+      padding: 4px 14px;
+      border-radius: 99px;
+      font-size: 0.78rem;
+      color: var(--text-sub);
+      cursor: pointer;
+      transition: 0.2s;
+    }
+    .filter-btn.active, .filter-btn:hover {
+      border-color: var(--text-main);
+      color: var(--text-main);
+    }
+
+    /* TRACK 리스트 + SCROLL 안내 영역 */
+    .track-header-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-end;
+      padding-bottom: 16px;
+      border-bottom: 1.5px dashed var(--line-dashed);
+      margin-bottom: 36px;
+      gap: 20px;
+    }
+
+    .track-box {
+      flex: 1;
+    }
+    .track-box-title {
+      font-size: 0.85rem;
+      font-weight: 600;
+      letter-spacing: 0.1em;
+      margin-bottom: 8px;
+      color: var(--text-main);
+    }
+    .track-list {
+      list-style: none;
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+      max-height: 130px;
+      overflow-y: auto;
+    }
+    .track-item {
+      font-size: 0.85rem;
+      color: var(--text-sub);
+      cursor: pointer;
+      transition: color 0.2s, transform 0.2s;
+      padding: 2px 0;
+    }
+    .track-item:hover, .track-item.active {
+      color: var(--line-orange);
+      font-weight: 500;
+      transform: translateX(4px);
+    }
+
+    .scroll-indicator {
+      font-size: 0.78rem;
+      color: var(--text-sub);
+      letter-spacing: 0.08em;
+      white-space: nowrap;
+      animation: bounceDown 1.8s infinite;
+    }
+    @keyframes bounceDown {
+      0%, 100% { transform: translateY(0); }
+      50% { transform: translateY(5px); }
+    }
+
+    /* 스크롤 + 페이드인 본문 컨테이너 */
+    .content-stage {
+      display: flex;
+      flex-direction: column;
+      gap: 32px;
+    }
+
+    .fade-section {
+      opacity: 0;
+      transform: translateY(24px);
+      transition: opacity 0.7s ease, transform 0.7s cubic-bezier(0.22, 1, 0.36, 1);
+    }
+    .fade-section.visible {
+      opacity: 1;
+      transform: translateY(0);
+    }
+
+    /* IMAGE 도형 박스 */
+    .image-frame {
+      width: 100%;
+      max-width: 520px;
+      min-height: 320px;
+      border: 1.5px solid var(--text-main);
+      display: flex;
       justify-content: center;
       align-items: center;
-      padding: 20px;
-    }
-    .modal-overlay.open { display: flex; }
-    .modal-content {
-      background: #fff;
-      width: 100%;
-      max-width: 680px;
-      max-height: 82vh;
-      overflow-y: auto;
-      padding: 36px 32px;
-      border: 1.5px solid var(--line-blue);
+      overflow: hidden;
+      background: #fafafa;
       position: relative;
-      animation: modalFade 0.3s ease;
     }
-    @keyframes modalFade {
-      from { opacity: 0; transform: translateY(12px); }
-      to { opacity: 1; transform: translateY(0); }
+    .image-frame img {
+      width: 100%;
+      height: auto;
+      display: block;
     }
-    .close-btn {
-      position: sticky;
-      top: 0;
-      float: right;
-      background: #fff;
-      border: 1px solid #ccc;
-      width: 32px;
-      height: 32px;
-      border-radius: 50%;
-      cursor: pointer;
+    .image-placeholder {
+      font-size: 1.3rem;
+      font-weight: 300;
+      letter-spacing: 0.15em;
+      color: #999;
     }
-    .modal-header {
-      border-bottom: 1px dashed #ddd;
-      padding-bottom: 16px;
-      margin-bottom: 24px;
+
+    /* COMMENT (연성/썰 본문) 영역 */
+    .comment-section {
+      max-width: 620px;
     }
-    .modal-header h2 {
-      font-family: 'Noto Serif KR', serif;
-      font-size: 1.35rem;
-      margin-bottom: 6px;
+    .comment-label {
+      font-size: 0.9rem;
+      font-weight: 500;
+      letter-spacing: 0.12em;
+      color: var(--text-main);
+      margin-bottom: 14px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
     }
-    .modal-body {
+    .comment-label span {
+      font-size: 0.78rem;
+      color: var(--text-sub);
+      font-weight: 400;
+    }
+    .comment-body {
       font-family: 'Noto Serif KR', serif;
       font-size: 0.98rem;
       line-height: 1.95;
+      color: var(--text-main);
       word-break: keep-all;
     }
-    .modal-body p { margin-bottom: 1.2em; }
-    .modal-body blockquote {
+    .comment-body p { margin-bottom: 1.2em; }
+    .comment-body blockquote {
       border-left: 2px solid var(--line-orange);
       padding-left: 14px;
       color: var(--text-sub);
       margin: 16px 0;
     }
+    .comment-body img {
+      max-width: 100%;
+      margin: 14px 0;
+      border: 1px solid #eee;
+    }
 
-    /* 모바일 대응 */
-    @media (max-width: 600px) {
-      .carousel-track, .lp-slot { width: 220px; height: 220px; }
-      .vinyl-disc { top: 10px; left: 10px; width: 200px; height: 200px; padding-bottom: 18px; }
-      .lp-slot.active .vinyl-disc { transform: translateY(34px); }
-      .lp-slot.active:hover .vinyl-disc { transform: translateY(90px) rotate(35deg); }
-      .lp-slot.active.sliding-out .vinyl-disc { transform: translateY(130px) rotate(90deg); }
-      .stage { height: 390px; }
+    /* 모바일 및 태블릿 반응형 */
+    @media (max-width: 920px) {
+      .layout-wrapper {
+        grid-template-columns: 1fr;
+      }
+      .left-pane {
+        position: relative;
+        height: auto;
+        border-right: none;
+        border-bottom: 1.5px dashed var(--line-dashed);
+        padding: 40px 16px;
+      }
+      .right-pane {
+        padding: 36px 24px 80px;
+      }
     }
   </style>
 </head>
 <body>
 
-  <header>
-    <h1>ARCHIVES</h1>
-    <div class="filter-bar" id="filterBar">
-      <button class="filter-btn active" data-label="ALL">ALL</button>
-    </div>
-  </header>
-
-  <div class="stage" id="stage">
-    <div class="carousel-track" id="carouselTrack"></div>
-  </div>
-
-  <div class="nav-hint">
-    <button class="nav-btn" id="prevBtn">←</button>
-    <span id="counterText">0 / 0</span>
-    <button class="nav-btn" id="nextBtn">→</button>
-  </div>
-
-  <!-- 글 본문 팝업 -->
-  <div class="modal-overlay" id="modalOverlay">
-    <div class="modal-content">
-      <button class="close-btn" id="closeModal">✕</button>
-      <div class="modal-header">
-        <h2 id="modalTitle"></h2>
-        <span style="font-size:0.78rem; color:#888;" id="modalDate"></span>
+  <div class="layout-wrapper">
+    <!-- [왼쪽] 세로 LP 스택 + 우측 슬라이딩 LP -->
+    <aside class="left-pane" id="leftPane">
+      <div class="vertical-stage">
+        <div class="stack-track" id="stackTrack"></div>
       </div>
-      <div class="modal-body" id="modalBody"></div>
-    </div>
+      <div class="nav-controls">
+        <button class="nav-btn" id="prevBtn">←</button>
+        <span id="counterText">0 / 0</span>
+        <button class="nav-btn" id="nextBtn">→</button>
+      </div>
+    </aside>
+
+    <!-- [오른쪽] 헤더 + TRACK + 스크롤 페이드인 IMAGE & COMMENT -->
+    <main class="right-pane">
+      <header class="right-header">
+        <h1>ARCHIVES</h1>
+        <div class="filter-bar" id="filterBar">
+          <button class="filter-btn active" data-label="ALL">ALL</button>
+        </div>
+      </header>
+
+      <section class="track-header-row">
+        <div class="track-box">
+          <div class="track-box-title">TRACK</div>
+          <ul class="track-list" id="trackList"></ul>
+        </div>
+        <div class="scroll-indicator">↓ SCROLL + FADE IN</div>
+      </section>
+
+      <section class="content-stage" id="contentStage">
+        <!-- IMAGE 영역 -->
+        <div class="fade-section" id="imageSection">
+          <div class="image-frame" id="imageFrame">
+            <div class="image-placeholder">IMAGE</div>
+          </div>
+        </div>
+
+        <!-- COMMENT (본문) 영역 -->
+        <div class="fade-section comment-section" id="commentSection">
+          <div class="comment-label">
+            COMMENT <span id="activePostTitle"></span>
+          </div>
+          <div class="comment-body" id="commentBody"></div>
+        </div>
+      </section>
+    </main>
   </div>
 
   <script>
@@ -348,32 +476,34 @@
     let slotElements = [];
     let currentIndex = 0;
 
+    // 1. 깃허브 이슈 데이터 로드
     async function fetchPosts() {
       try {
         const res = await fetch(`https://api.github.com/repos/${GITHUB_USER}/${GITHUB_REPO}/issues?state=open&per_page=100`);
         const data = await res.json();
         const issues = Array.isArray(data) ? data.filter(item => !item.pull_request) : [];
-        
+
         if (issues.length > 0) {
           allPosts = issues;
         } else {
+          // 이슈가 없을 때 레이아웃 확인용 샘플
           allPosts = [
-            { number: 1, title: "LP 커버 01 (샘플)", created_at: new Date().toISOString(), labels: [{ name: "썰" }], body: "깃허브 `Issues` 탭에 첫 글을 올리면 이 샘플은 자동으로 사라지고 실제 글이 표시됩니다." },
-            { number: 2, title: "LP 커버 02 (샘플)", created_at: new Date().toISOString(), labels: [{ name: "연성" }], body: "좌우 커버를 클릭하거나 방향키·스와이프로 부드럽게 회전할 수 있습니다." },
-            { number: 3, title: "LP 커버 03 (샘플)", created_at: new Date().toISOString(), labels: [{ name: "설정" }], body: "중앙 커버나 아래로 삐져나온 원형 LP를 누르면 커버 안에서 LP가 슬라이드되어 나온 뒤 본문이 열립니다." },
-            { number: 4, title: "LP 커버 04 (샘플)", created_at: new Date().toISOString(), labels: [{ name: "썰" }], body: "추후 `.lp-jacket`에 이미지를 넣으면 실제 앨범 아트처럼 바뀝니다." },
+            { number: 1, title: "LP 커버 01 (샘플)", created_at: new Date().toISOString(), labels: [{ name: "설정" }], body: "깃허브 `Issues` 탭에 첫 글을 올리면 이 샘플 대신 실제 기록이 표시됩니다.\n\n이슈 본문에 이미지를 첨부하면 위 `IMAGE` 프레임에 자동으로 들어가고, 나머지 텍스트는 이 `COMMENT` 영역에 출력됩니다." },
+            { number: 2, title: "LP 커버 02 (샘플)", created_at: new Date().toISOString(), labels: [{ name: "연성" }], body: "오른쪽 상단 `TRACK` 목록에서 `- 1`, `- 2`를 클릭하거나 왼쪽 하단 화살표 버튼을 누르면 뒤쪽에 쌓여 있던 LP 커버가 부드럽게 앞으로 내려옵니다." },
+            { number: 3, title: "LP 커버 03 (샘플)", created_at: new Date().toISOString(), labels: [{ name: "썰" }], body: "세 번째 트랙의 코멘트 영역입니다. 스크롤을 내리면 각 섹션이 페이드인(Fade-in) 효과와 함께 나타납니다." },
+            { number: 4, title: "LP 커버 04 (샘플)", created_at: new Date().toISOString(), labels: [{ name: "설정" }], body: "네 번째 샘플 트랙입니다." },
             { number: 5, title: "LP 커버 05 (샘플)", created_at: new Date().toISOString(), labels: [{ name: "연성" }], body: "다섯 번째 샘플 트랙입니다." }
           ];
         }
         filteredPosts = [...allPosts];
         renderFilters(allPosts);
-        buildCarouselDOM();
-        updateCarouselPositions();
+        rebuildAll();
       } catch (err) {
         console.error(err);
       }
     }
 
+    // 2. 카테고리 라벨 버튼 생성
     function renderFilters(posts) {
       const labelSet = new Set();
       posts.forEach(p => p.labels.forEach(l => labelSet.add(l.name)));
@@ -388,8 +518,7 @@
           btn.classList.add('active');
           filteredPosts = allPosts.filter(p => p.labels.some(l => l.name === label));
           currentIndex = 0;
-          buildCarouselDOM();
-          updateCarouselPositions();
+          rebuildAll();
         };
         filterBar.appendChild(btn);
       });
@@ -399,14 +528,19 @@
         e.target.classList.add('active');
         filteredPosts = [...allPosts];
         currentIndex = 0;
-        buildCarouselDOM();
-        updateCarouselPositions();
+        rebuildAll();
       };
     }
 
-    // 최초 1회만 DOM 생성 (애니메이션이 끊기지 않도록 유지)
-    function buildCarouselDOM() {
-      const track = document.getElementById('carouselTrack');
+    // 3. 왼쪽 LP 스택 + 오른쪽 트랙 리스트 초기 구축
+    function rebuildAll() {
+      buildStackDOM();
+      renderTrackList();
+      updateActiveState();
+    }
+
+    function buildStackDOM() {
+      const track = document.getElementById('stackTrack');
       track.innerHTML = '';
       slotElements = [];
 
@@ -419,21 +553,24 @@
 
         slot.innerHTML = `
           <div class="lp-jacket">
-            <div class="lp-card-label">${labelName}</div>
-            <div class="lp-card-title">${post.title}</div>
-            <div class="lp-card-date">${date}</div>
+            <div class="jacket-vertical-inner">
+              <span class="lp-card-label">${labelName}</span>
+              <div class="lp-card-title">${post.title}</div>
+              <div class="lp-card-date">${date}</div>
+            </div>
           </div>
           <div class="vinyl-disc">
-            <span class="sliding-guide">↓ SLIDING</span>
+            <span class="sliding-text">↓ SLIDING</span>
           </div>
         `;
 
         slot.onclick = () => {
           if (idx === currentIndex) {
-            triggerSlideAndOpen(post, slot);
+            slot.classList.toggle('sliding-out');
+            document.getElementById('imageSection').scrollIntoView({ behavior: 'smooth', block: 'center' });
           } else {
             currentIndex = idx;
-            updateCarouselPositions();
+            updateActiveState();
           }
         };
 
@@ -442,94 +579,130 @@
       });
     }
 
-    // DOM을 지우지 않고 transform 좌표만 부드럽게 갱신
-    function updateCarouselPositions() {
+    // 4. 오른쪽 상단 TRACK 목록 (- 1, - 2 ...) 렌더링
+    function renderTrackList() {
+      const trackList = document.getElementById('trackList');
+      trackList.innerHTML = filteredPosts.map((post, idx) => `
+        <li class="track-item ${idx === currentIndex ? 'active' : ''}" data-idx="${idx}">
+          - ${idx + 1}. ${post.title}
+        </li>
+      `).join('');
+
+      trackList.querySelectorAll('.track-item').forEach(item => {
+        item.onclick = () => {
+          currentIndex = Number(item.dataset.idx);
+          updateActiveState();
+        };
+      });
+    }
+
+    // 5. 세로 스택 애니메이션 갱신 + 오른쪽 IMAGE/COMMENT 교체
+    function updateActiveState() {
       document.getElementById('counterText').textContent = `${filteredPosts.length ? currentIndex + 1 : 0} / ${filteredPosts.length}`;
 
+      // 트랙 리스트 활성 표시
+      document.querySelectorAll('.track-item').forEach((el, i) => {
+        el.classList.toggle('active', i === currentIndex);
+      });
+
+      // 왼쪽 세로 스택 3D 위치 계산 (현재 카드가 맨 앞 아래, 다음 카드들이 위쪽으로 겹쳐서 기울어짐)
       slotElements.forEach((slot, idx) => {
         const offset = idx - currentIndex;
         slot.classList.remove('sliding-out');
 
         if (offset === 0) {
           slot.classList.add('active');
-          slot.style.transform = `translateX(0px) translateZ(0px) rotateY(0deg)`;
+          slot.style.transform = `translateY(0px) translateZ(0px) rotateX(0deg)`;
           slot.style.zIndex = 20;
           slot.style.opacity = 1;
           slot.style.pointerEvents = 'auto';
-        } else {
+        } else if (offset > 0) {
+          // 뒤쪽/위쪽으로 쌓이는 카드들
           slot.classList.remove('active');
-          const sign = offset > 0 ? 1 : -1;
-          const abs = Math.abs(offset);
-          const translateX = sign * (135 + abs * 52);
-          const translateZ = -90 - abs * 35;
-          const rotateY = -sign * 48;
-
-          slot.style.transform = `translateX(${translateX}px) translateZ(${translateZ}px) rotateY(${rotateY}deg)`;
-          slot.style.zIndex = Math.max(1, 15 - abs);
-          // 멀리 떨어진 카드는 투명하게 숨겨 부드럽게 나타나고 사라지게 처리
-          slot.style.opacity = abs > 3 ? 0 : Math.max(0.35, 1 - abs * 0.2);
-          slot.style.pointerEvents = abs > 3 ? 'none' : 'auto';
+          const translateY = -offset * 46;
+          const translateZ = -offset * 55;
+          const rotateX = Math.min(42, offset * 14);
+          slot.style.transform = `translateY(${translateY}px) translateZ(${translateZ}px) rotateX(${rotateX}deg)`;
+          slot.style.zIndex = Math.max(1, 18 - offset);
+          slot.style.opacity = offset > 3 ? 0 : Math.max(0.3, 1 - offset * 0.22);
+          slot.style.pointerEvents = offset > 3 ? 'none' : 'auto';
+        } else {
+          // 이미 지나간 앞쪽 카드는 아래로 부드럽게 페이드아웃
+          slot.classList.remove('active');
+          slot.style.transform = `translateY(60px) translateZ(40px) rotateX(-15deg)`;
+          slot.style.zIndex = 25;
+          slot.style.opacity = 0;
+          slot.style.pointerEvents = 'none';
         }
+      });
+
+      // 오른쪽 본문(IMAGE + COMMENT) 업데이트 및 페이드인 재실행
+      const post = filteredPosts[currentIndex];
+      if (!post) return;
+
+      const imageSection = document.getElementById('imageSection');
+      const commentSection = document.getElementById('commentSection');
+      imageSection.classList.remove('visible');
+      commentSection.classList.remove('visible');
+
+      setTimeout(() => {
+        const rawBody = post.body || '';
+        // 본문에서 첫 번째 마크다운 이미지(![...](url)) 또는 HTML <img> 추출
+        const mdImgMatch = rawBody.match(/!\[.*?\]\((.*?)\)/);
+        const htmlImgMatch = rawBody.match(/<img[^>]+src=["']([^"']+)["']/i);
+        const imageFrame = document.getElementById('imageFrame');
+
+        let textOnlyBody = rawBody;
+        if (mdImgMatch) {
+          imageFrame.innerHTML = `<img src="${mdImgMatch[1]}" alt="cover" />`;
+          textOnlyBody = rawBody.replace(mdImgMatch[0], '').trim();
+        } else if (htmlImgMatch) {
+          imageFrame.innerHTML = `<img src="${htmlImgMatch[1]}" alt="cover" />`;
+          textOnlyBody = rawBody.replace(htmlImgMatch[0], '').trim();
+        } else {
+          imageFrame.innerHTML = `<div class="image-placeholder">IMAGE</div>`;
+        }
+
+        document.getElementById('activePostTitle').textContent = `— ${post.title}`;
+        marked.setOptions({ breaks: true });
+        document.getElementById('commentBody').innerHTML = marked.parse(textOnlyBody || '(작성된 코멘트가 없습니다.)');
+
+        // IntersectionObserver로 화면에 보일 때 자연스럽게 페이드인
+        triggerScrollObserver();
+      }, 150);
+    }
+
+    // 6. 스크롤 + 페이드인 감지 (IntersectionObserver)
+    const observer = new IntersectionObserver((entries) => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting) {
+          entry.target.classList.add('visible');
+        }
+      });
+    }, { threshold: 0.12 });
+
+    function triggerScrollObserver() {
+      document.querySelectorAll('.fade-section').forEach(sec => {
+        observer.unobserve(sec);
+        observer.observe(sec);
       });
     }
 
-    // 커버 안에서 LP가 슬라이드되어 나온 뒤 본문 모달 오픈
-    function triggerSlideAndOpen(post, slot) {
-      slot.classList.add('sliding-out');
-
-      setTimeout(() => {
-        document.getElementById('modalTitle').textContent = post.title;
-        document.getElementById('modalDate').textContent = new Date(post.created_at).toLocaleDateString('ko-KR');
-        marked.setOptions({ breaks: true });
-        document.getElementById('modalBody').innerHTML = marked.parse(post.body || '');
-        document.getElementById('modalOverlay').classList.add('open');
-      }, 450);
-    }
-
+    // 좌우 버튼 및 키보드 화살표 조작
     function goPrev() {
-      if (currentIndex > 0) {
-        currentIndex--;
-        updateCarouselPositions();
-      }
+      if (currentIndex > 0) { currentIndex--; updateActiveState(); }
     }
     function goNext() {
-      if (currentIndex < filteredPosts.length - 1) {
-        currentIndex++;
-        updateCarouselPositions();
-      }
+      if (currentIndex < filteredPosts.length - 1) { currentIndex++; updateActiveState(); }
     }
 
     document.getElementById('prevBtn').onclick = goPrev;
     document.getElementById('nextBtn').onclick = goNext;
 
-    // 키보드 좌우 화살표 지원
     window.addEventListener('keydown', (e) => {
-      if (document.getElementById('modalOverlay').classList.contains('open')) return;
-      if (e.key === 'ArrowLeft') goPrev();
-      if (e.key === 'ArrowRight') goNext();
+      if (e.key === 'ArrowLeft' || e.key === 'ArrowUp') goPrev();
+      if (e.key === 'ArrowRight' || e.key === 'ArrowDown') goNext();
     });
-
-    // 모바일 터치 스와이프 지원
-    let touchStartX = 0;
-    const stage = document.getElementById('stage');
-    stage.addEventListener('touchstart', (e) => { touchStartX = e.changedTouches[0].screenX; }, { passive: true });
-    stage.addEventListener('touchend', (e) => {
-      const diff = e.changedTouches[0].screenX - touchStartX;
-      if (diff > 45) goPrev();
-      else if (diff < -45) goNext();
-    }, { passive: true });
-
-    // 모달 닫을 때 LP판 다시 재킷 안으로 쏙 복귀
-    function closeModal() {
-      document.getElementById('modalOverlay').classList.remove('open');
-      if (slotElements[currentIndex]) {
-        slotElements[currentIndex].classList.remove('sliding-out');
-      }
-    }
-    document.getElementById('closeModal').onclick = closeModal;
-    document.getElementById('modalOverlay').onclick = (e) => {
-      if (e.target.id === 'modalOverlay') closeModal();
-    };
 
     fetchPosts();
   </script>

@@ -210,4 +210,1171 @@
       top: 9px;
       left: 9px;
       width: 192px;
-      height: 192
+      height: 192px;
+      border-radius: 50%;
+      border: 1.5px solid var(--line-orange);
+      background-color: #ffffff;
+      background-size: cover;
+      background-position: center;
+      z-index: 2;
+      display: flex;
+      flex-direction: column;
+      justify-content: flex-end;
+      align-items: center;
+      padding-bottom: 13px;
+      opacity: 0;
+      pointer-events: none;
+      transition: transform 0.7s cubic-bezier(0.22, 1, 0.36, 1), opacity 0.35s ease;
+    }
+
+    .vinyl-disc.has-img {
+      border: none;
+      background-color: transparent;
+    }
+    .vinyl-disc.has-img::before,
+    .vinyl-disc.has-img::after,
+    .vinyl-disc.has-img .sliding-text {
+      display: none;
+    }
+
+    .vinyl-disc::before {
+      content: "";
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      width: 56px;
+      height: 56px;
+      margin: -28px 0 0 -28px;
+      border-radius: 50%;
+      border: 1px solid rgba(255, 107, 74, 0.55);
+    }
+
+    .vinyl-disc::after {
+      content: "";
+      position: absolute;
+      inset: 14px;
+      border-radius: 50%;
+      border: 1px solid rgba(255, 107, 74, 0.18);
+      border-top-color: var(--line-orange);
+    }
+
+    .sliding-text {
+      font-size: 0.6rem;
+      color: var(--line-orange);
+      letter-spacing: 0.18em;
+      font-weight: 500;
+    }
+
+    .lp-slot.active .vinyl-disc {
+      opacity: 1;
+      pointer-events: auto;
+      transform: translateY(40px);
+    }
+
+    .lp-slot.active:hover .vinyl-disc {
+      transform: translateY(56px);
+    }
+
+    .lp-slot.active.on-player .vinyl-disc {
+      transform: translateY(21px);
+      pointer-events: auto !important;
+      cursor: pointer;
+    }
+    .lp-slot.active.spinning .vinyl-disc {
+      animation: spinVinyl 4s linear infinite;
+    }
+
+    @keyframes spinVinyl {
+      from { transform: translateY(21px) rotate(0deg); }
+      to   { transform: translateY(21px) rotate(360deg); }
+    }
+
+    /* =========================================
+       LP 플레이어 본체 및 톤암 레이어
+       ========================================= */
+    .turntable-box {
+      position: absolute;
+      top: 20px;
+      left: 50%;
+      margin-left: -116px;
+      width: 232px;
+      height: 232px;
+      border: 1.5px solid var(--line-blue);
+      background-color: #ffffff;
+      background-size: cover;
+      background-position: center;
+      opacity: 0;
+      transform: scale(0.96);
+      pointer-events: none;
+      z-index: 10;
+      transition: opacity 0.6s ease, transform 0.6s cubic-bezier(0.22, 1, 0.36, 1);
+      cursor: pointer;
+    }
+
+    .turntable-box.has-img {
+      border: none;
+      background-color: transparent;
+    }
+
+    .turntable-box.visible {
+      opacity: 1;
+      transform: scale(1);
+      pointer-events: auto;
+    }
+
+    .tonearm-overlay {
+      position: absolute;
+      top: 20px;
+      left: 50%;
+      margin-left: -116px;
+      width: 232px;
+      height: 232px;
+      z-index: 35;
+      pointer-events: none;
+      opacity: 0;
+      transition: opacity 0.6s ease;
+    }
+    .tonearm-overlay.visible {
+      opacity: 1;
+    }
+
+    .turntable-spindle {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      width: 10px;
+      height: 10px;
+      margin: -5px 0 0 -5px;
+      border-radius: 50%;
+      border: 1.5px solid var(--line-blue);
+      background: #ffffff;
+    }
+
+    .tonearm-base {
+      position: absolute;
+      bottom: 18px;
+      left: 16px;
+      width: 14px;
+      height: 22px;
+      border: 1.5px solid var(--line-blue);
+      background: #ffffff;
+    }
+
+    .tonearm-stick {
+      position: absolute;
+      bottom: 34px;
+      left: 22px;
+      width: 1.5px;
+      height: 142px;
+      background: var(--line-blue);
+      transform-origin: bottom center;
+      transform: rotate(8deg);
+      transition: transform 0.65s cubic-bezier(0.22, 1, 0.36, 1);
+    }
+
+    .tonearm-stick::after {
+      content: "";
+      position: absolute;
+      top: -4px;
+      left: -3.5px;
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      border: 1.5px solid var(--line-blue);
+      background: #ffffff;
+    }
+
+    .tonearm-custom-img {
+      display: none;
+      position: absolute;
+      bottom: 16px;
+      left: 12px;
+      width: 75px;
+      height: 160px;
+      object-fit: contain;
+      transform-origin: 50% 88%;
+      transform: rotate(6deg);
+      transition: transform 0.65s cubic-bezier(0.22, 1, 0.36, 1);
+    }
+
+    .tonearm-overlay.has-img .tonearm-base,
+    .tonearm-overlay.has-img .tonearm-stick {
+      display: none;
+    }
+    .tonearm-overlay.has-img .tonearm-custom-img {
+      display: block;
+    }
+
+    .tonearm-overlay.playing .tonearm-stick {
+      transform: rotate(38deg);
+    }
+    .tonearm-overlay.playing .tonearm-custom-img {
+      transform: rotate(34deg);
+    }
+
+    /* =========================================
+       우측 TRACK 드로어
+       ========================================= */
+    .track-drawer {
+      position: relative;
+      z-index: 40;
+      width: 0;
+      opacity: 0;
+      overflow: hidden;
+      margin-left: 0;
+      transform: translateX(-14px);
+      pointer-events: none;
+      transition: width 0.75s cubic-bezier(0.22, 1, 0.36, 1),
+                  margin-left 0.75s cubic-bezier(0.22, 1, 0.36, 1),
+                  opacity 0.55s ease 0.15s,
+                  transform 0.65s cubic-bezier(0.22, 1, 0.36, 1) 0.1s;
+    }
+
+    .showcase-row.is-open .track-drawer {
+      width: 270px;
+      margin-left: 36px;
+      opacity: 1;
+      transform: translateX(0);
+      pointer-events: auto;
+    }
+
+    .track-inner {
+      width: 270px;
+      padding-top: 20px;
+    }
+
+    .track-box-title {
+      font-size: 0.85rem;
+      font-weight: 600;
+      letter-spacing: 0.12em;
+      margin-bottom: 12px;
+      color: var(--text-main);
+    }
+    .track-scroll-wrapper {
+      position: relative;
+      height: 205px;
+    }
+    .track-list {
+      list-style: none;
+      height: 100%;
+      overflow-y: auto;
+      overflow-x: hidden;
+      padding-top: 2px;
+      padding-bottom: 64px;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      scrollbar-width: none;
+      -ms-overflow-style: none;
+    }
+    .track-list::-webkit-scrollbar {
+      display: none;
+    }
+
+    .track-fade-overlay {
+      position: absolute;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      height: 68px;
+      background: linear-gradient(
+        to bottom,
+        rgba(255, 255, 255, 0) 0%,
+        rgba(255, 255, 255, 0.88) 60%,
+        #ffffff 100%
+      );
+      pointer-events: none;
+    }
+
+    .track-item {
+      font-size: 0.88rem;
+      line-height: 1.7;
+      padding: 4px 0;
+      color: var(--text-sub);
+      cursor: pointer;
+      transition: color 0.2s, transform 0.2s;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      flex-shrink: 0;
+    }
+    .track-item:hover, .track-item.active {
+      color: var(--line-orange);
+      font-weight: 500;
+      transform: translateX(4px);
+    }
+
+    /* =========================================
+       [하단 영역] LP 클릭 시 함께 자연스럽게 나오는 IMAGE & COMMENT
+       ========================================= */
+    .detail-drawer {
+      width: 100%;
+      max-width: 546px;
+      max-height: 0;
+      opacity: 0;
+      overflow: hidden;
+      margin-top: 0;
+      transform: translateY(-14px);
+      transition: max-height 0.9s cubic-bezier(0.22, 1, 0.36, 1),
+                  opacity 0.65s ease,
+                  margin-top 0.55s ease,
+                  transform 0.7s cubic-bezier(0.22, 1, 0.36, 1);
+    }
+
+    .detail-drawer.open {
+      max-height: 5000px;
+      opacity: 1;
+      margin-top: 24px;
+      transform: translateY(0);
+    }
+
+    .content-stage {
+      display: flex;
+      flex-direction: column;
+      gap: 32px;
+      padding-top: 4px;
+    }
+
+    .fade-section {
+      opacity: 0;
+      transform: translateY(16px);
+      transition: opacity 0.6s ease, transform 0.6s cubic-bezier(0.22, 1, 0.36, 1);
+    }
+    .fade-section.visible {
+      opacity: 1;
+      transform: translateY(0);
+    }
+
+    .image-frame {
+      width: 100%;
+      min-height: 300px;
+      border: none;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      overflow: hidden;
+      background: #f5f5f5;
+    }
+    .image-frame img {
+      width: 100%;
+      height: auto;
+      display: block;
+    }
+    .image-placeholder {
+      font-size: 1.2rem;
+      font-weight: 300;
+      letter-spacing: 0.16em;
+      color: #a8a8a8;
+    }
+
+    .comment-section {
+      width: 100%;
+    }
+    .comment-label {
+      font-size: 0.9rem;
+      font-weight: 500;
+      letter-spacing: 0.12em;
+      color: var(--text-main);
+      margin-bottom: 14px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .comment-label span {
+      font-size: 0.78rem;
+      color: var(--text-sub);
+      font-weight: 400;
+    }
+    .comment-body {
+      font-family: 'Noto Serif KR', serif;
+      font-size: 0.98rem;
+      line-height: 1.95;
+      color: var(--text-main);
+      word-break: keep-all;
+    }
+    .comment-body p { margin-bottom: 1.2em; }
+    .comment-body blockquote {
+      border-left: 2px solid var(--line-orange);
+      padding-left: 14px;
+      color: var(--text-sub);
+      margin: 16px 0;
+    }
+    .comment-body img {
+      max-width: 100%;
+      margin: 14px 0;
+    }
+
+    /* =========================================
+       전용 글쓰기(포스팅) 관리자 모달 UI
+       ========================================= */
+    .writer-overlay {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.45);
+      backdrop-filter: blur(3px);
+      z-index: 200;
+      justify-content: center;
+      align-items: center;
+      padding: 16px;
+    }
+    .writer-overlay.open {
+      display: flex;
+    }
+    .writer-box {
+      background: #ffffff;
+      width: 100%;
+      max-width: 520px;
+      max-height: 90vh;
+      overflow-y: auto;
+      border: 1.5px solid var(--line-blue);
+      padding: 28px 24px;
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+    }
+    .writer-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border-bottom: 1px solid #eee;
+      padding-bottom: 12px;
+    }
+    .writer-header h2 {
+      font-size: 1rem;
+      font-weight: 600;
+      letter-spacing: 0.14em;
+    }
+    .writer-close {
+      background: none;
+      border: none;
+      font-size: 1.2rem;
+      cursor: pointer;
+      color: var(--text-sub);
+    }
+    .writer-field {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+    .writer-field label {
+      font-size: 0.78rem;
+      font-weight: 500;
+      color: var(--text-sub);
+    }
+    .writer-input, .writer-textarea {
+      width: 100%;
+      border: 1px solid #dcdcdc;
+      padding: 10px 12px;
+      font-family: 'Pretendard', sans-serif;
+      font-size: 0.9rem;
+      outline: none;
+      transition: border-color 0.2s;
+    }
+    .writer-input:focus, .writer-textarea:focus {
+      border-color: var(--line-blue);
+    }
+    .writer-textarea {
+      min-height: 130px;
+      resize: vertical;
+      line-height: 1.6;
+    }
+    .cat-select-row {
+      display: flex;
+      gap: 8px;
+    }
+    .cat-option {
+      flex: 1;
+      padding: 8px;
+      text-align: center;
+      border: 1px solid #dcdcdc;
+      font-size: 0.82rem;
+      cursor: pointer;
+      color: var(--text-sub);
+    }
+    .cat-option.selected {
+      border-color: var(--line-orange);
+      color: var(--line-orange);
+      font-weight: 600;
+    }
+    .writer-submit {
+      background: var(--text-main);
+      color: #ffffff;
+      border: none;
+      padding: 12px;
+      font-size: 0.9rem;
+      letter-spacing: 0.1em;
+      cursor: pointer;
+      margin-top: 4px;
+      transition: opacity 0.2s;
+    }
+    .writer-submit:disabled {
+      opacity: 0.45;
+      cursor: not-allowed;
+    }
+    .writer-status {
+      font-size: 0.8rem;
+      color: var(--line-orange);
+      text-align: center;
+      min-height: 18px;
+    }
+
+    @media (max-width: 640px) {
+      .global-header { padding: 32px 16px 16px; }
+      .global-header h1 { font-size: 2rem; }
+      .main-container { padding: 12px 16px 80px; }
+      .showcase-row { min-height: 220px; }
+
+      .player-stage {
+        width: 182px;
+        height: 215px;
+      }
+
+      .carousel-stage,
+      .turntable-box,
+      .tonearm-overlay {
+        transform-origin: top center;
+      }
+
+      .carousel-stage { transform: scale(0.78); }
+      .turntable-box { transform: scale(0.74); }
+      .turntable-box.visible { transform: scale(0.78); }
+      .tonearm-overlay { transform: scale(0.78); }
+
+      .showcase-row.is-open .track-drawer {
+        width: calc(100vw - 230px);
+        max-width: 185px;
+        margin-left: 16px;
+      }
+      .track-inner { width: 100%; padding-top: 14px; }
+      .track-scroll-wrapper { height: 175px; }
+      .track-item { font-size: 0.82rem; }
+      .detail-drawer { max-width: 100%; }
+      .image-frame { min-height: 240px; }
+    }
+  </style>
+</head>
+<body>
+
+  <div class="page-shell">
+    <header class="global-header">
+      <h1 id="secretTrigger" title="더블클릭 또는 #write 접속 시 글쓰기">ARCHIVES</h1>
+      <div class="filter-bar" id="filterBar">
+        <button class="filter-btn active" data-label="ALL">ALL</button>
+        <button class="filter-btn" data-label="MADE">MADE</button>
+        <button class="filter-btn" data-label="AND">AND</button>
+      </div>
+    </header>
+
+    <main class="main-container">
+      <div class="showcase-row" id="showcaseRow">
+        <div class="player-stage">
+          <div class="carousel-stage" id="carouselStage" title="스크롤/스와이프로 카드 넘기기 · 클릭하여 재생">
+            <div class="stack-track" id="stackTrack"></div>
+          </div>
+
+          <div class="turntable-box" id="turntableBox" title="클릭하여 커버 덱으로 돌아가기"></div>
+
+          <div class="tonearm-overlay" id="tonearmOverlay">
+            <div class="turntable-spindle"></div>
+            <div class="tonearm-base"></div>
+            <div class="tonearm-stick"></div>
+            <img class="tonearm-custom-img" id="tonearmImg" src="" alt="tonearm" />
+          </div>
+        </div>
+
+        <aside class="track-drawer" id="trackDrawer">
+          <div class="track-inner">
+            <div class="track-box-title">TRACK</div>
+            <div class="track-scroll-wrapper">
+              <ul class="track-list" id="trackList"></ul>
+              <div class="track-fade-overlay"></div>
+            </div>
+          </div>
+        </aside>
+      </div>
+
+      <section class="detail-drawer" id="detailDrawer">
+        <div class="content-stage">
+          <div class="fade-section" id="imageSection">
+            <div class="image-frame" id="imageFrame">
+              <div class="image-placeholder">IMAGE</div>
+            </div>
+          </div>
+
+          <div class="fade-section comment-section" id="commentSection">
+            <div class="comment-label">
+              COMMENT <span id="activePostTitle"></span>
+            </div>
+            <div class="comment-body" id="commentBody"></div>
+          </div>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <!-- 전용 글쓰기(포스팅) 관리자 모달 -->
+  <div class="writer-overlay" id="writerOverlay">
+    <div class="writer-box">
+      <div class="writer-header">
+        <h2>NEW TRACK POST</h2>
+        <button class="writer-close" id="closeWriter">✕</button>
+      </div>
+
+      <div class="writer-field">
+        <label>발행 비밀번호 (GitHub Token)</label>
+        <input type="password" class="writer-input" id="ghTokenInput" placeholder="ghp_..." />
+      </div>
+
+      <div class="writer-field">
+        <label>카테고리</label>
+        <div class="cat-select-row">
+          <div class="cat-option selected" data-cat="MADE">MADE</div>
+          <div class="cat-option" data-cat="AND">AND</div>
+        </div>
+      </div>
+
+      <div class="writer-field">
+        <label>트랙 제목 (TITLE)</label>
+        <input type="text" class="writer-input" id="postTitleInput" placeholder="제목을 입력하세요" />
+      </div>
+
+      <div class="writer-field">
+        <label>① LP 커버 이미지 (420×420 권장 / 선택)</label>
+        <input type="file" id="coverFileInput" accept="image/*" />
+      </div>
+
+      <div class="writer-field">
+        <label>② LP 알판 이미지 (384×384 투명 PNG 권장 / 선택)</label>
+        <input type="file" id="vinylFileInput" accept="image/*" />
+      </div>
+
+      <div class="writer-field">
+        <label>③ 본문 IMAGE 첨부 (선택)</label>
+        <input type="file" id="bodyImgFileInput" accept="image/*" />
+      </div>
+
+      <div class="writer-field">
+        <label>COMMENT (본문 내용)</label>
+        <textarea class="writer-textarea" id="postBodyInput" placeholder="썰이나 연성, 코멘트를 자유롭게 작성하세요."></textarea>
+      </div>
+
+      <div class="writer-status" id="writerStatus"></div>
+      <button class="writer-submit" id="publishBtn">발행하기 (PUBLISH)</button>
+    </div>
+  </div>
+
+  <script>
+    const GITHUB_USER = "by-Oblaat";
+    const GITHUB_REPO = "by-Oblaat.github.io";
+
+    const CUSTOM_ASSETS = {
+      defaultCover: "",
+      vinylDisc: "",
+      turntable: "",
+      tonearm: ""
+    };
+
+    let allPosts = [];
+    let filteredPosts = [];
+    let slotElements = [];
+    let currentIndex = 0;
+    let isScrolling = false;
+    let isPlaying = false;
+    let playTimers = [];
+    let selectedCategory = "MADE";
+
+    function applyCustomPlayerAssets() {
+      const turntableBox = document.getElementById('turntableBox');
+      const tonearmOverlay = document.getElementById('tonearmOverlay');
+      const tonearmImg = document.getElementById('tonearmImg');
+
+      if (CUSTOM_ASSETS.turntable) {
+        turntableBox.style.backgroundImage = `url("${CUSTOM_ASSETS.turntable}")`;
+        turntableBox.classList.add('has-img');
+      }
+      if (CUSTOM_ASSETS.tonearm) {
+        tonearmImg.src = CUSTOM_ASSETS.tonearm;
+        tonearmOverlay.classList.add('has-img');
+      }
+    }
+
+    function formatYYMMDD(dateStr) {
+      const d = new Date(dateStr);
+      const yy = String(d.getFullYear()).slice(-2);
+      const mm = String(d.getMonth() + 1).padStart(2, '0');
+      const dd = String(d.getDate()).padStart(2, '0');
+      return `${yy}.${mm}.${dd}`;
+    }
+
+    async function fetchPosts() {
+      applyCustomPlayerAssets();
+      try {
+        const res = await fetch(`https://api.github.com/repos/${GITHUB_USER}/${GITHUB_REPO}/issues?state=open&per_page=100&_t=${Date.now()}`);
+        const data = await res.json();
+        const issues = Array.isArray(data) ? data.filter(item => !item.pull_request) : [];
+
+        if (issues.length > 0) {
+          allPosts = issues;
+        } else {
+          allPosts = [
+            { number: 1, title: "SAMPLE 01", created_at: new Date().toISOString(), labels: [{ name: "MADE" }], body: "상단 ARCHIVES 제목을 더블클릭(또는 주소 뒤에 #write 입력)하면 전용 글쓰기 창이 열립니다." },
+            { number: 2, title: "SAMPLE 02", created_at: new Date().toISOString(), labels: [{ name: "AND" }], body: "두 번째 트랙입니다." },
+            { number: 3, title: "SAMPLE 03", created_at: new Date().toISOString(), labels: [{ name: "MADE" }], body: "세 번째 트랙 코멘트입니다." }
+          ];
+        }
+        filteredPosts = [...allPosts];
+        bindFilterButtons();
+        rebuildAll();
+      } catch (err) {
+        console.error(err);
+      }
+    }
+
+    function bindFilterButtons() {
+      document.querySelectorAll('.filter-btn').forEach(btn => {
+        btn.onclick = () => {
+          document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+          btn.classList.add('active');
+          const label = btn.dataset.label;
+          if (label === 'ALL') {
+            filteredPosts = [...allPosts];
+          } else {
+            filteredPosts = allPosts.filter(p => p.labels.some(l => l.name.toUpperCase() === label));
+          }
+          currentIndex = 0;
+          rebuildAll();
+        };
+      });
+    }
+
+    function rebuildAll() {
+      resetPlayerAnimation();
+      buildStackDOM();
+      renderTrackList();
+      updateCarouselPositions();
+    }
+
+    function extractMetaUrl(bodyText, key, fallback) {
+      if (!bodyText) return fallback;
+      const regex = new RegExp(`^${key}:\\s*(.+)$`, 'im');
+      const match = bodyText.match(regex);
+      return match ? match[1].trim() : fallback;
+    }
+
+    function buildStackDOM() {
+      const track = document.getElementById('stackTrack');
+      track.innerHTML = '';
+      slotElements = [];
+
+      filteredPosts.forEach((post, idx) => {
+        const slot = document.createElement('div');
+        slot.className = 'lp-slot';
+
+        const labelName = post.labels[0] ? post.labels[0].name.toUpperCase() : 'ARCHIVE';
+        const date = formatYYMMDD(post.created_at);
+        const coverImgUrl = extractMetaUrl(post.body, 'cover', CUSTOM_ASSETS.defaultCover);
+        const vinylImgUrl = extractMetaUrl(post.body, 'vinyl', CUSTOM_ASSETS.vinylDisc);
+
+        const jacketClass = coverImgUrl ? 'lp-jacket has-img' : 'lp-jacket';
+        const jacketStyle = coverImgUrl ? `style="background-image: url('${coverImgUrl}')"` : '';
+
+        const vinylClass = vinylImgUrl ? 'vinyl-disc has-img' : 'vinyl-disc';
+        const vinylStyle = vinylImgUrl ? `style="background-image: url('${vinylImgUrl}')"` : '';
+
+        slot.innerHTML = `
+          <div class="${jacketClass}" ${jacketStyle}>
+            <div class="lp-card-label">${labelName}</div>
+            <div class="lp-card-title">${post.title}</div>
+            <div class="lp-card-date">${date}</div>
+          </div>
+          <div class="${vinylClass}" ${vinylStyle}>
+            <span class="sliding-text">SLIDING</span>
+          </div>
+        `;
+
+        slot.onclick = () => {
+          if (isPlaying) {
+            if (idx === currentIndex) resetPlayerAnimation();
+            return;
+          }
+
+          if (idx === currentIndex) {
+            startPlayerSequence(slot, idx);
+          } else {
+            currentIndex = idx;
+            updateCarouselPositions();
+          }
+        };
+
+        track.appendChild(slot);
+        slotElements.push(slot);
+      });
+    }
+
+    /* ★ LP 클릭 시: 플레이어 작동 + 우측 TRACK 메뉴 + 하단 IMAGE & COMMENT까지 자연스럽게 동시 오픈 ★ */
+    function startPlayerSequence(slot, idx = currentIndex) {
+      resetPlayerAnimation();
+      isPlaying = true;
+
+      const showcaseRow = document.getElementById('showcaseRow');
+      const turntable = document.getElementById('turntableBox');
+      const tonearm = document.getElementById('tonearmOverlay');
+      const stage = document.getElementById('carouselStage');
+
+      // ① LP가 커버에서 빠져나와 턴테이블 위치로 이동
+      slot.classList.add('on-player');
+
+      // ② 플레이어 페이드인 + 우측 TRACK 오픈 + 하단 IMAGE/COMMENT 슬라이딩 오픈
+      const t1 = setTimeout(() => {
+        turntable.classList.add('visible');
+        tonearm.classList.add('visible');
+        stage.classList.add('deck-up');
+        showcaseRow.classList.add('is-open');
+        openTrackDetail(idx);
+      }, 220);
+
+      // ③ 톤암 이동 및 LP 회전 시작
+      const t2 = setTimeout(() => {
+        tonearm.classList.add('playing');
+        slot.classList.add('spinning');
+      }, 740);
+
+      playTimers.push(t1, t2);
+    }
+
+    function resetPlayerAnimation() {
+      playTimers.forEach(t => clearTimeout(t));
+      playTimers = [];
+      isPlaying = false;
+
+      document.getElementById('showcaseRow').classList.remove('is-open');
+      document.getElementById('turntableBox').classList.remove('visible');
+      document.getElementById('tonearmOverlay').classList.remove('visible', 'playing');
+      document.getElementById('carouselStage').classList.remove('deck-up');
+      document.getElementById('detailDrawer').classList.remove('open');
+      document.getElementById('imageSection').classList.remove('visible');
+      document.getElementById('commentSection').classList.remove('visible');
+
+      document.querySelectorAll('.track-item').forEach(el => el.classList.remove('active'));
+      slotElements.forEach(s => {
+        s.classList.remove('on-player', 'spinning');
+      });
+    }
+
+    document.getElementById('turntableBox').onclick = () => {
+      if (isPlaying) resetPlayerAnimation();
+    };
+
+    function renderTrackList() {
+      const trackList = document.getElementById('trackList');
+      if (filteredPosts.length === 0) {
+        trackList.innerHTML = `<li class="track-item">등록된 트랙이 없습니다.</li>`;
+        return;
+      }
+      trackList.innerHTML = filteredPosts.map((post, idx) => `
+        <li class="track-item" data-idx="${idx}">
+          - ${idx + 1}. ${post.title}
+        </li>
+      `).join('');
+
+      trackList.querySelectorAll('.track-item').forEach(item => {
+        item.onclick = (e) => {
+          e.stopPropagation();
+          const clickedIdx = Number(item.dataset.idx);
+          switchTrackWhilePlaying(clickedIdx);
+        };
+      });
+    }
+
+    /* 우측 TRACK 목록에서 다른 트랙 클릭 시 곡 교체 */
+    function switchTrackWhilePlaying(idx) {
+      if (currentIndex !== idx) {
+        currentIndex = idx;
+        updateCarouselPositions();
+        if (slotElements[currentIndex]) {
+          slotElements[currentIndex].classList.add('on-player', 'spinning');
+        }
+      }
+      openTrackDetail(idx);
+    }
+
+    /* 하단 IMAGE & COMMENT 콘텐츠 렌더링 및 슬라이딩 오픈 */
+    function openTrackDetail(idx) {
+      document.querySelectorAll('.track-item').forEach((el, i) => {
+        el.classList.toggle('active', i === idx);
+      });
+
+      const post = filteredPosts[idx];
+      if (!post) return;
+
+      const detailDrawer = document.getElementById('detailDrawer');
+      const imageSection = document.getElementById('imageSection');
+      const commentSection = document.getElementById('commentSection');
+
+      imageSection.classList.remove('visible');
+      commentSection.classList.remove('visible');
+      detailDrawer.classList.add('open');
+
+      setTimeout(() => {
+        const rawBody = (post.body || '')
+          .replace(/^cover:\s*.+$/gim, '')
+          .replace(/^vinyl:\s*.+$/gim, '')
+          .trim();
+
+        const mdImgMatch = rawBody.match(/!\[.*?\]\((.*?)\)/);
+        const htmlImgMatch = rawBody.match(/<img[^>]+src=["']([^"']+)["']/i);
+        const imageFrame = document.getElementById('imageFrame');
+
+        let textOnlyBody = rawBody;
+        if (mdImgMatch) {
+          imageFrame.innerHTML = `<img src="${mdImgMatch[1]}" alt="cover" />`;
+          textOnlyBody = rawBody.replace(mdImgMatch[0], '').trim();
+        } else if (htmlImgMatch) {
+          imageFrame.innerHTML = `<img src="${htmlImgMatch[1]}" alt="cover" />`;
+          textOnlyBody = rawBody.replace(htmlImgMatch[0], '').trim();
+        } else {
+          imageFrame.innerHTML = `<div class="image-placeholder">IMAGE</div>`;
+        }
+
+        document.getElementById('activePostTitle').textContent = `— ${post.title}`;
+        marked.setOptions({ breaks: true });
+        document.getElementById('commentBody').innerHTML = marked.parse(textOnlyBody || '(작성된 코멘트가 없습니다.)');
+
+        imageSection.classList.add('visible');
+        commentSection.classList.add('visible');
+      }, 160);
+    }
+
+    function updateCarouselPositions() {
+      slotElements.forEach((slot, idx) => {
+        const offset = idx - currentIndex;
+
+        if (offset === 0) {
+          slot.classList.add('active');
+          slot.style.transform = `translateX(0px) translateZ(0px) rotateY(0deg)`;
+          slot.style.zIndex = 30;
+          slot.style.opacity = 1;
+          slot.style.pointerEvents = 'auto';
+        } else {
+          slot.classList.remove('active', 'on-player', 'spinning');
+          const sign = offset > 0 ? 1 : -1;
+          const abs = Math.abs(offset);
+          const translateX = sign * (112 + abs * 34);
+          const translateZ = -55 - abs * 38;
+          const rotateY = -sign * 58;
+
+          slot.style.transform = `translateX(${translateX}px) translateZ(${translateZ}px) rotateY(${rotateY}deg)`;
+          slot.style.zIndex = Math.max(1, 25 - abs);
+          slot.style.opacity = abs > 2 ? 0 : Math.max(0.45, 1 - abs * 0.25);
+          slot.style.pointerEvents = abs > 2 ? 'none' : 'auto';
+        }
+      });
+    }
+
+    function stepTrack(direction) {
+      if (isPlaying || isScrolling || filteredPosts.length === 0) return;
+      const nextIdx = currentIndex + direction;
+      if (nextIdx >= 0 && nextIdx < filteredPosts.length) {
+        isScrolling = true;
+        currentIndex = nextIdx;
+        updateCarouselPositions();
+        setTimeout(() => { isScrolling = false; }, 320);
+      }
+    }
+
+    const carouselStage = document.getElementById('carouselStage');
+
+    carouselStage.addEventListener('wheel', (e) => {
+      if (isPlaying) return;
+      e.preventDefault();
+      const delta = Math.abs(e.deltaX) > Math.abs(e.deltaY) ? e.deltaX : e.deltaY;
+      if (Math.abs(delta) < 10) return;
+      stepTrack(delta > 0 ? 1 : -1);
+    }, { passive: false });
+
+    let touchStartX = 0;
+    carouselStage.addEventListener('touchstart', (e) => {
+      if (isPlaying) return;
+      touchStartX = e.touches[0].clientX;
+    }, { passive: true });
+
+    carouselStage.addEventListener('touchend', (e) => {
+      if (isPlaying) return;
+      const diffX = touchStartX - e.changedTouches[0].clientX;
+      if (Math.abs(diffX) > 30) {
+        stepTrack(diffX > 0 ? 1 : -1);
+      }
+    }, { passive: true });
+
+    window.addEventListener('keydown', (e) => {
+      if (isPlaying || document.getElementById('writerOverlay').classList.contains('open')) return;
+      if (e.key === 'ArrowLeft') stepTrack(-1);
+      if (e.key === 'ArrowRight') stepTrack(1);
+    });
+
+    /* =========================================================================
+       전용 글쓰기 관리자 로직
+       ========================================================================= */
+    const writerOverlay = document.getElementById('writerOverlay');
+    const ghTokenInput = document.getElementById('ghTokenInput');
+
+    const savedToken = localStorage.getItem('oblaat_gh_token');
+    if (savedToken) ghTokenInput.value = savedToken;
+
+    function openWriterModal() {
+      writerOverlay.classList.add('open');
+    }
+    function closeWriterModal() {
+      writerOverlay.classList.remove('open');
+      if (window.location.hash === '#write') {
+        history.replaceState(null, null, ' ');
+      }
+    }
+
+    if (window.location.hash === '#write') {
+      openWriterModal();
+    }
+    window.addEventListener('hashchange', () => {
+      if (window.location.hash === '#write') openWriterModal();
+    });
+
+    const secretTrigger = document.getElementById('secretTrigger');
+    secretTrigger.ondblclick = openWriterModal;
+    let pressTimer = null;
+    secretTrigger.addEventListener('touchstart', () => {
+      pressTimer = setTimeout(openWriterModal, 1200);
+    }, { passive: true });
+    secretTrigger.addEventListener('touchend', () => clearTimeout(pressTimer));
+
+    document.getElementById('closeWriter').onclick = closeWriterModal;
+
+    document.querySelectorAll('.cat-option').forEach(opt => {
+      opt.onclick = () => {
+        document.querySelectorAll('.cat-option').forEach(o => o.classList.remove('selected'));
+        opt.classList.add('selected');
+        selectedCategory = opt.dataset.cat;
+      };
+    });
+
+    async function uploadImageToGitHub(file, token) {
+      return new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = async () => {
+          try {
+            const base64Content = reader.result.split(',')[1];
+            const ext = file.name.split('.').pop() || 'png';
+            const fileName = `uploads/${Date.now()}_${Math.random().toString(36).slice(2, 7)}.${ext}`;
+
+            const res = await fetch(`https://api.github.com/repos/${GITHUB_USER}/${GITHUB_REPO}/contents/${fileName}`, {
+              method: 'PUT',
+              headers: {
+                'Authorization': `token ${token}`,
+                'Content-Type': 'application/json'
+              },
+              body: JSON.stringify({
+                message: `upload image: ${fileName}`,
+                content: base64Content
+              })
+            });
+
+            if (!res.ok) throw new Error('이미지 업로드 실패 (토큰 권한 확인)');
+            const data = await res.json();
+            resolve(data.content.download_url);
+          } catch (err) {
+            reject(err);
+          }
+        };
+        reader.onerror = reject;
+        reader.readAsDataURL(file);
+      });
+    }
+
+    document.getElementById('publishBtn').onclick = async () => {
+      const token = ghTokenInput.value.trim();
+      const title = document.getElementById('postTitleInput').value.trim();
+      const rawBody = document.getElementById('postBodyInput').value.trim();
+      const coverFile = document.getElementById('coverFileInput').files[0];
+      const vinylFile = document.getElementById('vinylFileInput').files[0];
+      const bodyImgFile = document.getElementById('bodyImgFileInput').files[0];
+      const statusEl = document.getElementById('writerStatus');
+      const btn = document.getElementById('publishBtn');
+
+      if (!token) {
+        statusEl.textContent = '발행 비밀번호(GitHub Token)를 입력해 주세요.';
+        return;
+      }
+      if (!title) {
+        statusEl.textContent = '트랙 제목을 입력해 주세요.';
+        return;
+      }
+
+      localStorage.setItem('oblaat_gh_token', token);
+      btn.disabled = true;
+
+      try {
+        let finalBodyParts = [];
+
+        if (coverFile) {
+          statusEl.textContent = 'LP 커버 이미지 업로드 중...';
+          const coverUrl = await uploadImageToGitHub(coverFile, token);
+          finalBodyParts.push(`cover: ${coverUrl}`);
+        }
+
+        if (vinylFile) {
+          statusEl.textContent = 'LP 알판 이미지 업로드 중...';
+          const vinylUrl = await uploadImageToGitHub(vinylFile, token);
+          finalBodyParts.push(`vinyl: ${vinylUrl}`);
+        }
+
+        if (bodyImgFile) {
+          statusEl.textContent = '본문 이미지 업로드 중...';
+          const bodyImgUrl = await uploadImageToGitHub(bodyImgFile, token);
+          finalBodyParts.push(`![image](${bodyImgUrl})`);
+        }
+
+        if (rawBody) {
+          finalBodyParts.push(rawBody);
+        }
+
+        statusEl.textContent = '트랙 발행 중...';
+
+        const res = await fetch(`https://api.github.com/repos/${GITHUB_USER}/${GITHUB_REPO}/issues`, {
+          method: 'POST',
+          headers: {
+            'Authorization': `token ${token}`,
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({
+            title: title,
+            body: finalBodyParts.join('\n\n'),
+            labels: [selectedCategory]
+          })
+        });
+
+        if (!res.ok) throw new Error('발행 실패: 토큰이 올바른지 확인해 주세요.');
+
+        statusEl.textContent = '발행 완료! 새로고침합니다...';
+        document.getElementById('postTitleInput').value = '';
+        document.getElementById('postBodyInput').value = '';
+        document.getElementById('coverFileInput').value = '';
+        document.getElementById('vinylFileInput').value = '';
+        document.getElementById('bodyImgFileInput').value = '';
+
+        setTimeout(() => {
+          closeWriterModal();
+          statusEl.textContent = '';
+          btn.disabled = false;
+          fetchPosts();
+        }, 700);
+
+      } catch (err) {
+        statusEl.textContent = err.message;
+        btn.disabled = false;
+      }
+    };
+
+    fetchPosts();
+  </script>
+</body>
+</html>

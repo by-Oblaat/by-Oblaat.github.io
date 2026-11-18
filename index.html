@@ -94,7 +94,7 @@
       width: 100%;
       display: flex;
       justify-content: center;
-      align-items: center; /* LP 플레이어와 음악 플레이어 카드를 세로 중앙 정렬로 수평 맞춤 */
+      align-items: center;
       min-height: 290px;
       position: relative;
     }
@@ -402,7 +402,7 @@
 
     .tonearm-overlay.has-img .turntable-spindle,
     .tonearm-overlay.has-img .turntable-base,
-    .tonearm-overlay.has-img .turntable-stick {
+    .tonearm-overlay.has-img .tonearm-stick {
       display: none;
     }
     .tonearm-overlay.has-img .tonearm-custom-img {
@@ -417,7 +417,7 @@
     }
 
     /* =========================================
-       우측 뮤직 컨트롤 카드 드로어 (완벽한 수평 정렬)
+       우측 뮤직 컨트롤 카드 드로어
        ========================================= */
     .track-drawer {
       position: relative;
@@ -454,7 +454,7 @@
       flex-direction: column;
       justify-content: space-between;
       position: relative;
-      margin-top: 0; /* 마진 제거하여 LP 플레이어와 정확한 수평 정렬 */
+      margin-top: 0;
       transition: height 0.4s cubic-bezier(0.22, 1, 0.36, 1);
       overflow: hidden;
     }
@@ -518,7 +518,7 @@
     .ctrl-progress-fill {
       width: 32%;
       height: 100%;
-      background: #C6D5FF; /* 요청하신 #C6D5FF 컬러 적용 */
+      background: #C6D5FF;
       border-radius: 99px;
       transition: width 0.35s ease;
     }
@@ -1014,8 +1014,8 @@
 
           <div class="tonearm-overlay" id="tonearmOverlay">
             <div class="turntable-spindle"></div>
-            <div class="tonearm-base"></div>
-            <div class="tonearm-stick"></div>
+            <div class="turntable-base"></div>
+            <div class="turntable-stick"></div>
             <img class="tonearm-custom-img" id="tonearmImg" src="" alt="tonearm" />
           </div>
         </div>
@@ -1233,9 +1233,14 @@
         rebuildAll();
         renderManageList();
 
-        setTimeout(() => {
-          updateCarouselPositions();
-        }, 100);
+        // 모바일 웹폰트 렌더링 완료 타이밍을 기다려 3D 위치 강제 동기화
+        if (document.fonts && document.fonts.ready) {
+          document.fonts.ready.then(() => {
+            updateCarouselPositions();
+          });
+        }
+        setTimeout(() => { updateCarouselPositions(); }, 50);
+        setTimeout(() => { updateCarouselPositions(); }, 300);
       } catch (err) {
         console.error(err);
       }

@@ -25,7 +25,7 @@
     }
 
     /* =========================================
-       [상단 헤더] 페이지 전체 너비 기준 정중앙 정렬
+       [상단 헤더] 페이지 전체 정중앙 정렬
        ========================================= */
     .global-header {
       width: 100%;
@@ -63,50 +63,52 @@
     }
 
     /* =========================================
-       전체 2단 분할 본문 레이아웃
+       메인 컨테이너
        ========================================= */
-    .layout-wrapper {
-      display: grid;
-      grid-template-columns: 440px 1fr;
-      max-width: 1280px;
+    .main-container {
+      max-width: 960px;
       margin: 0 auto;
-      padding-top: 8px;
-    }
-
-    /* =========================================
-       [왼쪽 패널] 3D 플립 카드형 LP 커버 + LP 플레이어
-       ========================================= */
-    .left-pane {
-      position: sticky;
-      top: 20px;
-      height: calc(100vh - 40px);
+      padding: 16px 24px 120px;
       display: flex;
       flex-direction: column;
       align-items: center;
-      justify-content: flex-start;
-      padding: 12px 24px 24px;
-      user-select: none;
     }
 
+    /* =========================================
+       [상단 스테이지] 중앙 대기 -> LP 선택 시 왼쪽 슬라이딩 + 우측 TRACK 등장
+       ========================================= */
+    .showcase-row {
+      width: 100%;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 300px;
+      position: relative;
+    }
+
+    /* 플레이어 + 커버 스테이지 (초기엔 정중앙, 선택 시 왼쪽으로 부드럽게 이동) */
     .player-stage {
       position: relative;
-      width: 320px;
-      height: 310px;
+      width: 260px;
+      height: 290px;
+      flex-shrink: 0;
       display: flex;
       justify-content: center;
       align-items: flex-start;
+      transition: transform 0.75s cubic-bezier(0.22, 1, 0.36, 1);
     }
 
+    /* 카드형 LP 커버 덱 */
     .carousel-stage {
       position: absolute;
       top: 10px;
       left: 0;
       width: 100%;
-      height: 270px;
+      height: 260px;
       display: flex;
       justify-content: center;
       align-items: flex-start;
-      perspective: 900px; /* 플립 시 입체감이 도드라지도록 원근 깊이 강화 */
+      perspective: 900px;
       touch-action: none;
       z-index: 20;
     }
@@ -128,7 +130,6 @@
       cursor: pointer;
     }
 
-    /* 정사각형 LP 커버 (슬라이딩 시 플립 기울기 애니메이션 적용) */
     .lp-jacket {
       position: relative;
       width: 100%;
@@ -150,7 +151,6 @@
       box-shadow: 0 12px 28px rgba(107, 158, 255, 0.14);
     }
 
-    /* ★ 옆으로 슬라이딩할 때 LP 커버가 책장/레코드처럼 플립(Flip)되는 키프레임 ★ */
     .lp-slot.flip-next .lp-jacket {
       animation: flipCardNext 0.62s cubic-bezier(0.22, 1, 0.36, 1);
     }
@@ -268,9 +268,7 @@
       to   { transform: translateY(20px) rotate(360deg); }
     }
 
-    /* =========================================
-       [2단계] LP 플레이어 본체 및 톤암 레이어
-       ========================================= */
+    /* LP 플레이어 본체 및 톤암 레이어 */
     .turntable-box {
       position: absolute;
       top: 20px;
@@ -285,9 +283,6 @@
       pointer-events: none;
       z-index: 10;
       transition: opacity 0.6s ease, transform 0.6s cubic-bezier(0.22, 1, 0.36, 1);
-      display: flex;
-      justify-content: center;
-      align-items: center;
       cursor: pointer;
     }
 
@@ -364,44 +359,42 @@
     }
 
     /* =========================================
-       [오른쪽 패널] 1단계 TRACK 드로어 -> 2단계 IMAGE & COMMENT 드로어
+       ★ 우측 TRACK 드로어 (플레이어가 왼쪽으로 밀리면서 우측에서 슬라이딩 오픈) ★
        ========================================= */
-    .right-pane {
-      padding: 12px 56px 120px 24px;
-      display: flex;
-      flex-direction: column;
-    }
-
     .track-drawer {
-      max-width: 520px;
-      max-height: 0;
+      width: 0;
       opacity: 0;
       overflow: hidden;
-      margin-bottom: 0;
-      transform: translateY(-10px);
-      transition: max-height 0.65s cubic-bezier(0.22, 1, 0.36, 1),
-                  opacity 0.5s ease,
-                  margin-bottom 0.5s ease,
-                  transform 0.55s cubic-bezier(0.22, 1, 0.36, 1);
+      margin-left: 0;
+      transform: translateX(-18px);
+      transition: width 0.75s cubic-bezier(0.22, 1, 0.36, 1),
+                  margin-left 0.75s cubic-bezier(0.22, 1, 0.36, 1),
+                  opacity 0.55s ease 0.15s,
+                  transform 0.65s cubic-bezier(0.22, 1, 0.36, 1) 0.1s;
     }
 
-    .track-drawer.open {
-      max-height: 230px;
+    .showcase-row.is-open .track-drawer {
+      width: 280px;
+      margin-left: 44px;
       opacity: 1;
-      margin-bottom: 32px;
-      transform: translateY(0);
+      transform: translateX(0);
+    }
+
+    .track-inner {
+      width: 280px; /* 슬라이딩 시 텍스트가 찌그러지지 않도록 내부 폭 고정 */
+      padding-top: 22px;
     }
 
     .track-box-title {
       font-size: 0.85rem;
       font-weight: 600;
-      letter-spacing: 0.1em;
-      margin-bottom: 10px;
+      letter-spacing: 0.12em;
+      margin-bottom: 12px;
       color: var(--text-main);
     }
     .track-scroll-wrapper {
       position: relative;
-      height: 168px;
+      height: 210px;
     }
     .track-list {
       list-style: none;
@@ -409,10 +402,10 @@
       overflow-y: auto;
       overflow-x: hidden;
       padding-top: 2px;
-      padding-bottom: 60px;
+      padding-bottom: 64px;
       display: flex;
       flex-direction: column;
-      gap: 4px;
+      gap: 6px;
       scrollbar-width: none;
       -ms-overflow-style: none;
     }
@@ -429,7 +422,7 @@
       background: linear-gradient(
         to bottom,
         rgba(255, 255, 255, 0) 0%,
-        rgba(255, 255, 255, 0.85) 60%,
+        rgba(255, 255, 255, 0.88) 60%,
         #ffffff 100%
       );
       pointer-events: none;
@@ -453,19 +446,27 @@
       transform: translateX(4px);
     }
 
+    /* =========================================
+       [하단 영역] TRACK 선택 시 슬라이딩 오픈되는 IMAGE & COMMENT
+       ========================================= */
     .detail-drawer {
+      width: 100%;
+      max-width: 584px; /* 상단 플레이어(260) + 간격(44) + 트랙(280) 전체 너비와 정밀 정렬 */
       max-height: 0;
       opacity: 0;
       overflow: hidden;
+      margin-top: 0;
       transform: translateY(-14px);
       transition: max-height 0.85s cubic-bezier(0.22, 1, 0.36, 1),
                   opacity 0.6s ease,
+                  margin-top 0.5s ease,
                   transform 0.65s cubic-bezier(0.22, 1, 0.36, 1);
     }
 
     .detail-drawer.open {
       max-height: 5000px;
       opacity: 1;
+      margin-top: 28px;
       transform: translateY(0);
     }
 
@@ -488,8 +489,7 @@
 
     .image-frame {
       width: 100%;
-      max-width: 520px;
-      min-height: 300px;
+      min-height: 320px;
       border: none;
       display: flex;
       justify-content: center;
@@ -510,7 +510,7 @@
     }
 
     .comment-section {
-      max-width: 620px;
+      width: 100%;
     }
     .comment-label {
       font-size: 0.9rem;
@@ -546,19 +546,26 @@
       margin: 14px 0;
     }
 
-    @media (max-width: 920px) {
-      .layout-wrapper {
-        grid-template-columns: 1fr;
+    /* 모바일 소형 화면에서도 플레이어 좌측 + TRACK 우측 구도가 깨지지 않도록 비율 최적화 */
+    @media (max-width: 640px) {
+      .main-container { padding: 12px 14px 80px; }
+      .showcase-row { min-height: 250px; }
+      .player-stage {
+        width: 200px;
+        height: 240px;
+        transform-origin: top center;
       }
-      .left-pane {
-        position: relative;
-        top: 0;
-        height: auto;
-        padding: 8px 16px 0;
+      .showcase-row.is-open .player-stage {
+        transform: scale(0.82);
+        margin-right: -18px;
       }
-      .right-pane {
-        padding: 12px 24px 80px;
+      .showcase-row.is-open .track-drawer {
+        width: 165px;
+        margin-left: 14px;
       }
+      .track-inner { width: 165px; padding-top: 12px; }
+      .track-scroll-wrapper { height: 175px; }
+      .detail-drawer { max-width: 100%; }
     }
   </style>
 </head>
@@ -573,8 +580,9 @@
     </div>
   </header>
 
-  <div class="layout-wrapper">
-    <aside class="left-pane">
+  <main class="main-container">
+    <!-- 상단 행: 중앙 LP 커버 -> 클릭 시 플레이어 왼쪽 이동 + 우측 TRACK 슬라이딩 오픈 -->
+    <div class="showcase-row" id="showcaseRow">
       <div class="player-stage">
         <div class="carousel-stage" id="carouselStage" title="스크롤/스와이프로 카드 넘기기 · 클릭하여 재생">
           <div class="stack-track" id="stackTrack"></div>
@@ -588,35 +596,37 @@
           <div class="tonearm-stick"></div>
         </div>
       </div>
-    </aside>
 
-    <main class="right-pane">
-      <section class="track-drawer" id="trackDrawer">
-        <div class="track-box-title">TRACK</div>
-        <div class="track-scroll-wrapper">
-          <ul class="track-list" id="trackList"></ul>
-          <div class="track-fade-overlay"></div>
-        </div>
-      </section>
-
-      <section class="detail-drawer" id="detailDrawer">
-        <div class="content-stage">
-          <div class="fade-section" id="imageSection">
-            <div class="image-frame" id="imageFrame">
-              <div class="image-placeholder">IMAGE</div>
-            </div>
-          </div>
-
-          <div class="fade-section comment-section" id="commentSection">
-            <div class="comment-label">
-              COMMENT <span id="activePostTitle"></span>
-            </div>
-            <div class="comment-body" id="commentBody"></div>
+      <!-- 우측에서 슬라이딩되어 나오는 TRACK 메뉴 -->
+      <aside class="track-drawer" id="trackDrawer">
+        <div class="track-inner">
+          <div class="track-box-title">TRACK</div>
+          <div class="track-scroll-wrapper">
+            <ul class="track-list" id="trackList"></ul>
+            <div class="track-fade-overlay"></div>
           </div>
         </div>
-      </section>
-    </main>
-  </div>
+      </aside>
+    </div>
+
+    <!-- 하단 영역: TRACK 선택 시 슬라이딩 오픈되는 IMAGE & COMMENT -->
+    <section class="detail-drawer" id="detailDrawer">
+      <div class="content-stage">
+        <div class="fade-section" id="imageSection">
+          <div class="image-frame" id="imageFrame">
+            <div class="image-placeholder">IMAGE</div>
+          </div>
+        </div>
+
+        <div class="fade-section comment-section" id="commentSection">
+          <div class="comment-label">
+            COMMENT <span id="activePostTitle"></span>
+          </div>
+          <div class="comment-body" id="commentBody"></div>
+        </div>
+      </div>
+    </section>
+  </main>
 
   <script>
     const GITHUB_USER = "by-Oblaat";
@@ -648,7 +658,7 @@
           allPosts = issues;
         } else {
           allPosts = [
-            { number: 1, title: "SAMPLE 01", created_at: new Date().toISOString(), labels: [{ name: "MADE" }], body: "1단계: LP 커버를 누르면 TRACK 메뉴가 열립니다.\n2단계: TRACK 목록에서 곡을 누르면 IMAGE와 COMMENT가 아래로 슬라이딩되며 펼쳐집니다.\n\n깃허브 `Issues`에 `MADE` 또는 `AND` 라벨을 달아 글을 올리면 자동으로 반영됩니다." },
+            { number: 1, title: "SAMPLE 01", created_at: new Date().toISOString(), labels: [{ name: "MADE" }], body: "1단계: 중앙 LP 커버를 클릭하면 플레이어가 왼쪽으로 슬라이딩되고 우측에서 TRACK 메뉴가 열립니다.\n2단계: TRACK 목록에서 곡을 선택하면 하단 IMAGE와 COMMENT가 펼쳐집니다.\n\n깃허브 `Issues`에 `MADE` 또는 `AND` 라벨을 달아 글을 올리면 자동으로 반영됩니다." },
             { number: 2, title: "SAMPLE 02", created_at: new Date().toISOString(), labels: [{ name: "AND" }], body: "두 번째 트랙입니다." },
             { number: 3, title: "SAMPLE 03", created_at: new Date().toISOString(), labels: [{ name: "MADE" }], body: "세 번째 트랙 코멘트입니다." },
             { number: 4, title: "SAMPLE 04", created_at: new Date().toISOString(), labels: [{ name: "AND" }], body: "네 번째 트랙 코멘트입니다." },
@@ -731,14 +741,15 @@
       });
     }
 
+    // 1단계: LP 선택 -> 플레이어가 왼쪽으로 이동하면서 우측에서 TRACK 메뉴 슬라이딩 등장
     function startPlayerSequence(slot) {
       resetPlayerAnimation();
       isPlaying = true;
 
+      const showcaseRow = document.getElementById('showcaseRow');
       const turntable = document.getElementById('turntableBox');
       const tonearm = document.getElementById('tonearmOverlay');
       const stage = document.getElementById('carouselStage');
-      const trackDrawer = document.getElementById('trackDrawer');
 
       slot.classList.add('on-player');
 
@@ -746,7 +757,7 @@
         turntable.classList.add('visible');
         tonearm.classList.add('visible');
         stage.classList.add('deck-up');
-        trackDrawer.classList.add('open');
+        showcaseRow.classList.add('is-open'); // 플레이어 좌측 이동 + 우측 TRACK 오픈 동시 실행
       }, 220);
 
       const t2 = setTimeout(() => {
@@ -762,10 +773,10 @@
       playTimers = [];
       isPlaying = false;
 
+      document.getElementById('showcaseRow').classList.remove('is-open');
       document.getElementById('turntableBox').classList.remove('visible');
       document.getElementById('tonearmOverlay').classList.remove('visible', 'playing');
       document.getElementById('carouselStage').classList.remove('deck-up');
-      document.getElementById('trackDrawer').classList.remove('open');
       document.getElementById('detailDrawer').classList.remove('open');
       document.getElementById('imageSection').classList.remove('visible');
       document.getElementById('commentSection').classList.remove('visible');
@@ -800,6 +811,7 @@
       });
     }
 
+    // 2단계: 우측 TRACK 항목 클릭 시 하단 IMAGE & COMMENT 슬라이딩 오픈
     function selectTrackAndOpenDetail(idx) {
       if (currentIndex !== idx) {
         const dir = idx > currentIndex ? 1 : -1;
@@ -851,15 +863,13 @@
       }, 150);
     }
 
-    // ★ 슬라이딩 방향(direction: 1 또는 -1)에 따라 카드가 Flip 되듯 3D로 기울어지며 전환 ★
     function updateCarouselPositions(direction = 0) {
       slotElements.forEach((slot, idx) => {
         const offset = idx - currentIndex;
 
-        // 플립 애니메이션 클래스 재트리거
         slot.classList.remove('flip-next', 'flip-prev');
         if (direction !== 0 && Math.abs(offset) <= 1) {
-          void slot.offsetWidth; // 리플로우로 애니메이션 초기화
+          void slot.offsetWidth;
           slot.classList.add(direction > 0 ? 'flip-next' : 'flip-prev');
         }
 
@@ -875,7 +885,6 @@
           const abs = Math.abs(offset);
           const translateX = sign * (88 + abs * 36);
           const translateZ = -70 - abs * 48;
-          // 양옆 카드도 한층 더 젖혀진 플립 각도(-sign * 56deg)로 배치
           const rotateY = -sign * 56;
 
           slot.style.transform = `translateX(${translateX}px) translateZ(${translateZ}px) rotateY(${rotateY}deg)`;

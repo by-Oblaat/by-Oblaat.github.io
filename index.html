@@ -388,11 +388,11 @@
     }
 
     /* =========================================
-       우측 뮤직 컨트롤 카드 (카드 크기 고정 및 내부 스크롤 적용)
+       우측 뮤직 컨트롤 카드 (카드 높이 엄격 고정)
        ========================================= */
     .player-control-card {
       width: 270px;
-      height: 145px; /* 기본 높이 엄격 고정 */
+      height: 145px;
       background: #ffffff;
       border: 1px solid #ececec;
       border-radius: 18px;
@@ -408,7 +408,7 @@
     }
 
     .player-control-card.expanded {
-      height: 232px; /* 펼쳐졌을 때의 고정 높이 */
+      height: 232px;
     }
 
     .ctrl-top-row {
@@ -501,7 +501,7 @@
       fill: currentColor;
     }
 
-    /* 트랙 목록: 카드 크기를 늘리지 않고 내부 스크롤바가 생기도록 고정 */
+    /* 트랙 목록: 내부 스크롤바 활성화 및 높이 제한 */
     .mini-track-popover {
       max-height: 0;
       opacity: 0;
@@ -524,7 +524,7 @@
       border-radius: 99px;
     }
     .mini-track-popover.open {
-      max-height: 90px !important; /* 카드가 늘어나지 않도록 스크롤 영역 제한 */
+      max-height: 90px !important;
       opacity: 1;
       border-top-color: #f0f0f0;
       padding-top: 6px;
@@ -659,9 +659,10 @@
     }
 
     .thread-date {
-      font-size: 0.78rem;
+      font-size: 0.85rem;
       color: var(--text-sub);
-      letter-spacing: 0.06em;
+      letter-spacing: 0.08em;
+      font-weight: 500;
     }
 
     .thread-body {
@@ -1012,10 +1013,10 @@
       }
       .player-control-card {
         width: 100% !important;
-        height: 145px !important; /* 모바일에서도 기본 카드 높이 엄격 고정 */
+        height: 145px !important;
       }
       .player-control-card.expanded {
-        height: 232px !important; /* 모바일에서 펼쳐졌을 때의 고정 높이 */
+        height: 232px !important;
       }
       .ctrl-title { font-size: 0.72rem; }
       .ctrl-btn { width: 24px; height: 24px; }
@@ -1240,14 +1241,6 @@
         tonearmImg.src = CUSTOM_ASSETS.tonearm;
         document.getElementById('tonearmOverlay').classList.add('has-img');
       }
-    }
-
-    function formatYYMMDD(dateStr) {
-      const d = new Date(dateStr);
-      const yy = String(d.getFullYear()).slice(-2);
-      const mm = String(d.getMonth() + 1).padStart(2, '0');
-      const dd = String(d.getDate()).padStart(2, '0');
-      return `${yy}.${mm}.${dd}`;
     }
 
     function extractMetaUrl(bodyText, key, fallback) {
@@ -1608,7 +1601,7 @@
           commentBody.innerHTML = '';
         }
 
-        // 타래 렌더링 (엄격한 정규식으로 'threads:' 키워드 완전 필터링)
+        // 타래 렌더링 (날짜 대신 '+' 기호 출력 및 threads: 접두어 필터링)
         const threadsContainer = document.getElementById('threadsContainer');
         threadsContainer.innerHTML = '';
 
@@ -1620,9 +1613,9 @@
 
             const itemEl = document.createElement('div');
             itemEl.className = 'thread-item';
-            const dateStr = formatYYMMDD(post.created_at);
+            
             itemEl.innerHTML = `
-              <div class="thread-date">${dateStr}</div>
+              <div class="thread-date">+</div>
               <div class="thread-body">${marked.parse(cleanBlock)}</div>
             `;
             threadsContainer.appendChild(itemEl);

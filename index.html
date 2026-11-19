@@ -1674,7 +1674,7 @@
         if (offset === 0) {
           slot.classList.add('active');
           // Keep the center cover slightly angled even on initial load/refresh.
-          slot.style.transform = `translateX(0px) translateZ(0px) rotateY(-8deg)`;
+          slot.style.transform = `translateX(0px) translateZ(0px) rotateY(-8deg) rotateZ(-6deg)`;
           slot.style.zIndex = 30;
           slot.style.opacity = 1;
           slot.style.pointerEvents = 'auto';
@@ -1685,8 +1685,9 @@
           const translateX = sign * (112 + abs * 34);
           const translateZ = -55 - abs * 38;
           const rotateY = -sign * 58 - 8; // retain the slight base tilt across the carousel
+          const rotateZ = -6; // visible cover lean on mobile as well
 
-          slot.style.transform = `translateX(${translateX}px) translateZ(${translateZ}px) rotateY(${rotateY}deg)`;
+          slot.style.transform = `translateX(${translateX}px) translateZ(${translateZ}px) rotateY(${rotateY}deg) rotateZ(${rotateZ}deg)`;
           slot.style.zIndex = Math.max(1, 25 - abs);
           slot.style.opacity = abs > 2 ? 0 : Math.max(0.45, 1 - abs * 0.25);
           slot.style.pointerEvents = abs > 2 ? 'none' : 'auto';

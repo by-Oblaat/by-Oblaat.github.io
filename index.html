@@ -1704,7 +1704,7 @@
 
         if (offset === 0) {
           slot.classList.add('active');
-          slot.style.transform = `translateX(0px) translateZ(0px) rotateY(0deg)`;
+          slot.style.transform = `translateX(0px) translateZ(0px) rotateY(-8deg)`;
           slot.style.zIndex = 30;
           slot.style.opacity = 1;
           slot.style.pointerEvents = 'auto';
@@ -1714,7 +1714,7 @@
           const abs = Math.abs(offset);
           const translateX = sign * (112 + abs * 34);
           const translateZ = -55 - abs * 38;
-          const rotateY = -sign * 58;
+          const rotateY = -sign * 58 - 8;
 
           slot.style.transform = `translateX(${translateX}px) translateZ(${translateZ}px) rotateY(${rotateY}deg)`;
           slot.style.zIndex = Math.max(1, 25 - abs);

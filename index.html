@@ -8,6 +8,7 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Gowun+Batang&family=Monsieur+La+Doulaise&display=swap" rel="stylesheet">
   <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+  <script src="https://www.youtube.com/iframe_api"></script>
   <style>
     :root {
       --bg-color: #ffffff;
@@ -466,15 +467,64 @@
       pointer-events: auto;
     }
 
-    .ctrl-top-row {
+.ctrl-top-row {
       display: flex;
       justify-content: space-between;
-      align-items: flex-start;
+      align-items: center;
+      gap: 10px;
     }
 
     .ctrl-meta {
       overflow: hidden;
+      flex: 1;
+      min-width: 0;
+    }
+
+    .ctrl-volume-wrap {
+      display: flex;
+      align-items: center;
+      flex-shrink: 0;
+      width: 66px;
+      height: 16px;
+      cursor: pointer;
+    }
+
+    .ctrl-volume-slider {
+      -webkit-appearance: none;
+      appearance: none;
       width: 100%;
+      height: 3.5px;
+      background: linear-gradient(to right, #C6D5FF 0%, #C6D5FF 80%, #e6e8ec 80%, #e6e8ec 100%);
+      border-radius: 99px;
+      outline: none;
+      cursor: pointer;
+    }
+    .ctrl-volume-slider::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      appearance: none;
+      width: 9px;
+      height: 9px;
+      border-radius: 50%;
+      background: #C6D5FF;
+      border: none;
+      cursor: pointer;
+      transition: transform 0.15s ease;
+    }
+    .ctrl-volume-slider::-webkit-slider-thumb:hover {
+      transform: scale(1.2);
+    }
+    .ctrl-volume-slider::-moz-range-thumb {
+      width: 9px;
+      height: 9px;
+      border-radius: 50%;
+      background: #C6D5FF;
+      border: none;
+      cursor: pointer;
+    }
+
+    .ctrl-btn.loop-active {
+      color: var(--line-blue);
+      background: #f4f7ff;
     }
 
     .ctrl-title {
@@ -1367,6 +1417,7 @@
         padding: 10px 11px 10px 22px !important;
       }
       .ctrl-title { font-size: 0.72rem; }
+      .ctrl-volume-wrap { width: 42px; }
       .ctrl-btn { width: 24px; height: 24px; }
       .ctrl-btn svg { width: 10px; height: 10px; }
       .mini-track-popover { height: 44px !important; min-height: 44px !important; max-height: 44px !important; flex: 0 0 44px !important; }
@@ -1420,9 +1471,16 @@
 
           <aside class="track-drawer" style="width: 310px;">
             <div class="player-control-card" id="playerControlCard">
+              <audio id="bgmAudioPlayer" preload="none"></audio>
+              <div id="ytBgmHiddenWrap" style="position:fixed;left:-9999px;top:-9999px;width:200px;height:200px;opacity:0;pointer-events:none;overflow:hidden;">
+                <div id="ytBgmPlayerHost"></div>
+              </div>
               <div class="ctrl-top-row">
                 <div class="ctrl-meta">
                   <div class="ctrl-title" id="ctrlTitle">TRACK TITLE</div>
+                </div>
+                <div class="ctrl-volume-wrap" title="볼륨 조절">
+                  <input type="range" id="ctrlVolumeSlider" class="ctrl-volume-slider" min="0" max="100" value="80" />
                 </div>
               </div>
 
@@ -1431,6 +1489,9 @@
               </div>
 
               <div class="ctrl-buttons">
+                <button type="button" class="ctrl-btn" id="btnLoopTrack" title="한 곡 반복 재생">
+                  <svg viewBox="0 0 24 24"><path d="M12 5V1L7 6l5 5V7c3.31 0 6 2.69 6 6s-2.69 6-6 6-6-2.69-6-6H4c0 4.42 3.58 8 8 8s8-3.58 8-8-3.58-8-8-8z"/></svg>
+                </button>
                 <button type="button" class="ctrl-btn" id="btnPrevTrack" title="이전 트랙">
                   <svg viewBox="0 0 24 24"><path d="M11 18V6l-8.5 6 8.5 6zm.5-6l8.5 6V6l-8.5 6z"/></svg>
                 </button>
@@ -1540,6 +1601,17 @@
         </div>
 
         <div class="writer-field">
+          <label>④ BGM 오디오 파일 (.mp3 / .m4a, 20MB 이하 권장)</label>
+          <span class="existing-asset-note" id="existingBgmNote"></span>
+          <input type="file" id="bgmFileInput" accept="audio/*" />
+        </div>
+
+        <div class="writer-field">
+          <label>⑤ BGM 유튜브 링크 (선택 · MP3 대신 유튜브 URL 재생 시 입력)</label>
+          <input type="text" class="writer-input" id="ytLinkInput" placeholder="https://youtu.be/... 또는 https://www.youtube.com/watch?v=..." />
+        </div>
+
+        <div class="writer-field">
           <label>COMMENT (메인 코멘트 본문)</label>
           <textarea class="writer-textarea" id="postBodyInput" placeholder="코멘트 내용을 입력하세요 (선택 사항)"></textarea>
         </div>
@@ -1577,7 +1649,218 @@
     let progressPercent = 0;
 
     let editingIssueNumber = null;
-    let preservedAssets = { cover: "", vinyl: "", bodyImg: "", order: "" };
+    let preservedAssets = { cover: "", vinyl: "", bodyImg: "", bgm: "", yt: "", order: "" };
+
+    const bgmAudio = document.getElementById('bgmAudioPlayer');
+    const volSlider = document.getElementById('ctrlVolumeSlider');
+    const btnLoopTrack = document.getElementById('btnLoopTrack');
+    let isLooping = false;
+    let currentBgmUrl = "";
+    let currentMediaType = "none"; // "mp3" | "youtube" | "none"
+
+    let ytPlayer = null;
+    let ytApiReady = false;
+    let ytPlayerReady = false;
+    let pendingYtVideoId = null;
+    let pendingYtAutoplay = false;
+    let ytProgressTimer = null;
+
+    function extractYouTubeId(rawUrl) {
+      if (!rawUrl) return "";
+      const trimmed = rawUrl.trim();
+      if (/^[a-zA-Z0-9_-]{11}$/.test(trimmed)) return trimmed;
+      const patterns = [
+        /(?:youtube\.com\/watch\?v=|youtu\.be\/|youtube\.com\/embed\/|youtube\.com\/shorts\/|music\.youtube\.com\/watch\?v=)([a-zA-Z0-9_-]{11})/i,
+        /[?&]v=([a-zA-Z0-9_-]{11})/i
+      ];
+      for (const re of patterns) {
+        const m = trimmed.match(re);
+        if (m && m[1]) return m[1];
+      }
+      return "";
+    }
+
+    function initOrLoadYtPlayer(videoId, autoplay) {
+      pendingYtVideoId = videoId;
+      pendingYtAutoplay = autoplay;
+      if (!ytApiReady) return;
+
+      const targetVol = volSlider ? Number(volSlider.value) : 80;
+
+      if (!ytPlayer) {
+        ytPlayer = new YT.Player('ytBgmPlayerHost', {
+          height: '200',
+          width: '200',
+          videoId: videoId,
+          playerVars: {
+            autoplay: autoplay ? 1 : 0,
+            controls: 0,
+            disablekb: 1,
+            fs: 0,
+            modestbranding: 1,
+            playsinline: 1,
+            rel: 0
+          },
+          events: {
+            onReady: (ev) => {
+              ytPlayerReady = true;
+              ev.target.setVolume(targetVol);
+              if (pendingYtAutoplay && currentMediaType === 'youtube') {
+                ev.target.playVideo();
+              }
+            },
+            onStateChange: (ev) => {
+              if (currentMediaType !== 'youtube') return;
+              if (ev.data === YT.PlayerState.ENDED) {
+                if (isLooping) {
+                  ev.target.seekTo(0, true);
+                  ev.target.playVideo();
+                } else {
+                  setDiscPlayState(false);
+                  progressPercent = 0;
+                  const fill = document.getElementById('ctrlProgressFill');
+                  if (fill) fill.style.width = '0%';
+                }
+              }
+            }
+          }
+        });
+      } else if (ytPlayerReady) {
+        ytPlayer.setVolume(targetVol);
+        if (autoplay) {
+          ytPlayer.loadVideoById(videoId);
+        } else {
+          ytPlayer.cueVideoById(videoId);
+        }
+      }
+    }
+
+    window.onYouTubeIframeAPIReady = function() {
+      ytApiReady = true;
+      if (pendingYtVideoId && currentMediaType === 'youtube') {
+        initOrLoadYtPlayer(pendingYtVideoId, pendingYtAutoplay);
+      }
+    };
+
+    function stopAllAudioPlayback(clearSource = false) {
+      if (bgmAudio) {
+        bgmAudio.pause();
+        if (clearSource) {
+          bgmAudio.removeAttribute('src');
+          bgmAudio.load();
+          currentBgmUrl = "";
+        } else {
+          bgmAudio.currentTime = 0;
+        }
+      }
+      if (ytPlayer && ytPlayerReady) {
+        try { ytPlayer.stopVideo(); } catch (e) {}
+      }
+      if (clearSource) {
+        pendingYtVideoId = null;
+        pendingYtAutoplay = false;
+        currentMediaType = "none";
+      }
+    }
+
+    function updateVolumeSliderFill(val) {
+      if (!volSlider) return;
+      const pct = Math.max(0, Math.min(100, Number(val)));
+      volSlider.style.background = `linear-gradient(to right, #C6D5FF 0%, #C6D5FF ${pct}%, #e6e8ec ${pct}%, #e6e8ec 100%)`;
+    }
+
+    if (volSlider) {
+      const savedVol = localStorage.getItem('oblaat_bgm_volume');
+      const initVol = savedVol !== null ? Number(savedVol) : 80;
+      volSlider.value = initVol;
+      if (bgmAudio) bgmAudio.volume = initVol / 100;
+      updateVolumeSliderFill(initVol);
+
+      volSlider.addEventListener('input', (e) => {
+        e.stopPropagation();
+        const v = Number(e.target.value);
+        if (bgmAudio) bgmAudio.volume = v / 100;
+        if (ytPlayer && ytPlayerReady) {
+          try { ytPlayer.setVolume(v); } catch (err) {}
+        }
+        localStorage.setItem('oblaat_bgm_volume', String(v));
+        updateVolumeSliderFill(v);
+      });
+      volSlider.addEventListener('click', (e) => e.stopPropagation());
+    }
+
+    if (btnLoopTrack) {
+      btnLoopTrack.addEventListener('click', (e) => {
+        e.stopPropagation();
+        isLooping = !isLooping;
+        if (bgmAudio) bgmAudio.loop = isLooping;
+        btnLoopTrack.classList.toggle('loop-active', isLooping);
+      });
+    }
+
+    if (bgmAudio) {
+      bgmAudio.addEventListener('timeupdate', () => {
+        if (currentMediaType !== 'mp3') return;
+        if (!bgmAudio.duration || !isFinite(bgmAudio.duration)) return;
+        progressPercent = (bgmAudio.currentTime / bgmAudio.duration) * 100;
+        const fill = document.getElementById('ctrlProgressFill');
+        if (fill) fill.style.width = `${progressPercent}%`;
+      });
+
+      bgmAudio.addEventListener('ended', () => {
+        if (currentMediaType !== 'mp3') return;
+        if (isLooping) {
+          bgmAudio.currentTime = 0;
+          bgmAudio.play().catch(() => {});
+        } else {
+          setDiscPlayState(false);
+          progressPercent = 0;
+          const fill = document.getElementById('ctrlProgressFill');
+          if (fill) fill.style.width = '0%';
+        }
+      });
+    }
+
+    function loadAndPlayTrackAudio(post, shouldPlay = true) {
+      if (!post) {
+        stopAllAudioPlayback(true);
+        return;
+      }
+      const ytRaw = extractMetaUrl(post.body, 'yt', '');
+      const bgmUrl = extractMetaUrl(post.body, 'bgm', '');
+      const ytId = extractYouTubeId(ytRaw || (bgmUrl && /(?:youtu\.be|youtube\.com)/i.test(bgmUrl) ? bgmUrl : ''));
+
+      if (ytId) {
+        if (bgmAudio) {
+          bgmAudio.pause();
+          bgmAudio.removeAttribute('src');
+          bgmAudio.load();
+          currentBgmUrl = "";
+        }
+        currentMediaType = "youtube";
+        initOrLoadYtPlayer(ytId, shouldPlay);
+      } else if (bgmUrl) {
+        if (ytPlayer && ytPlayerReady) {
+          try { ytPlayer.stopVideo(); } catch (e) {}
+        }
+        pendingYtVideoId = null;
+        currentMediaType = "mp3";
+        if (bgmAudio) {
+          if (currentBgmUrl !== bgmUrl) {
+            currentBgmUrl = bgmUrl;
+            bgmAudio.src = bgmUrl;
+            bgmAudio.load();
+          }
+          bgmAudio.loop = isLooping;
+          if (shouldPlay) {
+            bgmAudio.play().catch(() => {});
+          }
+        }
+      } else {
+        stopAllAudioPlayback(true);
+      }
+    }
+
 
     function applyCustomPlayerAssets() {
       const turntableBox = document.getElementById('turntableBox');
@@ -1618,7 +1901,8 @@
       });
     }
 
-    async function fetchPosts() {
+    async function fetchPosts(opts = {}) {
+      const preservePlayer = Boolean(opts && opts.preservePlayer);
       applyCustomPlayerAssets();
       try {
         const res = await fetch(`https://api.github.com/repos/${GITHUB_USER}/${GITHUB_REPO}/issues?state=open&per_page=100&_t=${Date.now()}`);
@@ -1640,9 +1924,22 @@
 
         const activeFilter = document.querySelector('.filter-btn.active')?.dataset.label?.trim().toUpperCase() || 'ALL';
         filteredPosts = allPosts.filter(p => matchesCategory(p, activeFilter));
+        if (currentIndex >= filteredPosts.length) {
+          currentIndex = Math.max(0, filteredPosts.length - 1);
+        }
 
         bindFilterButtons();
-        rebuildAll();
+        if (preservePlayer) {
+          buildStackDOM();
+          renderTrackList();
+          const showcaseRow = document.getElementById('showcaseRow');
+          if (showcaseRow && isPlaying) {
+            showcaseRow.classList.add('is-open', 'stage-turntable-in', 'stage-lp-in', 'stage-card-in');
+            showcaseRow.classList.remove('stage-covers-exit');
+          }
+        } else {
+          rebuildAll();
+        }
         renderManageList();
 
         const forceSync3D = () => { updateCarouselPositions(); };
@@ -1773,6 +2070,7 @@
 
       const t5 = setTimeout(() => {
         activeVinyl.classList.add('spinning');
+        loadAndPlayTrackAudio(post, true);
         setDiscPlayState(true);
         startProgressSimulation();
       }, 2320);
@@ -1789,6 +2087,7 @@
       playTimers.forEach(t => clearTimeout(t));
       playTimers = [];
       clearInterval(progressTimer);
+      stopAllAudioPlayback(false);
       if (window._threadGifTimers) { window._threadGifTimers.forEach(t => clearInterval(t)); window._threadGifTimers = []; }
       isPlaying = false;
       isDiscPaused = false;
@@ -1835,6 +2134,19 @@
       if (window._threadGifTimers) { window._threadGifTimers.forEach(t => clearInterval(t)); window._threadGifTimers = []; }
       progressTimer = setInterval(() => {
         if (isDiscPaused || !isPlaying) return;
+        if (currentMediaType === 'mp3') return;
+        if (currentMediaType === 'youtube') {
+          if (ytPlayer && ytPlayerReady && typeof ytPlayer.getDuration === 'function') {
+            const dur = ytPlayer.getDuration();
+            const cur = ytPlayer.getCurrentTime();
+            if (dur > 0) {
+              progressPercent = Math.min(100, (cur / dur) * 100);
+              const fill = document.getElementById('ctrlProgressFill');
+              if (fill) fill.style.width = `${progressPercent}%`;
+            }
+          }
+          return;
+        }
         progressPercent = progressPercent >= 100 ? 0 : progressPercent + 0.5;
         const fill = document.getElementById('ctrlProgressFill');
         if (fill) fill.style.width = `${progressPercent}%`;
@@ -1850,10 +2162,20 @@
       if (playingState) {
         tonearm.classList.add('playing');
         activeVinyl.classList.add('spinning');
+        if (currentMediaType === 'mp3' && bgmAudio && currentBgmUrl && bgmAudio.paused) {
+          bgmAudio.play().catch(() => {});
+        } else if (currentMediaType === 'youtube' && ytPlayer && ytPlayerReady) {
+          try { ytPlayer.playVideo(); } catch (e) {}
+        }
         if (icon) icon.innerHTML = `<path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/>`;
       } else {
         tonearm.classList.remove('playing');
         activeVinyl.classList.remove('spinning');
+        if (currentMediaType === 'mp3' && bgmAudio && !bgmAudio.paused) {
+          bgmAudio.pause();
+        } else if (currentMediaType === 'youtube' && ytPlayer && ytPlayerReady) {
+          try { ytPlayer.pauseVideo(); } catch (e) {}
+        }
         if (icon) icon.innerHTML = `<path d="M8 5v14l11-7z"/>`;
       }
     }
@@ -1886,6 +2208,14 @@
       const rect = e.currentTarget.getBoundingClientRect();
       progressPercent = Math.max(0, Math.min(100, ((e.clientX - rect.left) / rect.width) * 100));
       document.getElementById('ctrlProgressFill').style.width = `${progressPercent}%`;
+      if (currentMediaType === 'mp3' && bgmAudio && currentBgmUrl && bgmAudio.duration && isFinite(bgmAudio.duration)) {
+        bgmAudio.currentTime = (progressPercent / 100) * bgmAudio.duration;
+      } else if (currentMediaType === 'youtube' && ytPlayer && ytPlayerReady && typeof ytPlayer.getDuration === 'function') {
+        const dur = ytPlayer.getDuration();
+        if (dur > 0) {
+          ytPlayer.seekTo((progressPercent / 100) * dur, true);
+        }
+      }
     });
 
     function renderTrackList() {
@@ -1930,6 +2260,7 @@
       document.getElementById('ctrlProgressFill').style.width = `${progressPercent}%`;
 
       if (!opts.skipDiscReset) {
+        loadAndPlayTrackAudio(post, true);
         setDiscPlayState(true);
         startProgressSimulation();
       }
@@ -1961,6 +2292,8 @@
         const cleanComment = commentPart
           .replace(/^cover:\s*.+$/gim, '')
           .replace(/^vinyl:\s*.+$/gim, '')
+          .replace(/^bgm:\s*.+$/gim, '')
+          .replace(/^yt:\s*.+$/gim, '')
           .replace(/^order:\s*.+$/gim, '')
           .trim();
 
@@ -2229,8 +2562,9 @@
                 if (!res.ok) throw new Error('스레드 삭제 저장 실패');
 
                 editStatus.textContent = '삭제 완료!';
-                await fetchPosts();
-                openTrackDetail(currentIndex);
+                isPlaying = true;
+                await fetchPosts({ preservePlayer: true });
+                openTrackDetail(currentIndex, { skipDiscReset: true });
               } catch (err) {
                 editStatus.textContent = err.message;
                 deleteThreadBtn.disabled = false;
@@ -2332,8 +2666,9 @@
                 if (!res.ok) throw new Error('스레드 수정 저장 실패');
 
                 editStatus.textContent = '수정 완료!';
-                await fetchPosts();
-                openTrackDetail(currentIndex);
+                isPlaying = true;
+                await fetchPosts({ preservePlayer: true });
+                openTrackDetail(currentIndex, { skipDiscReset: true });
               } catch (err) {
                 editStatus.textContent = err.message;
                 saveEditBtn.disabled = false;
@@ -2510,8 +2845,9 @@
         statusEl.textContent = '타래가 추가되었습니다!';
         threadInput.value = '';
         document.getElementById('submitThreadBtn').disabled = false;
-        await fetchPosts();
-        openTrackDetail(currentIndex);
+        isPlaying = true;
+        await fetchPosts({ preservePlayer: true });
+        openTrackDetail(currentIndex, { skipDiscReset: true });
         setTimeout(() => { statusEl.textContent = ''; }, 1200);
       } catch (err) {
         statusEl.textContent = err.message;
@@ -2755,6 +3091,8 @@ ${cleanBody}`;
 
       const coverUrl = extractMetaUrl(raw, 'cover', '');
       const vinylUrl = extractMetaUrl(raw, 'vinyl', '');
+      const bgmUrl = extractMetaUrl(raw, 'bgm', '');
+      const ytUrl = extractMetaUrl(raw, 'yt', '');
       const orderVal = extractMetaUrl(raw, 'order', '');
 
       let commentPart = raw;
@@ -2764,6 +3102,8 @@ ${cleanBody}`;
       const cleanWithoutMeta = commentPart
         .replace(/^cover:\s*.+$/gim, '')
         .replace(/^vinyl:\s*.+$/gim, '')
+        .replace(/^bgm:\s*.+$/gim, '')
+          .replace(/^yt:\s*.+$/gim, '')
         .replace(/^order:\s*.+$/gim, '')
         .trim();
 
@@ -2771,7 +3111,11 @@ ${cleanBody}`;
       const bodyImgUrl = mdImgMatch ? mdImgMatch[1] : '';
       const pureText = mdImgMatch ? cleanWithoutMeta.replace(mdImgMatch[0], '').trim() : cleanWithoutMeta;
 
-      preservedAssets = { cover: coverUrl, vinyl: vinylUrl, bodyImg: bodyImgUrl, order: orderVal };
+      preservedAssets = { cover: coverUrl, vinyl: vinylUrl, bodyImg: bodyImgUrl, bgm: bgmUrl, yt: ytUrl, order: orderVal };
+      const bgmNote = document.getElementById('existingBgmNote');
+      if (bgmNote) bgmNote.textContent = bgmUrl ? '기존 BGM 파일 유지됨 (새 파일 선택 시 교체)' : '';
+      const ytInp = document.getElementById('ytLinkInput');
+      if (ytInp) ytInp.value = ytUrl;
 
       document.getElementById('postTitleInput').value = post.title;
       document.getElementById('postBodyInput').value = pureText;
@@ -2786,12 +3130,18 @@ ${cleanBody}`;
 
     function cancelEditMode() {
       editingIssueNumber = null;
-      preservedAssets = { cover: "", vinyl: "", bodyImg: "", order: "" };
+      preservedAssets = { cover: "", vinyl: "", bodyImg: "", bgm: "", yt: "", order: "" };
       document.getElementById('postTitleInput').value = '';
       document.getElementById('postBodyInput').value = '';
       document.getElementById('coverFileInput').value = '';
       document.getElementById('vinylFileInput').value = '';
       document.getElementById('bodyImgFileInput').value = '';
+      const bgmInp = document.getElementById('bgmFileInput');
+      if (bgmInp) bgmInp.value = '';
+      const bgmNote = document.getElementById('existingBgmNote');
+      if (bgmNote) bgmNote.textContent = '';
+      const ytInp = document.getElementById('ytLinkInput');
+      if (ytInp) ytInp.value = '';
       document.getElementById('editModeBanner').classList.remove('active');
       document.getElementById('publishBtn').textContent = '발행하기 (PUBLISH)';
     }
@@ -2846,6 +3196,7 @@ ${cleanBody}`;
       const coverFile = document.getElementById('coverFileInput').files[0];
       const vinylFile = document.getElementById('vinylFileInput').files[0];
       const bodyImgFile = document.getElementById('bodyImgFileInput').files[0];
+      const bgmFile = document.getElementById('bgmFileInput').files[0];
       const statusEl = document.getElementById('writerStatus');
       const btn = document.getElementById('publishBtn');
 
@@ -2878,6 +3229,17 @@ ${cleanBody}`;
           finalBodyParts.push(`![image](${bodyImgUrl})`);
         } else if (preservedAssets.bodyImg) {
           finalBodyParts.push(`![image](${preservedAssets.bodyImg})`);
+        }
+
+        const ytInputVal = (document.getElementById('ytLinkInput')?.value || '').trim();
+        if (bgmFile) {
+          statusEl.textContent = 'BGM 오디오 업로드 중...';
+          const bgmUrl = await uploadImageToGitHub(bgmFile, token);
+          finalBodyParts.push(`bgm: ${bgmUrl}`);
+        } else if (ytInputVal) {
+          finalBodyParts.push(`yt: ${ytInputVal}`);
+        } else if (preservedAssets.bgm) {
+          finalBodyParts.push(`bgm: ${preservedAssets.bgm}`);
         }
 
         if (rawBody) finalBodyParts.push(rawBody);

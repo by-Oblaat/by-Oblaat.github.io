@@ -553,16 +553,30 @@
       color: var(--text-main);
       white-space: nowrap;
       overflow: hidden;
-      text-overflow: ellipsis;
+      text-overflow: clip;
       display: block;
       width: 100%;
+      position: relative;
     }
-    .ctrl-title marquee {
-      display: block;
-      width: 100%;
-      vertical-align: middle;
+    .ctrl-title-track {
+      display: inline-flex;
+      align-items: center;
+      white-space: nowrap;
+      will-change: transform;
+      animation: smoothTitleScroll 11s linear infinite;
+    }
+    .ctrl-title:hover .ctrl-title-track {
+      animation-play-state: paused;
+    }
+    .ctrl-title-item {
+      display: inline-block;
+      padding-right: 42px;
       font: inherit;
       color: inherit;
+    }
+    @keyframes smoothTitleScroll {
+      0%   { transform: translate3d(0%, 0, 0); }
+      100% { transform: translate3d(-50%, 0, 0); }
     }
 
     .ctrl-progress-wrap {
@@ -2344,28 +2358,44 @@
     }
 
 
-function setCtrlTitle(rawTitle) {
+function getCtrlTitleText(el) {
+      if (!el) return '';
+      const firstItem = el.querySelector('.ctrl-title-item');
+      if (firstItem && firstItem.textContent) return firstItem.textContent.trim();
+      return (el.textContent || '').trim();
+    }
+
+    function setCtrlTitle(rawTitle) {
       const titleEl = document.getElementById('ctrlTitle');
       if (!titleEl) return;
       const text = (rawTitle || '').trim() || 'TRACK TITLE';
-      titleEl.textContent = text;
+
+      const track = document.createElement('span');
+      track.className = 'ctrl-title-track';
+
+      // Duplicate twice so translating -50% creates a seamless, non-jerky loop
+      for (let i = 0; i < 2; i++) {
+        const span = document.createElement('span');
+        span.className = 'ctrl-title-item';
+        span.textContent = text;
+        track.appendChild(span);
+      }
+
+      titleEl.innerHTML = '';
+      titleEl.appendChild(track);
+
+      // Adjust animation duration gently based on text length for consistent, silky speed
       requestAnimationFrame(() => {
-        if (!titleEl) return;
-        if (titleEl.scrollWidth > titleEl.clientWidth + 2) {
-          const mq = document.createElement('marquee');
-          mq.setAttribute('behavior', 'scroll');
-          mq.setAttribute('direction', 'left');
-          mq.setAttribute('scrollamount', '3');
-          mq.setAttribute('loop', 'infinite');
-          mq.textContent = text;
-          titleEl.innerHTML = '';
-          titleEl.appendChild(mq);
-        }
+        const singleWidth = track.scrollWidth / 2;
+        const speedPxPerSec = 34; // 부드럽고 여유로운 속도
+        const durationSec = Math.max(7, Math.min(24, singleWidth / speedPxPerSec));
+        track.style.animationDuration = `${durationSec.toFixed(2)}s`;
       });
     }
     window.addEventListener('resize', () => {
       const titleEl = document.getElementById('ctrlTitle');
-      if (titleEl) setCtrlTitle(titleEl.textContent);
+      const curText = getCtrlTitleText(titleEl);
+      if (curText) setCtrlTitle(curText);
     });
 
     function applyCustomPlayerAssets() {

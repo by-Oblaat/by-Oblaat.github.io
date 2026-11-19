@@ -101,7 +101,7 @@
       width: 100%;
       max-width: 960px;
       margin: 0 auto;
-      padding: 16px 20px 120px;
+      padding: 16px 20px 24px;
       display: flex;
       flex-direction: column;
       align-items: center;
@@ -1482,10 +1482,54 @@
       min-height: 18px;
     }
 
+    /* 홈페이지 최하단 시그니처 푸터 */
+    .site-signature-footer {
+      width: 100%;
+      max-width: 546px;
+      margin: 14px auto 32px;
+      padding: 12px 4px 0;
+      border-top: 1px solid #1a1a1a;
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+      gap: 16px;
+      color: #a8a8a8;
+      opacity: 1;
+      visibility: visible;
+      transition: margin-top 1.05s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+    body.lp-disc-extended .site-signature-footer {
+      margin-top: 82px;
+    }
+    .signature-quote {
+      font-size: 6pt;
+      line-height: 1.5;
+      color: #a8a8a8;
+      letter-spacing: 0.02em;
+    }
+    .signature-brand {
+      font-size: 6pt;
+      line-height: 1.5;
+      color: #a8a8a8;
+      letter-spacing: 0.12em;
+      white-space: nowrap;
+      flex-shrink: 0;
+    }
+    @media (max-width: 680px) {
+      .site-signature-footer {
+        max-width: 100%;
+        margin: 12px auto 24px;
+        gap: 10px;
+      }
+      body.lp-disc-extended .site-signature-footer {
+        margin-top: 84px;
+      }
+    }
+
     @media (max-width: 680px) {
       .global-header { padding: 24px 12px 12px; }
       .global-header h1 { font-size: 1.9rem; }
-      .main-container { padding: 8px 10px 60px; }
+      .main-container { padding: 8px 10px 16px; }
       .showcase-row { min-height: 180px; width: 100%; }
 
       .player-active-row {
@@ -1686,6 +1730,10 @@
         </div>
       </section>
     </main>
+    <footer class="site-signature-footer" id="siteSignatureFooter">
+      <div class="signature-quote">Fleeting tales wrapped in 0.01mm of translucence, ready to dissolve into nothing.</div>
+      <div class="signature-brand">OBLAAT.</div>
+    </footer>
   </div>
 
   <!-- 관리자 모달 -->
@@ -2164,14 +2212,27 @@
           </div>
         `;
 
+        slot.addEventListener('mouseenter', () => {
+          if (!isPlaying && idx === currentIndex) {
+            document.body.classList.add('lp-disc-extended');
+          }
+        });
+        slot.addEventListener('mouseleave', () => {
+          if (!isPlaying && idx === currentIndex) {
+            document.body.classList.remove('lp-disc-extended');
+          }
+        });
+
         slot.onclick = () => {
           if (isPlaying) {
             if (idx === currentIndex) resetPlayerAnimation();
             return;
           }
           if (idx === currentIndex) {
+            document.body.classList.add('lp-disc-extended');
             startPlayerSequence(slot, idx);
           } else {
+            document.body.classList.remove('lp-disc-extended');
             currentIndex = idx;
             updateCarouselPositions();
           }
@@ -2187,6 +2248,7 @@
 
     function startPlayerSequence(slot, idx = currentIndex) {
       resetPlayerAnimation();
+      document.body.classList.add('lp-disc-extended');
       isPlaying = true;
 
       const showcaseRow = document.getElementById('showcaseRow');
@@ -2218,6 +2280,7 @@
       }, 420);
 
       const t2 = setTimeout(() => {
+        document.body.classList.remove('lp-disc-extended');
         showcaseRow.classList.add('is-open', 'stage-turntable-in');
       }, 920);
 
@@ -2280,6 +2343,7 @@
         s.classList.remove('on-player', 'spinning', 'lp-sliding-out');
       });
 
+      document.body.classList.remove('lp-disc-extended');
       setTimeout(() => {
         updateCarouselPositions();
       }, 50);

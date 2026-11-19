@@ -773,7 +773,32 @@
       color: var(--text-sub);
       font-weight: 400;
     }
-    .comment-body {
+.comment-dash-edit-btn {
+      background: none;
+      border: none;
+      font-family: 'Gowun Batang', serif;
+      font-size: 0.95rem;
+      color: var(--text-sub);
+      cursor: pointer;
+      padding: 0 3px;
+      line-height: 1;
+      transition: color 0.2s ease, transform 0.2s ease;
+    }
+    .comment-dash-edit-btn:hover,
+    .comment-dash-edit-btn.active {
+      color: var(--line-blue);
+      font-weight: 700;
+    }
+    .inline-comment-edit-box {
+      margin: 10px 0 18px;
+      border: 1px solid var(--line-blue);
+      background: #f8faff;
+      padding: 12px;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+        .comment-body {
       font-size: 1.02rem;
       line-height: 1.95;
       color: var(--text-main);
@@ -817,9 +842,9 @@
       border: none;
       text-align: left;
       font-family: 'Gowun Batang', serif;
-      font-size: 0.96rem;
+      font-size: 8pt !important;
       font-weight: 600;
-      color: var(--text-main);
+      color: var(--text-sub) !important;
       cursor: pointer;
       flex: 1;
       min-width: 0;
@@ -828,6 +853,9 @@
       gap: 8px;
       padding: 2px 0;
       transition: color 0.2s ease;
+    }
+    .thread-title-toggle span {
+      color: var(--text-sub) !important;
     }
     .thread-title-toggle:hover {
       color: var(--line-blue);
@@ -1671,6 +1699,12 @@
     }
 
 /* '✧' 음악 전용 카테고리 모드: 상단 컨트롤 간격은 유지하고, 트랙 리스트에 맞춰 뮤직 플레이어 하단이 함께 늘어남 */
+    body.plus-music-mode .player-stage {
+      opacity: 0 !important;
+      visibility: hidden !important;
+      pointer-events: none !important;
+      transition: none !important;
+    }
     body.plus-music-mode .detail-drawer {
       display: none !important;
     }
@@ -1938,7 +1972,18 @@
 
           <div class="fade-section comment-section" id="commentSection">
             <div class="comment-label" id="commentLabelBox" style="display:none;">
+              <button type="button" class="comment-dash-edit-btn" id="commentDashEditBtn" title="클릭하여 코멘트 바로 수정">—</button>
               <span id="activePostTitle"></span>
+            </div>
+            <div class="inline-comment-edit-box" id="inlineCommentEditBox" style="display:none;">
+              <input type="text" class="thread-edit-title-input" id="inlineCommentTitleInput" placeholder="트랙 제목을 입력하세요" />
+              <div class="rich-mini-toolbar" data-target="inlineCommentTextarea"></div>
+              <textarea class="thread-edit-textarea" id="inlineCommentTextarea" placeholder="코멘트 내용을 입력하세요"></textarea>
+              <div class="thread-edit-actions">
+                <button type="button" class="thread-edit-cancel" id="cancelInlineCommentBtn">취소</button>
+                <button type="button" class="thread-edit-save" id="saveInlineCommentBtn">저장</button>
+              </div>
+              <div class="thread-edit-status" id="inlineCommentStatus"></div>
             </div>
             <div class="comment-body" id="commentBody"></div>
             <div class="threads-container" id="threadsContainer"></div>
@@ -2620,19 +2665,10 @@ const PLUS_PLAYLIST_PATH = "playlist/plus_tracks.json";
       document.getElementById('detailDrawer').classList.remove('open');
 
       const alreadyInPlusMode = document.body.classList.contains('plus-music-mode');
+      document.body.classList.add('plus-music-mode');
 
-      if (alreadyInPlusMode) {
-        showcaseRow.classList.remove('stage-covers-exit', 'stage-lp-in', 'stage-card-in');
-        showcaseRow.classList.add('is-open', 'stage-turntable-in');
-      } else {
-        showcaseRow.classList.remove(
-          'stage-covers-exit',
-          'is-open',
-          'stage-turntable-in',
-          'stage-lp-in',
-          'stage-card-in'
-        );
-      }
+      showcaseRow.classList.remove('stage-covers-exit', 'stage-lp-in', 'stage-card-in');
+      showcaseRow.classList.add('is-open', 'stage-turntable-in');
       tonearm.classList.remove('playing');
       activeVinyl.classList.remove('spinning');
 
@@ -3139,11 +3175,56 @@ const PLUS_PLAYLIST_PATH = "playlist/plus_tracks.json";
         const commentLabelBox = document.getElementById('commentLabelBox');
         const commentBody = document.getElementById('commentBody');
 
+        const inlineEditBox = document.getElementById('inlineCommentEditBox');
+        const dashEditBtn = document.getElementById('commentDashEditBtn');
+        if (inlineEditBox) inlineEditBox.style.display = 'none';
+        if (dashEditBtn) dashEditBtn.classList.remove('active');
+
         if (textOnlyBody.length > 0) {
-          document.getElementById('activePostTitle').textContent = `— ${post.title}`;
+          document.getElementById('activePostTitle').textContent = post.title;
           commentLabelBox.style.display = 'flex';
           marked.setOptions({ breaks: true, headerIds: false, mangle: false });
           commentBody.innerHTML = marked.parse(textOnlyBody);
+
+          if (dashEditBtn && inlineEditBox) {
+            dashEditBtn.onclick = (ev) => {
+              ev.stopPropagation();
+              const isHidden = inlineEditBox.style.display === 'none';
+              if (isHidden) {
+                const rawFull = post.body || '';
+                const headOnly = rawFull.split('---threads---')[0] || '';
+                const cleanWithoutMeta = headOnly
+                  .replace(/^cover:\s*.+$/gim, '')
+                  .replace(/^vinyl:\s*.+$/gim, '')
+                  .replace(/^bgm:\s*.+$/gim, '')
+                  .replace(/^yt:\s*.+$/gim, '')
+                  .replace(/^order:\s*.+$/gim, '')
+                  .trim();
+                const mdImgM = cleanWithoutMeta.match(/!\[.*?\]\((.*?)\)/);
+                const pureCommentText = mdImgM ? cleanWithoutMeta.replace(mdImgM[0], '').trim() : cleanWithoutMeta;
+
+                const titleInp = document.getElementById('inlineCommentTitleInput');
+                const taInp = document.getElementById('inlineCommentTextarea');
+                const stEl = document.getElementById('inlineCommentStatus');
+                if (titleInp) titleInp.value = post.title;
+                if (taInp) {
+                  taInp.value = pureCommentText;
+                  taInp.dispatchEvent(new Event('input'));
+                }
+                if (stEl) stEl.textContent = '';
+                inlineEditBox.style.display = 'flex';
+                dashEditBtn.classList.add('active');
+                initRichToolbars();
+                const surf = document.querySelector('.rich-live-surface[data-for-textarea="inlineCommentTextarea"]');
+                if (surf && window.marked) {
+                  surf.innerHTML = pureCommentText ? window.marked.parse(pureCommentText) : '';
+                }
+              } else {
+                inlineEditBox.style.display = 'none';
+                dashEditBtn.classList.remove('active');
+              }
+            };
+          }
         } else {
           commentLabelBox.style.display = 'none';
           commentBody.innerHTML = '';
@@ -3249,7 +3330,13 @@ const PLUS_PLAYLIST_PATH = "playlist/plus_tracks.json";
             editTitleInput.placeholder = '스레드 제목을 입력하세요';
             editTitleInput.value = extractedTitle;
 
+            const editTextareaId = `threadEditTextarea_${currentIndex}_${rawIdx}`;
+            const editToolbar = document.createElement('div');
+            editToolbar.className = 'rich-mini-toolbar';
+            editToolbar.dataset.target = editTextareaId;
+
             const editTextarea = document.createElement('textarea');
+            editTextarea.id = editTextareaId;
             editTextarea.className = 'thread-edit-textarea';
             editTextarea.value = textWithoutImgs;
 
@@ -3448,6 +3535,7 @@ const PLUS_PLAYLIST_PATH = "playlist/plus_tracks.json";
             editActions.appendChild(cancelEditBtn);
             editActions.appendChild(saveEditBtn);
             editBox.appendChild(editTitleInput);
+            editBox.appendChild(editToolbar);
             editBox.appendChild(editTextarea);
             editBox.appendChild(imgPanel);
             editBox.appendChild(editActions);
@@ -3466,7 +3554,18 @@ const PLUS_PLAYLIST_PATH = "playlist/plus_tracks.json";
                 editableImgs = [...imgUrls];
                 renderEditableImgList();
                 editStatus.textContent = '';
-                editTextarea.focus();
+                initRichToolbars();
+                const editSurf = document.querySelector(`.rich-live-surface[data-for-textarea="${editTextareaId}"]`);
+                if (editSurf) {
+                  if (window.marked && typeof window.marked.parse === 'function') {
+                    editSurf.innerHTML = textWithoutImgs ? window.marked.parse(textWithoutImgs) : '';
+                  } else {
+                    editSurf.textContent = textWithoutImgs;
+                  }
+                  editSurf.focus();
+                } else {
+                  editTextarea.focus();
+                }
               }
             };
 
@@ -3479,6 +3578,39 @@ const PLUS_PLAYLIST_PATH = "playlist/plus_tracks.json";
             saveEditBtn.onclick = async (ev) => {
               ev.stopPropagation();
               const token = ghTokenInput.value.trim();
+              const editSurf = document.querySelector(`.rich-live-surface[data-for-textarea="${editTextareaId}"]`);
+              if (editSurf && editTextarea.style.display === 'none') {
+                let serialized = '';
+                const walk = (node) => {
+                  if (node.nodeType === Node.TEXT_NODE) {
+                    serialized += node.textContent;
+                  } else if (node.nodeType === Node.ELEMENT_NODE) {
+                    const t = node.tagName.toLowerCase();
+                    if (t === 'br') { serialized += '\n'; return; }
+                    const childStart = serialized.length;
+                    node.childNodes.forEach(walk);
+                    const inner = serialized.slice(childStart);
+                    serialized = serialized.slice(0, childStart);
+                    if (t === 'b' || t === 'strong') serialized += `**${inner}**`;
+                    else if (t === 'i' || t === 'em') serialized += `*${inner}*`;
+                    else if (t === 'u') serialized += `<u>${inner}</u>`;
+                    else if (t === 'a') {
+                      const href = node.getAttribute('href') || '';
+                      serialized += href ? `[${inner || href}](${href})` : inner;
+                    } else if (t === 'span') {
+                      const stAttr = node.getAttribute('style') || '';
+                      serialized += stAttr ? `<span style="${stAttr}">${inner}</span>` : inner;
+                    } else if (t === 'div' || t === 'p') {
+                      const prefix = serialized && !serialized.endsWith('\n') ? '\n' : '';
+                      serialized += `${prefix}${inner}\n`;
+                    } else {
+                      serialized += inner;
+                    }
+                  }
+                };
+                editSurf.childNodes.forEach(walk);
+                editTextarea.value = serialized.replace(/\n{3,}/g, '\n\n').trim();
+              }
               const nextText = editTextarea.value.trim();
               if (!token) {
                 editStatus.textContent = '관리창 또는 하단에서 GitHub Token을 먼저 입력해 주세요.';
@@ -4218,6 +4350,8 @@ ${cleanBody}`;
               out += `**${inner}**`;
             } else if (tag === 'i' || tag === 'em') {
               out += `*${inner}*`;
+            } else if (tag === 'u') {
+              out += `<u>${inner}</u>`;
             } else if (tag === 'a') {
               const href = node.getAttribute('href') || '';
               out += href ? `[${inner || href}](${href})` : inner;
@@ -4298,7 +4432,7 @@ ${cleanBody}`;
         const sel = window.getSelection();
         if (sel && sel.rangeCount > 0 && surfaceEl.contains(sel.getRangeAt(0).commonAncestorContainer) && sel.getRangeAt(0).collapsed) {
           const r = sel.getRangeAt(0);
-          const el = document.createElement(cmdName === 'bold' ? 'strong' : 'em');
+          const el = document.createElement(cmdName === 'bold' ? 'strong' : (cmdName === 'underline' ? 'u' : 'em'));
           el.textContent = fallbackText;
           r.insertNode(el);
           const nr = document.createRange();
@@ -4405,6 +4539,18 @@ ${cleanBody}`;
         italicBtn.onclick = (e) => {
           e.stopPropagation();
           applySimpleCommandToSurface(surfaceEl, ta, 'italic', '기울임 글씨');
+        };
+
+        // 2-1. 밑줄
+        const underlineBtn = document.createElement('button');
+        underlineBtn.type = 'button';
+        underlineBtn.className = 'rich-tool-btn';
+        underlineBtn.style.textDecoration = 'underline';
+        underlineBtn.textContent = 'U';
+        underlineBtn.title = '밑줄';
+        underlineBtn.onclick = (e) => {
+          e.stopPropagation();
+          applySimpleCommandToSurface(surfaceEl, ta, 'underline', '밑줄 글씨');
         };
 
         // 3. 폰트 선택 (즉시 반영)
@@ -4519,6 +4665,7 @@ ${cleanBody}`;
 
         bar.appendChild(boldBtn);
         bar.appendChild(italicBtn);
+        bar.appendChild(underlineBtn);
         bar.appendChild(fontSel);
         bar.appendChild(sizeSel);
         bar.appendChild(linkBtn);
@@ -4531,6 +4678,129 @@ ${cleanBody}`;
         const ta = document.getElementById(tId);
         if (ta) renderMarkdownIntoSurface(surf, ta.value);
       });
+    }
+
+const cancelInlineCommentBtn = document.getElementById('cancelInlineCommentBtn');
+    const saveInlineCommentBtn = document.getElementById('saveInlineCommentBtn');
+    if (cancelInlineCommentBtn) {
+      cancelInlineCommentBtn.onclick = (ev) => {
+        ev.stopPropagation();
+        const box = document.getElementById('inlineCommentEditBox');
+        const btn = document.getElementById('commentDashEditBtn');
+        const st = document.getElementById('inlineCommentStatus');
+        if (box) box.style.display = 'none';
+        if (btn) btn.classList.remove('active');
+        if (st) st.textContent = '';
+      };
+    }
+    if (saveInlineCommentBtn) {
+      saveInlineCommentBtn.onclick = async (ev) => {
+        ev.stopPropagation();
+        const token = ghTokenInput.value.trim();
+        const titleInp = document.getElementById('inlineCommentTitleInput');
+        const taInp = document.getElementById('inlineCommentTextarea');
+        const stEl = document.getElementById('inlineCommentStatus');
+        if (!token) {
+          if (stEl) stEl.textContent = '저장하려면 GitHub Token을 입력해 주세요.';
+          return;
+        }
+        const currentPost = filteredPosts[currentIndex];
+        if (!currentPost || currentPost.number <= 0) {
+          if (stEl) stEl.textContent = '샘플 게시글은 수정할 수 없습니다.';
+          return;
+        }
+        const nextTitle = (titleInp && titleInp.value.trim()) || currentPost.title;
+        const surfEl = document.querySelector('.rich-live-surface[data-for-textarea="inlineCommentTextarea"]');
+        if (surfEl && taInp && taInp.style.display === 'none') {
+          let serialized = '';
+          const walk = (node) => {
+            if (node.nodeType === Node.TEXT_NODE) {
+              serialized += node.textContent;
+            } else if (node.nodeType === Node.ELEMENT_NODE) {
+              const t = node.tagName.toLowerCase();
+              if (t === 'br') { serialized += '\n'; return; }
+              const childStart = serialized.length;
+              node.childNodes.forEach(walk);
+              const inner = serialized.slice(childStart);
+              serialized = serialized.slice(0, childStart);
+              if (t === 'b' || t === 'strong') serialized += `**${inner}**`;
+              else if (t === 'i' || t === 'em') serialized += `*${inner}*`;
+              else if (t === 'u') serialized += `<u>${inner}</u>`;
+              else if (t === 'a') {
+                const href = node.getAttribute('href') || '';
+                serialized += href ? `[${inner || href}](${href})` : inner;
+              } else if (t === 'span') {
+                const stAttr = node.getAttribute('style') || '';
+                serialized += stAttr ? `<span style="${stAttr}">${inner}</span>` : inner;
+              } else if (t === 'div' || t === 'p') {
+                const prefix = serialized && !serialized.endsWith('\n') ? '\n' : '';
+                serialized += `${prefix}${inner}\n`;
+              } else {
+                serialized += inner;
+              }
+            }
+          };
+          surfEl.childNodes.forEach(walk);
+          taInp.value = serialized.replace(/\n{3,}/g, '\n\n').trim();
+        }
+        const nextComment = (taInp && taInp.value.trim()) || '';
+
+        saveInlineCommentBtn.disabled = true;
+        if (cancelInlineCommentBtn) cancelInlineCommentBtn.disabled = true;
+        if (stEl) stEl.textContent = '저장 중...';
+
+        try {
+          const rawFull = currentPost.body || '';
+          const splitParts = rawFull.split('---threads---');
+          const headPart = splitParts[0] || '';
+          const threadPart = splitParts[1] || '';
+
+          const metaLines = [];
+          ['order', 'cover', 'vinyl', 'bgm', 'yt'].forEach(k => {
+            const val = extractMetaUrl(headPart, k, '');
+            if (val) metaLines.push(`${k}: ${val}`);
+          });
+
+          const cleanHead = headPart
+            .replace(/^cover:\s*.+$/gim, '')
+            .replace(/^vinyl:\s*.+$/gim, '')
+            .replace(/^bgm:\s*.+$/gim, '')
+            .replace(/^yt:\s*.+$/gim, '')
+            .replace(/^order:\s*.+$/gim, '')
+            .trim();
+
+          const mdImgMatch = cleanHead.match(/!\[.*?\]\((.*?)\)/);
+          const bodyParts = [...metaLines];
+          if (mdImgMatch) bodyParts.push(mdImgMatch[0]);
+          if (nextComment) bodyParts.push(nextComment);
+
+          let finalBody = bodyParts.join('\n\n');
+          if (threadPart.trim()) {
+            finalBody += `\n\n---threads---\n${threadPart.trim()}`;
+          }
+
+          const res = await fetch(`https://api.github.com/repos/${GITHUB_USER}/${GITHUB_REPO}/issues/${currentPost.number}`, {
+            method: 'PATCH',
+            headers: {
+              'Authorization': `token ${token}`,
+              'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ title: nextTitle, body: finalBody })
+          });
+
+          if (!res.ok) throw new Error('코멘트 저장 실패');
+
+          if (stEl) stEl.textContent = '저장 완료!';
+          isPlaying = true;
+          await fetchPosts({ preservePlayer: true });
+          openTrackDetail(currentIndex, { skipDiscReset: true });
+        } catch (err) {
+          if (stEl) stEl.textContent = err.message || '저장 실패';
+        } finally {
+          saveInlineCommentBtn.disabled = false;
+          if (cancelInlineCommentBtn) cancelInlineCommentBtn.disabled = false;
+        }
+      };
     }
 
 

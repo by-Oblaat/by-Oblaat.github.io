@@ -129,6 +129,13 @@
                   transform 0.52s cubic-bezier(0.22, 1, 0.36, 1);
       z-index: 15;
     }
+    .player-stage.category-enter {
+      animation: lpCoverFadeIn 0.55s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+    }
+    @keyframes lpCoverFadeIn {
+      0%   { opacity: 0; transform: translateY(8px); }
+      100% { opacity: 1; transform: translateY(0); }
+    }
 
     .showcase-row.stage-covers-exit .player-stage {
       opacity: 0;
@@ -226,7 +233,7 @@
       width: 210px;
       height: 210px;
       transform-style: preserve-3d;
-      transition: transform 0.6s cubic-bezier(0.22, 1, 0.36, 1), opacity 0.45s ease;
+      transition: transform 0.6s cubic-bezier(0.22, 1, 0.36, 1), opacity 0.75s cubic-bezier(0.22, 1, 0.36, 1);
       cursor: pointer;
     }
 
@@ -2731,6 +2738,8 @@ const PLUS_PLAYLIST_PATH = "playlist/plus_tracks.json";
           currentIndex = 0;
 
           if (label === 'PLUS') {
+            const ps = document.querySelector('.player-stage');
+            if (ps) ps.classList.remove('category-enter');
             filteredPosts = [...plusPlaylistTracks];
             activatePlusMusicView();
           } else {
@@ -2738,6 +2747,12 @@ const PLUS_PLAYLIST_PATH = "playlist/plus_tracks.json";
             syncPlusDynamicHeight();
             filteredPosts = allPosts.filter(p => matchesCategory(p, label));
             rebuildAll();
+            const ps = document.querySelector('.player-stage');
+            if (ps) {
+              ps.classList.remove('category-enter');
+              void ps.offsetWidth;
+              ps.classList.add('category-enter');
+            }
           }
         };
       });
@@ -2808,11 +2823,23 @@ const PLUS_PLAYLIST_PATH = "playlist/plus_tracks.json";
           }
         };
 
+        slot.style.opacity = '0';
+        slot.dataset.fadePending = '1';
         track.appendChild(slot);
         slotElements.push(slot);
       });
 
       updateCarouselPositions();
+      requestAnimationFrame(() => {
+        requestAnimationFrame(() => {
+          slotElements.forEach((s) => {
+            if (s.dataset.fadePending === '1') {
+              s.dataset.fadePending = '';
+              s.style.opacity = s.dataset.targetOpacity || '1';
+            }
+          });
+        });
+      });
       renderTrackList();
     }
 
@@ -3910,7 +3937,8 @@ const PLUS_PLAYLIST_PATH = "playlist/plus_tracks.json";
           slot.classList.add('active');
           slot.style.transform = `perspective(${persp}px) translate3d(0px, 0px, 0px) rotateY(0deg)`;
           slot.style.zIndex = 30;
-          slot.style.opacity = 1;
+          slot.dataset.targetOpacity = '1';
+          if (slot.dataset.fadePending !== '1') slot.style.opacity = 1;
           slot.style.pointerEvents = 'auto';
         } else {
           slot.classList.remove('active', 'on-player', 'spinning');
@@ -3919,10 +3947,12 @@ const PLUS_PLAYLIST_PATH = "playlist/plus_tracks.json";
           const translateX = sign * (baseShift + abs * stepShift);
           const translateZ = baseDepth + abs * stepDepth;
           const rotateY = -sign * sideAngle;
+          const sideOp = abs > 2 ? 0 : Math.max(0.45, 1 - abs * 0.25);
 
           slot.style.transform = `perspective(${persp}px) translate3d(${translateX}px, 0px, ${translateZ}px) rotateY(${rotateY}deg)`;
           slot.style.zIndex = Math.max(1, 25 - abs);
-          slot.style.opacity = abs > 2 ? 0 : Math.max(0.45, 1 - abs * 0.25);
+          slot.dataset.targetOpacity = String(sideOp);
+          if (slot.dataset.fadePending !== '1') slot.style.opacity = sideOp;
           slot.style.pointerEvents = abs > 2 ? 'none' : 'auto';
         }
       });

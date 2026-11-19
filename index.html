@@ -976,8 +976,34 @@
     }
 
 
+
+    /* 타래글 작성 영역 열기용 + 버튼 */
+    .thread-open-plus-btn {
+      margin-top: 20px;
+      background: none;
+      border: 1px solid #dcdcdc;
+      color: var(--text-sub);
+      width: 30px;
+      height: 30px;
+      border-radius: 50%;
+      font-size: 1.05rem;
+      line-height: 1;
+      display: inline-flex;
+      justify-content: center;
+      align-items: center;
+      cursor: pointer;
+      transition: 0.2s ease;
+      font-family: 'Gowun Batang', serif;
+    }
+    .thread-open-plus-btn:hover,
+    .thread-open-plus-btn.active {
+      border-color: var(--line-blue);
+      color: var(--line-blue);
+      background: #f4f7ff;
+    }
+
     .thread-write-box {
-      margin-top: 28px;
+      margin-top: 12px;
       border: 1px solid #e5e5e5;
       padding: 16px;
       display: flex;
@@ -1437,6 +1463,9 @@
             <div class="comment-body" id="commentBody"></div>
             <div class="threads-container" id="threadsContainer"></div>
 
+            <!-- 타래글 작성 영역 열기용 + 버튼 -->
+            <button type="button" class="thread-open-plus-btn" id="threadOpenPlusBtn" title="클릭하여 타래글 작성 열기" style="display:none;">+</button>
+
             <!-- 타래글 작성 박스 -->
             <div class="thread-write-box" id="threadWriteBox" style="display:none;">
               <textarea id="newThreadInput" placeholder="타래글을 작성하세요... (이미지 첨부 가능)"></textarea>
@@ -1779,6 +1808,10 @@
       document.getElementById('tonearmOverlay').classList.remove('playing');
       document.getElementById('activeVinylDisc').classList.remove('spinning');
       document.getElementById('detailDrawer').classList.remove('open');
+      const plusBtnReset = document.getElementById('threadOpenPlusBtn');
+      const writeBoxReset = document.getElementById('threadWriteBox');
+      if (plusBtnReset) { plusBtnReset.style.display = 'none'; plusBtnReset.classList.remove('active'); }
+      if (writeBoxReset) { writeBoxReset.style.display = 'none'; }
       document.getElementById('imageSection').classList.remove('visible');
       document.getElementById('commentSection').classList.remove('visible');
 
@@ -2407,7 +2440,23 @@
           });
         }
 
-        document.getElementById('threadWriteBox').style.display = 'flex';
+        const plusBtn = document.getElementById('threadOpenPlusBtn');
+        const writeBox = document.getElementById('threadWriteBox');
+        if (plusBtn && writeBox) {
+          writeBox.style.display = 'none';
+          plusBtn.classList.remove('active');
+          plusBtn.style.display = 'inline-flex';
+          plusBtn.onclick = (ev) => {
+            ev.stopPropagation();
+            const isOpen = writeBox.style.display === 'flex';
+            writeBox.style.display = isOpen ? 'none' : 'flex';
+            plusBtn.classList.toggle('active', !isOpen);
+            if (!isOpen) {
+              const ta = document.getElementById('newThreadInput');
+              if (ta) ta.focus();
+            }
+          };
+        }
 
         imageSection.classList.add('visible');
         commentSection.classList.add('visible');

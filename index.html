@@ -1655,6 +1655,7 @@
     const volSlider = document.getElementById('ctrlVolumeSlider');
     const btnLoopTrack = document.getElementById('btnLoopTrack');
     let isLooping = false;
+    let isTrackEnded = false;
     let currentBgmUrl = "";
     let currentMediaType = "none"; // "mp3" | "youtube" | "none"
 
@@ -1685,7 +1686,7 @@
       pendingYtAutoplay = autoplay;
       if (!ytApiReady) return;
 
-      const targetVol = volSlider ? Number(volSlider.value) : 80;
+      const targetVol = volSlider ? Number(volSlider.value) : 50;
 
       if (!ytPlayer) {
         ytPlayer = new YT.Player('ytBgmPlayerHost', {
@@ -1711,11 +1712,20 @@
             },
             onStateChange: (ev) => {
               if (currentMediaType !== 'youtube') return;
-              if (ev.data === YT.PlayerState.ENDED) {
+              if (ev.data === YT.PlayerState.PLAYING) {
+                isTrackEnded = false;
+              } else if (ev.data === YT.PlayerState.ENDED) {
                 if (isLooping) {
-                  ev.target.seekTo(0, true);
-                  ev.target.playVideo();
+                  isTrackEnded = false;
+                  progressPercent = 0;
+                  const fill = document.getElementById('ctrlProgressFill');
+                  if (fill) fill.style.width = '0%';
+                  try {
+                    ev.target.seekTo(0, true);
+                    ev.target.playVideo();
+                  } catch (err) {}
                 } else {
+                  isTrackEnded = true;
                   setDiscPlayState(false);
                   progressPercent = 0;
                   const fill = document.getElementById('ctrlProgressFill');
@@ -1799,6 +1809,10 @@
     }
 
     if (bgmAudio) {
+      bgmAudio.addEventListener('play', () => {
+        if (currentMediaType === 'mp3') isTrackEnded = false;
+      });
+
       bgmAudio.addEventListener('timeupdate', () => {
         if (currentMediaType !== 'mp3') return;
         if (!bgmAudio.duration || !isFinite(bgmAudio.duration)) return;
@@ -1810,9 +1824,11 @@
       bgmAudio.addEventListener('ended', () => {
         if (currentMediaType !== 'mp3') return;
         if (isLooping) {
+          isTrackEnded = false;
           bgmAudio.currentTime = 0;
           bgmAudio.play().catch(() => {});
         } else {
+          isTrackEnded = true;
           setDiscPlayState(false);
           progressPercent = 0;
           const fill = document.getElementById('ctrlProgressFill');
@@ -1822,6 +1838,7 @@
     }
 
     function loadAndPlayTrackAudio(post, shouldPlay = true) {
+      isTrackEnded = false;
       if (!post) {
         stopAllAudioPlayback(true);
         return;
@@ -2162,10 +2179,22 @@
       if (playingState) {
         tonearm.classList.add('playing');
         activeVinyl.classList.add('spinning');
-        if (currentMediaType === 'mp3' && bgmAudio && currentBgmUrl && bgmAudio.paused) {
-          bgmAudio.play().catch(() => {});
+        if (currentMediaType === 'mp3' && bgmAudio && currentBgmUrl) {
+          if (isTrackEnded || bgmAudio.ended) {
+            bgmAudio.currentTime = 0;
+            isTrackEnded = false;
+          }
+          if (bgmAudio.paused) {
+            bgmAudio.play().catch(() => {});
+          }
         } else if (currentMediaType === 'youtube' && ytPlayer && ytPlayerReady) {
-          try { ytPlayer.playVideo(); } catch (e) {}
+          try {
+            if (isTrackEnded) {
+              ytPlayer.seekTo(0, true);
+              isTrackEnded = false;
+            }
+            ytPlayer.playVideo();
+          } catch (e) {}
         }
         if (icon) icon.innerHTML = `<path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/>`;
       } else {

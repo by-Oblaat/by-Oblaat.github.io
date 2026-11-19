@@ -115,7 +115,7 @@
 
     .player-stage {
       position: absolute;
-      width: 240px;
+      width: 100%;
       height: 275px;
       display: flex;
       justify-content: center;
@@ -172,16 +172,15 @@
        커버플로우(Cover Flow) 3D 스테이지
        ========================================= */
     .carousel-stage {
-      position: absolute;
-      top: 10px;
-      left: 50%;
-      margin-left: -260px;
-      width: 520px;
+      position: relative;
+      width: 100%;
+      max-width: 560px;
       height: 260px;
       display: flex;
       justify-content: center;
       align-items: flex-start;
       perspective: 750px;
+      perspective-origin: 50% 45%;
       touch-action: none;
       z-index: 20;
     }
@@ -190,6 +189,7 @@
       position: relative;
       width: 210px;
       height: 210px;
+      margin-top: 10px;
       transform-style: preserve-3d;
     }
 
@@ -219,6 +219,8 @@
       text-align: center;
       padding: 24px 16px;
       box-shadow: 0 12px 28px rgba(107, 158, 255, 0.14);
+      backface-visibility: hidden;
+      -webkit-backface-visibility: hidden;
     }
 
     .lp-jacket.has-img {
@@ -981,7 +983,22 @@
       }
       .player-stage {
         width: 100%;
+        height: 220px;
+      }
+      .carousel-stage {
         height: 210px;
+        perspective: 620px;
+      }
+      .stack-track,
+      .lp-slot {
+        width: 170px;
+        height: 170px;
+      }
+      .vinyl-disc {
+        top: 8px;
+        left: 8px;
+        width: 154px;
+        height: 154px;
       }
       .active-turntable-stage {
         width: 48vw;
@@ -1693,14 +1710,21 @@
       }
     };
 
-    /* 3D 원근법 유지 + 현재 커버 정면(0도) 정렬 */
+    /* 모바일 및 데스크톱 3D 원근법 유지 + 현재 커버 0도(정면) 정렬 */
     function updateCarouselPositions() {
+      const isMobile = window.innerWidth <= 680;
+      const baseShift = isMobile ? 92 : 112;
+      const stepShift = isMobile ? 26 : 34;
+      const baseDepth = isMobile ? -48 : -55;
+      const stepDepth = isMobile ? -32 : -38;
+      const sideAngle = isMobile ? 54 : 58;
+
       slotElements.forEach((slot, idx) => {
         const offset = idx - currentIndex;
 
         if (offset === 0) {
           slot.classList.add('active');
-          slot.style.transform = `translateX(0px) translateZ(0px) rotateY(0deg)`;
+          slot.style.transform = `translate3d(0px, 0px, 0px) rotateY(0deg)`;
           slot.style.zIndex = 30;
           slot.style.opacity = 1;
           slot.style.pointerEvents = 'auto';
@@ -1708,11 +1732,11 @@
           slot.classList.remove('active', 'on-player', 'spinning');
           const sign = offset > 0 ? 1 : -1;
           const abs = Math.abs(offset);
-          const translateX = sign * (112 + abs * 34);
-          const translateZ = -55 - abs * 38;
-          const rotateY = -sign * 58;
+          const translateX = sign * (baseShift + abs * stepShift);
+          const translateZ = baseDepth + abs * stepDepth;
+          const rotateY = -sign * sideAngle;
 
-          slot.style.transform = `translateX(${translateX}px) translateZ(${translateZ}px) rotateY(${rotateY}deg)`;
+          slot.style.transform = `translate3d(${translateX}px, 0px, ${translateZ}px) rotateY(${rotateY}deg)`;
           slot.style.zIndex = Math.max(1, 25 - abs);
           slot.style.opacity = abs > 2 ? 0 : Math.max(0.45, 1 - abs * 0.25);
           slot.style.pointerEvents = abs > 2 ? 'none' : 'auto';

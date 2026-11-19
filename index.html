@@ -2495,7 +2495,8 @@ const PLUS_PLAYLIST_PATH = "playlist/plus_tracks.json";
       activeVinyl.classList.remove('spinning');
 
       const post = filteredPosts[0];
-      const vinylImgUrl = extractMetaUrl(post.body, 'vinyl', CUSTOM_ASSETS.vinylDisc);
+      const defaultPlusVinyl = encodeURI("./track 000.png");
+      const vinylImgUrl = extractMetaUrl(post.body, 'vinyl', CUSTOM_ASSETS.vinylDisc || defaultPlusVinyl);
       if (vinylImgUrl) {
         activeVinyl.style.backgroundImage = `url("${vinylImgUrl}")`;
         activeVinyl.classList.add('has-img');
@@ -2583,7 +2584,8 @@ const PLUS_PLAYLIST_PATH = "playlist/plus_tracks.json";
         const labelName = post.labels[0] ? post.labels[0].name.toUpperCase() : 'ARCHIVE';
         const date = formatYYMMDD(post.created_at);
         const coverImgUrl = extractMetaUrl(post.body, 'cover', CUSTOM_ASSETS.defaultCover);
-        const vinylImgUrl = extractMetaUrl(post.body, 'vinyl', CUSTOM_ASSETS.vinylDisc);
+        const plusFallbackVinyl = document.body.classList.contains('plus-music-mode') ? encodeURI("./track 000.png") : CUSTOM_ASSETS.vinylDisc;
+      const vinylImgUrl = extractMetaUrl(post.body, 'vinyl', plusFallbackVinyl);
 
         const jacketClass = coverImgUrl ? 'lp-jacket has-img' : 'lp-jacket';
         const jacketStyle = coverImgUrl ? `style="background-image: url('${coverImgUrl}')"` : '';

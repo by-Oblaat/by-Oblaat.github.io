@@ -92,7 +92,7 @@
     }
 
     /* =========================================
-       메인 컨테이너
+       메인 컨테이너 및 부드러운 전환 스테이지 구조
        ========================================= */
     .main-container {
       width: 100%;
@@ -113,31 +113,49 @@
       position: relative;
     }
 
+    /* 1. 커버플로우 스테이지 부드러운 페이드/스케일 트랜지션 */
     .player-stage {
-      position: relative;
+      position: absolute;
       width: 240px;
       height: 275px;
-      flex-shrink: 0;
       display: flex;
       justify-content: center;
       align-items: flex-start;
-      transition: transform 0.75s cubic-bezier(0.22, 1, 0.36, 1);
+      opacity: 1;
+      transform: scale(1);
+      transition: opacity 0.5s cubic-bezier(0.22, 1, 0.36, 1),
+                  transform 0.5s cubic-bezier(0.22, 1, 0.36, 1);
+      z-index: 15;
     }
 
+    /* 2. 재생 턴테이블+컨트롤 카드 스테이지 부드러운 페이드/스케일 트랜지션 */
     .player-active-row {
-      display: none;
+      position: absolute;
       width: 100%;
-      max-width: 540px;
+      max-width: 520px;
+      display: flex;
       align-items: center;
-      justify-content: space-between;
-      gap: 14px;
+      justify-content: center;
+      gap: 0;
       padding: 0 10px;
+      opacity: 0;
+      transform: scale(0.94);
+      pointer-events: none;
+      transition: opacity 0.5s cubic-bezier(0.22, 1, 0.36, 1),
+                  transform 0.5s cubic-bezier(0.22, 1, 0.36, 1);
+      z-index: 10;
     }
+
+    /* 재생 모드 활성화 시 상태 전환 (display:none 제거로 부드러운 크로스페이드) */
     .showcase-row.is-open .player-stage {
-      display: none;
+      opacity: 0;
+      transform: scale(0.94);
+      pointer-events: none;
     }
     .showcase-row.is-open .player-active-row {
-      display: flex;
+      opacity: 1;
+      transform: scale(1);
+      pointer-events: auto;
     }
 
     .active-turntable-stage {
@@ -145,6 +163,12 @@
       width: 220px;
       height: 220px;
       flex-shrink: 0;
+      z-index: 2;
+    }
+    .track-drawer {
+      position: relative;
+      z-index: 1;
+      margin-left: -18px;
     }
 
     /* =========================================
@@ -198,29 +222,14 @@
       text-align: center;
       padding: 24px 16px;
       box-shadow: 0 12px 28px rgba(107, 158, 255, 0.14);
-      /* The jacket box stays level; only the inner artwork is tilted. */
       transform: none;
     }
 
     .lp-jacket.has-img {
       border: none;
-      background: transparent !important;
-      box-shadow: none;
-      transform: none !important;
-    }
-    .lp-jacket .cover-art {
-      display: none;
-    }
-    .lp-jacket.has-img .cover-art {
-      display: block;
-      position: absolute;
-      inset: 0;
-      background-size: cover;
-      background-position: center;
-      transform: rotate(-6deg);
-      transform-origin: center center;
+      background-color: transparent;
       box-shadow: 0 12px 28px rgba(107, 158, 255, 0.14);
-      z-index: 1;
+      transform: none !important;
     }
     .lp-jacket.has-img .lp-card-label,
     .lp-jacket.has-img .lp-card-title,
@@ -407,16 +416,16 @@
     }
 
     /* =========================================
-       우측 뮤직 컨트롤 카드 (시안 일러스트 5번과 100% 일치하는 가로 슬림형 + 상시 스크롤 구조)
+       우측 뮤직 컨트롤 카드 (슬림형 + 상시 스크롤 구조)
        ========================================= */
     .player-control-card {
-      width: 320px;
-      height: 215px;
+      width: 310px;
+      height: 166px;
       background: #ffffff;
       border: 1px solid #ececec;
-      border-radius: 18px;
+      border-radius: 16px;
       box-shadow: 0 10px 28px rgba(0, 0, 0, 0.06);
-      padding: 18px 20px;
+      padding: 12px 16px 10px 24px;
       display: flex;
       flex-direction: column;
       justify-content: space-between;
@@ -496,28 +505,42 @@
       fill: currentColor;
     }
 
-    /* 트랙 목록: 처음부터 항상 열려 있고, 2개 트랙이 선명하게 보이며 스크롤 제공[cite: 36] */
     .mini-track-popover {
-      max-height: 52px !important;
+      box-sizing: border-box;
+      height: 44px !important;
+      max-height: 44px !important;
+      min-height: 44px !important;
+      flex: 0 0 44px !important;
       opacity: 1 !important;
-      overflow-y: auto !important;
-      display: flex;
-      flex-direction: column;
-      gap: 3px;
+      overflow-y: scroll !important;
+      overflow-x: hidden !important;
+      display: block !important;
       border-top: 1px solid #eeeeee;
-      padding-top: 5px;
+      padding: 3px 7px 0 0;
+      scrollbar-width: thin;
+      scrollbar-color: #bfc5d0 #f3f5f9;
+      overscroll-behavior: contain;
     }
-    .mini-track-popover::-webkit-scrollbar {
-      width: 4px;
-    }
-    .mini-track-popover::-webkit-scrollbar-thumb {
-      background: #cccccc;
+    .mini-track-popover::-webkit-scrollbar { width: 6px; }
+    .mini-track-popover::-webkit-scrollbar-track {
+      background: #f3f5f9;
       border-radius: 99px;
     }
+    .mini-track-popover::-webkit-scrollbar-thumb {
+      background: #bfc5d0;
+      border-radius: 99px;
+      border: 1px solid #f3f5f9;
+    }
     .mini-track-row {
+      box-sizing: border-box;
+      display: block;
+      height: 20px;
+      min-height: 20px;
       font-size: 0.78rem;
-      color: #222222 !important; /* 텍스트 증발 및 흐림 현상 원천 방지 */
-      padding: 3px 6px;
+      line-height: 18px;
+      color: #222222 !important;
+      padding: 1px 6px;
+      margin: 0;
       border-radius: 4px;
       cursor: pointer;
       white-space: nowrap;
@@ -696,7 +719,7 @@
     .thread-submit-btn:disabled { opacity: 0.5; cursor: default; }
 
     /* =========================================
-       전용 글쓰기 / 순서 변경 / 수정·삭제 관리자 모달 UI
+       관리자 모달 UI
        ========================================= */
     .writer-overlay {
       display: none;
@@ -959,8 +982,8 @@
         flex-direction: row !important;
         width: 100% !important;
         max-width: 100% !important;
-        justify-content: space-between !important;
-        gap: 8px !important;
+        justify-content: center !important;
+        gap: 0 !important;
         padding: 0 4px !important;
       }
       .player-stage {
@@ -994,16 +1017,21 @@
         left: 10%;
       }
       .track-drawer {
-        width: 48vw !important;
-        max-width: 175px !important;
+        width: calc(100% - min(48vw, 175px) + 14px) !important;
+        max-width: 310px !important;
+        margin-left: -14px !important;
       }
+      .active-turntable-stage { z-index: 2; }
+      .track-drawer { z-index: 1; }
       .player-control-card {
         width: 100% !important;
-        height: 215px !important;
+        height: 166px !important;
+        padding: 10px 11px 10px 22px !important;
       }
       .ctrl-title { font-size: 0.72rem; }
       .ctrl-btn { width: 24px; height: 24px; }
       .ctrl-btn svg { width: 10px; height: 10px; }
+      .mini-track-popover { height: 44px !important; min-height: 44px !important; max-height: 44px !important; flex: 0 0 44px !important; }
       .detail-drawer { max-width: 100%; }
       .image-frame { min-height: 200px; }
     }
@@ -1039,7 +1067,7 @@
           </div>
         </div>
 
-        <!-- 2. 재생 상태: 시안 일러스트 5번과 100% 일치하는 가로 슬림형 + 상시 스크롤 플레이어 -->
+        <!-- 2. 재생 상태: 가로 슬림형 + 상시 스크롤 플레이어 -->
         <div class="player-active-row" id="playerActiveRow">
           <div class="active-turntable-stage" id="turntableTriggerBox" title="클릭하여 커버 덱으로 돌아가기">
             <div class="turntable-box" id="turntableBox"></div>
@@ -1052,7 +1080,7 @@
             </div>
           </div>
 
-          <aside class="track-drawer" style="width: 320px; opacity: 1; pointer-events: auto;">
+          <aside class="track-drawer" style="width: 310px; opacity: 1; pointer-events: auto;">
             <div class="player-control-card" id="playerControlCard">
               <div class="ctrl-top-row">
                 <div class="ctrl-meta">
@@ -1076,7 +1104,6 @@
                 </button>
               </div>
 
-              <!-- 처음부터 항상 열려 있고 트랙명이 선명하게 노출되며 스크롤이 적용되는 영역[cite: 36] -->
               <div class="mini-track-popover open" id="miniTrackPopover"></div>
             </div>
           </aside>
@@ -1116,7 +1143,7 @@
     </main>
   </div>
 
-  <!-- 전용 글쓰기 / 순서 변경 / 수정·삭제 관리자 모달 -->
+  <!-- 관리자 모달 -->
   <div class="writer-overlay" id="writerOverlay">
     <div class="writer-box">
       <div class="writer-header">
@@ -1172,7 +1199,7 @@
         </div>
 
         <div class="writer-field">
-          <label>COMMENT (메인 코멘트 본문 — 비워두면 출력되지 않습니다)</label>
+          <label>COMMENT (메인 코멘트 본문)</label>
           <textarea class="writer-textarea" id="postBodyInput" placeholder="코멘트 내용을 입력하세요 (선택 사항)"></textarea>
         </div>
 
@@ -1180,7 +1207,6 @@
       </div>
 
       <div class="manage-list" id="manageListPanel"></div>
-
       <div class="writer-status" id="writerStatus"></div>
     </div>
   </div>
@@ -1267,7 +1293,7 @@
           });
         } else {
           allPosts = [
-            { number: 0, title: "SAMPLE 01", created_at: new Date().toISOString(), labels: [{ name: "MADE" }], body: "상단 Love the Loveless 제목을 더블클릭(또는 주소 뒤에 #write 입력)하면 글쓰기·순서변경·수정·삭제 창이 열립니다." }
+            { number: 0, title: "SAMPLE 01", created_at: new Date().toISOString(), labels: [{ name: "MADE" }], body: "상단 Love the Loveless 제목을 더블클릭하면 관리창이 열립니다." }
           ];
         }
 
@@ -1278,18 +1304,11 @@
         rebuildAll();
         renderManageList();
 
-        const forceSync3D = () => {
-          updateCarouselPositions();
-        };
-
-        if (document.fonts && document.fonts.ready) {
-          document.fonts.ready.then(forceSync3D);
-        }
+        const forceSync3D = () => { updateCarouselPositions(); };
+        if (document.fonts && document.fonts.ready) { document.fonts.ready.then(forceSync3D); }
         window.addEventListener('load', forceSync3D);
         window.addEventListener('resize', forceSync3D);
         setTimeout(forceSync3D, 50);
-        setTimeout(forceSync3D, 200);
-        setTimeout(forceSync3D, 600);
       } catch (err) {
         console.error(err);
       }
@@ -1330,15 +1349,13 @@
         const vinylImgUrl = extractMetaUrl(post.body, 'vinyl', CUSTOM_ASSETS.vinylDisc);
 
         const jacketClass = coverImgUrl ? 'lp-jacket has-img' : 'lp-jacket';
-        const jacketStyle = '';
-        const coverArtStyle = coverImgUrl ? `style="background-image: url('${coverImgUrl}')"` : '';
+        const jacketStyle = coverImgUrl ? `style="background-image: url('${coverImgUrl}')"` : '';
 
         const vinylClass = vinylImgUrl ? 'vinyl-disc has-img' : 'vinyl-disc';
         const vinylStyle = vinylImgUrl ? `style="background-image: url('${vinylImgUrl}')"` : '';
 
         slot.innerHTML = `
           <div class="${jacketClass}" ${jacketStyle}>
-            <div class="cover-art" ${coverArtStyle}></div>
             <div class="lp-card-label">${labelName}</div>
             <div class="lp-card-title">${post.title}</div>
             <div class="lp-card-date">${date}</div>
@@ -1353,7 +1370,6 @@
             if (idx === currentIndex) resetPlayerAnimation();
             return;
           }
-
           if (idx === currentIndex) {
             startPlayerSequence(slot, idx);
           } else {
@@ -1367,7 +1383,7 @@
       });
       
       updateCarouselPositions();
-      renderTrackList(); // 데이터 로드 직후 트랙 리스트 강제 렌더링
+      renderTrackList();
     }
 
     function startPlayerSequence(slot, idx = currentIndex) {
@@ -1581,7 +1597,6 @@
           commentBody.innerHTML = '';
         }
 
-        // 타래 렌더링 (날짜 대신 '+' 기호 출력)
         const threadsContainer = document.getElementById('threadsContainer');
         threadsContainer.innerHTML = '';
 
@@ -1593,7 +1608,6 @@
 
             const itemEl = document.createElement('div');
             itemEl.className = 'thread-item';
-            
             itemEl.innerHTML = `
               <div class="thread-date">+</div>
               <div class="thread-body">${marked.parse(cleanBlock)}</div>
@@ -1609,7 +1623,6 @@
       }, 160);
     }
 
-    // 하단 타래글 추가 제출 버튼 이벤트
     document.getElementById('submitThreadBtn').onclick = async () => {
       const token = ghTokenInput.value.trim();
       const statusEl = document.getElementById('threadStatus');
@@ -1617,7 +1630,7 @@
       const threadText = threadInput.value.trim();
 
       if (!token) {
-        statusEl.textContent = '타래를 작성하려면 상단 관리창에 GitHub Token을 먼저 입력해 주세요.';
+        statusEl.textContent = '타래를 작성하려면 GitHub Token을 입력해 주세요.';
         return;
       }
       if (!threadText) {
@@ -1652,7 +1665,7 @@
           body: JSON.stringify({ body: existingBody })
         });
 
-        if (!res.ok) throw new Error('타래 추가 실패: 토큰 권한을 확인해 주세요.');
+        if (!res.ok) throw new Error('타래 추가 실패');
 
         statusEl.textContent = '타래가 추가되었습니다!';
         threadInput.value = '';
@@ -1666,17 +1679,16 @@
       }
     };
 
-    // 타래 작성란 이미지 첨부 핸들러
     document.getElementById('newThreadImgInput').onchange = async (e) => {
       const file = e.target.files[0];
       const token = ghTokenInput.value.trim();
       const statusEl = document.getElementById('threadStatus');
       if (!file) return;
       if (!token) {
-        statusEl.textContent = '이미지를 업로드하려면 토큰을 입력해 주세요.';
+        statusEl.textContent = '토큰을 입력해 주세요.';
         return;
       }
-      statusEl.textContent = '타래 이미지 업로드 중...';
+      statusEl.textContent = '이미지 업로드 중...';
       try {
         const url = await uploadImageToGitHub(file, token);
         const threadTextArea = document.getElementById('newThreadInput');
@@ -1694,8 +1706,7 @@
 
         if (offset === 0) {
           slot.classList.add('active');
-          // Keep the center cover slightly angled even on initial load/refresh.
-          slot.style.transform = `translateX(0px) translateZ(0px)`;
+          slot.style.transform = `translateX(0px) translateZ(0px) rotateY(0deg)`;
           slot.style.zIndex = 30;
           slot.style.opacity = 1;
           slot.style.pointerEvents = 'auto';
@@ -1705,7 +1716,7 @@
           const abs = Math.abs(offset);
           const translateX = sign * (112 + abs * 34);
           const translateZ = -55 - abs * 38;
-          const rotateY = -sign * 58; // carousel side angle only; stage/slot stays level
+          const rotateY = -sign * 58;
 
           slot.style.transform = `translateX(${translateX}px) translateZ(${translateZ}px) rotateY(${rotateY}deg)`;
           slot.style.zIndex = Math.max(1, 25 - abs);
@@ -1727,7 +1738,6 @@
     }
 
     const carouselStage = document.getElementById('carouselStage');
-
     carouselStage.addEventListener('wheel', (e) => {
       if (isPlaying) return;
       e.preventDefault();
@@ -1756,12 +1766,9 @@
       if (e.key === 'ArrowRight') stepTrack(1);
     });
 
-    /* =========================================================================
-       전용 글쓰기 / 순서 변경 / 수정·삭제 관리자 모달
-       ========================================= */
+    /* 관리자 모달 로직 */
     const writerOverlay = document.getElementById('writerOverlay');
     const ghTokenInput = document.getElementById('ghTokenInput');
-
     const savedToken = localStorage.getItem('oblaat_gh_token');
     if (savedToken) ghTokenInput.value = savedToken;
 
@@ -1772,24 +1779,16 @@
     function closeWriterModal() {
       cancelEditMode();
       writerOverlay.classList.remove('open');
-      if (window.location.hash === '#write') {
-        history.replaceState(null, null, ' ');
-      }
+      if (window.location.hash === '#write') history.replaceState(null, null, ' ');
     }
 
-    if (window.location.hash === '#write') {
-      openWriterModal();
-    }
-    window.addEventListener('hashchange', () => {
-      if (window.location.hash === '#write') openWriterModal();
-    });
+    if (window.location.hash === '#write') openWriterModal();
+    window.addEventListener('hashchange', () => { if (window.location.hash === '#write') openWriterModal(); });
 
     const secretTrigger = document.getElementById('secretTrigger');
     secretTrigger.ondblclick = openWriterModal;
     let pressTimer = null;
-    secretTrigger.addEventListener('touchstart', () => {
-      pressTimer = setTimeout(openWriterModal, 1200);
-    }, { passive: true });
+    secretTrigger.addEventListener('touchstart', () => { pressTimer = setTimeout(openWriterModal, 1200); }, { passive: true });
     secretTrigger.addEventListener('touchend', () => clearTimeout(pressTimer));
 
     document.getElementById('closeWriter').onclick = closeWriterModal;
@@ -1814,7 +1813,6 @@
         renderManageList();
       }
     }
-
     tabWrite.onclick = () => switchAdminTab('write');
     tabManage.onclick = () => switchAdminTab('manage');
 
@@ -1824,7 +1822,6 @@
         o.classList.toggle('selected', o.dataset.cat === catName);
       });
     }
-
     document.querySelectorAll('.cat-option').forEach(opt => {
       opt.onclick = () => setCategorySelection(opt.dataset.cat);
     });
@@ -1835,7 +1832,6 @@
         manageListPanel.innerHTML = `<p style="font-size:0.84rem; color:#888; text-align:center; padding:24px 0;">등록된 트랙이 없습니다.</p>`;
         return;
       }
-
       manageListPanel.innerHTML = realPosts.map((post, idx) => {
         const cat = post.labels[0] ? post.labels[0].name : 'NONE';
         const date = formatYYMMDD(post.created_at);
@@ -1860,19 +1856,16 @@
       const token = ghTokenInput.value.trim();
       const statusEl = document.getElementById('writerStatus');
       if (!token) {
-        statusEl.textContent = '상단 발행 비밀번호(GitHub Token)를 먼저 입력해 주세요.';
+        statusEl.textContent = 'GitHub Token을 입력해 주세요.';
         return;
       }
-
       const targetIndex = index + direction;
       if (targetIndex < 0 || targetIndex >= allPosts.length) return;
 
       const temp = allPosts[index];
       allPosts[index] = allPosts[targetIndex];
       allPosts[targetIndex] = temp;
-
       renderManageList();
-      statusEl.textContent = '순서 저장 중...';
 
       try {
         for (let i = 0; i < allPosts.length; i++) {
@@ -1888,29 +1881,21 @@
 
           await fetch(`https://api.github.com/repos/${GITHUB_USER}/${GITHUB_REPO}/issues/${post.number}`, {
             method: 'PATCH',
-            headers: {
-              'Authorization': `token ${token}`,
-              'Content-Type': 'application/json'
-            },
+            headers: { 'Authorization': `token ${token}`, 'Content-Type': 'application/json' },
             body: JSON.stringify({ body: updatedBody })
           });
         }
-
         const activeFilter = document.querySelector('.filter-btn.active')?.dataset.label?.trim().toUpperCase() || 'ALL';
         filteredPosts = allPosts.filter(p => matchesCategory(p, activeFilter));
         rebuildAll();
-
-        statusEl.textContent = '순서가 변경되었습니다.';
-        setTimeout(() => { statusEl.textContent = ''; }, 1000);
       } catch (err) {
-        statusEl.textContent = '순서 저장 실패: 토큰을 확인해 주세요.';
+        statusEl.textContent = '순서 저장 실패';
       }
     };
 
     window.startEditTrack = function(issueNumber) {
       const post = allPosts.find(p => p.number === issueNumber);
       if (!post) return;
-
       editingIssueNumber = issueNumber;
       const raw = post.body || '';
 
@@ -1934,10 +1919,6 @@
 
       preservedAssets = { cover: coverUrl, vinyl: vinylUrl, bodyImg: bodyImgUrl, order: orderVal };
 
-      document.getElementById('existingCoverNote').textContent = coverUrl ? '※ 기존 커버 이미지 유지됨 (새 파일 선택 시 교체)' : '';
-      document.getElementById('existingVinylNote').textContent = vinylUrl ? '※ 기존 LP 알판 이미지 유지됨 (새 파일 선택 시 교체)' : '';
-      document.getElementById('existingBodyImgNote').textContent = bodyImgUrl ? '※ 기존 본문 이미지 유지됨 (새 파일 선택 시 교체)' : '';
-
       document.getElementById('postTitleInput').value = post.title;
       document.getElementById('postBodyInput').value = pureText;
       const cat = post.labels[0] ? post.labels[0].name.trim().toUpperCase() : 'MADE';
@@ -1946,16 +1927,12 @@
       document.getElementById('editModeBanner').classList.add('active');
       document.getElementById('editModeText').textContent = `수정 중: ${post.title}`;
       document.getElementById('publishBtn').textContent = '수정 완료 (UPDATE)';
-
       switchAdminTab('write');
     };
 
     function cancelEditMode() {
       editingIssueNumber = null;
       preservedAssets = { cover: "", vinyl: "", bodyImg: "", order: "" };
-      document.getElementById('existingCoverNote').textContent = '';
-      document.getElementById('existingVinylNote').textContent = '';
-      document.getElementById('existingBodyImgNote').textContent = '';
       document.getElementById('postTitleInput').value = '';
       document.getElementById('postBodyInput').value = '';
       document.getElementById('coverFileInput').value = '';
@@ -1964,39 +1941,22 @@
       document.getElementById('editModeBanner').classList.remove('active');
       document.getElementById('publishBtn').textContent = '발행하기 (PUBLISH)';
     }
-
     document.getElementById('cancelEditBtn').onclick = cancelEditMode;
 
     window.deleteTrack = async function(issueNumber, title) {
       const token = ghTokenInput.value.trim();
-      const statusEl = document.getElementById('writerStatus');
-
-      if (!token) {
-        statusEl.textContent = '상단 발행 비밀번호(GitHub Token)를 먼저 입력해 주세요.';
-        return;
-      }
-      if (!confirm(`"${title}" 트랙을 정말 삭제할까요?`)) return;
-
-      localStorage.setItem('oblaat_gh_token', token);
-      statusEl.textContent = '트랙 삭제 중...';
+      if (!token) { alert('GitHub Token을 입력해 주세요.'); return; }
+      if (!confirm(`"${title}" 트랙을 삭제할까요?`)) return;
 
       try {
-        const res = await fetch(`https://api.github.com/repos/${GITHUB_USER}/${GITHUB_REPO}/issues/${issueNumber}`, {
+        await fetch(`https://api.github.com/repos/${GITHUB_USER}/${GITHUB_REPO}/issues/${issueNumber}`, {
           method: 'PATCH',
-          headers: {
-            'Authorization': `token ${token}`,
-            'Content-Type': 'application/json'
-          },
+          headers: { 'Authorization': `token ${token}`, 'Content-Type': 'application/json' },
           body: JSON.stringify({ state: 'closed' })
         });
-
-        if (!res.ok) throw new Error('삭제 실패: 토큰 권한을 확인해 주세요.');
-
-        statusEl.textContent = '삭제되었습니다.';
         await fetchPosts();
-        setTimeout(() => { statusEl.textContent = ''; }, 1200);
       } catch (err) {
-        statusEl.textContent = err.message;
+        alert(err.message);
       }
     };
 
@@ -2011,22 +1971,14 @@
 
             const res = await fetch(`https://api.github.com/repos/${GITHUB_USER}/${GITHUB_REPO}/contents/${fileName}`, {
               method: 'PUT',
-              headers: {
-                'Authorization': `token ${token}`,
-                'Content-Type': 'application/json'
-              },
-              body: JSON.stringify({
-                message: `upload image: ${fileName}`,
-                content: base64Content
-              })
+              headers: { 'Authorization': `token ${token}`, 'Content-Type': 'application/json' },
+              body: JSON.stringify({ message: `upload image`, content: base64Content })
             });
 
-            if (!res.ok) throw new Error('이미지 업로드 실패 (토큰 권한 확인)');
+            if (!res.ok) throw new Error('업로드 실패');
             const data = await res.json();
             resolve(data.content.download_url);
-          } catch (err) {
-            reject(err);
-          }
+          } catch (err) { reject(err); }
         };
         reader.onerror = reject;
         reader.readAsDataURL(file);
@@ -2043,27 +1995,17 @@
       const statusEl = document.getElementById('writerStatus');
       const btn = document.getElementById('publishBtn');
 
-      if (!token) {
-        statusEl.textContent = '발행 비밀번호(GitHub Token)를 입력해 주세요.';
-        return;
-      }
-      if (!title) {
-        statusEl.textContent = '트랙 제목을 입력해 주세요.';
-        return;
-      }
+      if (!token) { statusEl.textContent = '토큰을 입력해 주세요.'; return; }
+      if (!title) { statusEl.textContent = '제목을 입력해 주세요.'; return; }
 
       localStorage.setItem('oblaat_gh_token', token);
       btn.disabled = true;
 
       try {
         let finalBodyParts = [];
-
-        if (preservedAssets.order) {
-          finalBodyParts.push(`order: ${preservedAssets.order}`);
-        }
+        if (preservedAssets.order) finalBodyParts.push(`order: ${preservedAssets.order}`);
 
         if (coverFile) {
-          statusEl.textContent = 'LP 커버 이미지 업로드 중...';
           const coverUrl = await uploadImageToGitHub(coverFile, token);
           finalBodyParts.push(`cover: ${coverUrl}`);
         } else if (preservedAssets.cover) {
@@ -2071,7 +2013,6 @@
         }
 
         if (vinylFile) {
-          statusEl.textContent = 'LP 알판 이미지 업로드 중...';
           const vinylUrl = await uploadImageToGitHub(vinylFile, token);
           finalBodyParts.push(`vinyl: ${vinylUrl}`);
         } else if (preservedAssets.vinyl) {
@@ -2079,16 +2020,13 @@
         }
 
         if (bodyImgFile) {
-          statusEl.textContent = '본문 이미지 업로드 중...';
           const bodyImgUrl = await uploadImageToGitHub(bodyImgFile, token);
           finalBodyParts.push(`![image](${bodyImgUrl})`);
         } else if (preservedAssets.bodyImg) {
           finalBodyParts.push(`![image](${preservedAssets.bodyImg})`);
         }
 
-        if (rawBody) {
-          finalBodyParts.push(rawBody);
-        }
+        if (rawBody) finalBodyParts.push(rawBody);
 
         if (editingIssueNumber !== null) {
           const oldPost = allPosts.find(p => p.number === editingIssueNumber);
@@ -2099,28 +2037,17 @@
         }
 
         const isEditing = editingIssueNumber !== null;
-        statusEl.textContent = isEditing ? '트랙 수정 저장 중...' : '트랙 발행 중...';
-
         const endpoint = isEditing
           ? `https://api.github.com/repos/${GITHUB_USER}/${GITHUB_REPO}/issues/${editingIssueNumber}`
           : `https://api.github.com/repos/${GITHUB_USER}/${GITHUB_REPO}/issues`;
 
         const res = await fetch(endpoint, {
           method: isEditing ? 'PATCH' : 'POST',
-          headers: {
-            'Authorization': `token ${token}`,
-            'Content-Type': 'application/json'
-          },
-          body: JSON.stringify({
-            title: title,
-            body: finalBodyParts.join('\n\n'),
-            labels: [selectedCategory]
-          })
+          headers: { 'Authorization': `token ${token}`, 'Content-Type': 'application/json' },
+          body: JSON.stringify({ title: title, body: finalBodyParts.join('\n\n'), labels: [selectedCategory] })
         });
 
-        if (!res.ok) throw new Error('저장 실패: 토큰이 올바른지 확인해 주세요.');
-
-        statusEl.textContent = isEditing ? '수정 완료!' : '발행 완료!';
+        if (!res.ok) throw new Error('저장 실패');
 
         setTimeout(() => {
           closeWriterModal();
@@ -2128,7 +2055,6 @@
           btn.disabled = false;
           fetchPosts();
         }, 700);
-
       } catch (err) {
         statusEl.textContent = err.message;
         btn.disabled = false;

@@ -1114,7 +1114,46 @@
 
 
     /* 에디터 서식 툴바 (Track COMMENT & 스레드 공용) */
-    .rich-mini-toolbar {
+.rich-editor-wrap {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+    .rich-live-surface {
+      width: 100%;
+      min-height: 110px;
+      max-height: 240px;
+      overflow-y: auto;
+      border: 1px solid #dcdcdc;
+      border-radius: 6px;
+      background: #ffffff;
+      padding: 10px 12px;
+      font-family: 'Gowun Batang', serif;
+      font-size: 0.95rem;
+      line-height: 1.7;
+      color: var(--text-main);
+      outline: none;
+      word-break: keep-all;
+    }
+    .rich-live-surface:focus {
+      border-color: var(--line-blue);
+    }
+    .rich-source-toggle {
+      align-self: flex-end;
+      background: none;
+      border: none;
+      color: var(--text-sub);
+      font-size: 0.72rem;
+      cursor: pointer;
+      text-decoration: underline;
+      font-family: 'Gowun Batang', serif;
+      padding: 0 2px;
+    }
+    .rich-source-toggle:hover {
+      color: var(--line-blue);
+    }
+
+        .rich-mini-toolbar {
       display: flex;
       flex-wrap: wrap;
       align-items: center;
@@ -3138,6 +3177,7 @@
         statusEl.textContent = '타래가 추가되었습니다!';
         if (threadTitleInput) threadTitleInput.value = '';
         threadInput.value = '';
+      document.querySelectorAll('.rich-live-surface').forEach(s => { if (s.dataset.forTextarea === 'postBodyInput' || s.dataset.forTextarea === 'newThreadInput') { const srcTa = document.getElementById(s.dataset.forTextarea); if (srcTa && window.marked) s.innerHTML = srcTa.value.trim() ? window.marked.parse(srcTa.value.trim()) : ''; } });
         document.getElementById('submitThreadBtn').disabled = false;
         isPlaying = true;
         await fetchPosts({ preservePlayer: true });
@@ -3414,6 +3454,7 @@ ${cleanBody}`;
 
       document.getElementById('postTitleInput').value = post.title;
       document.getElementById('postBodyInput').value = pureText;
+      document.querySelectorAll('.rich-live-surface').forEach(s => { if (s.dataset.forTextarea === 'postBodyInput' || s.dataset.forTextarea === 'newThreadInput') { const srcTa = document.getElementById(s.dataset.forTextarea); if (srcTa && window.marked) s.innerHTML = srcTa.value.trim() ? window.marked.parse(srcTa.value.trim()) : ''; } });
       const cat = post.labels[0] ? post.labels[0].name.trim().toUpperCase() : 'MADE';
       setCategorySelection(cat === 'LOVE' || cat === 'AND' ? 'LOVE' : 'MADE');
 
@@ -3428,6 +3469,7 @@ ${cleanBody}`;
       preservedAssets = { cover: "", vinyl: "", bodyImg: "", bgm: "", yt: "", order: "" };
       document.getElementById('postTitleInput').value = '';
       document.getElementById('postBodyInput').value = '';
+      document.querySelectorAll('.rich-live-surface').forEach(s => { if (s.dataset.forTextarea === 'postBodyInput' || s.dataset.forTextarea === 'newThreadInput') { const srcTa = document.getElementById(s.dataset.forTextarea); if (srcTa && window.marked) s.innerHTML = srcTa.value.trim() ? window.marked.parse(srcTa.value.trim()) : ''; } });
       document.getElementById('coverFileInput').value = '';
       document.getElementById('vinylFileInput').value = '';
       document.getElementById('bodyImgFileInput').value = '';
@@ -3583,23 +3625,129 @@ ${cleanBody}`;
       ];
       const sizeOptions = [
         { label: '크기', value: '' },
-        { label: '14px', value: '14px' },
-        { label: '16px', value: '16px' },
-        { label: '18px', value: '18px' },
-        { label: '22px', value: '22px' }
+        { label: '6pt', value: '6pt' },
+        { label: '7pt', value: '7pt' },
+        { label: '8pt', value: '8pt' },
+        { label: '9pt', value: '9pt' },
+        { label: '10pt', value: '10pt' },
+        { label: '11pt', value: '11pt' },
+        { label: '12pt', value: '12pt' },
+        { label: '13pt', value: '13pt' },
+        { label: '14pt', value: '14pt' },
+        { label: '15pt', value: '15pt' },
+        { label: '16pt', value: '16pt' },
+        { label: '17pt', value: '17pt' },
+        { label: '18pt', value: '18pt' }
       ];
 
-      function wrapSelection(ta, beforeStr, afterStr, placeholderText = '텍스트') {
-        if (!ta) return;
-        const start = ta.selectionStart ?? ta.value.length;
-        const end = ta.selectionEnd ?? ta.value.length;
-        const selected = ta.value.slice(start, end) || placeholderText;
-        const replacement = `${beforeStr}${selected}${afterStr}`;
-        ta.value = ta.value.slice(0, start) + replacement + ta.value.slice(end);
-        ta.focus();
-        const newStart = start + beforeStr.length;
-        const newEnd = newStart + selected.length;
-        ta.setSelectionRange(newStart, newEnd);
+      function serializeSurfaceToMarkdown(surfaceEl) {
+        if (!surfaceEl) return '';
+        let out = '';
+        surfaceEl.childNodes.forEach((node) => {
+          if (node.nodeType === Node.TEXT_NODE) {
+            out += node.textContent;
+          } else if (node.nodeType === Node.ELEMENT_NODE) {
+            const tag = node.tagName.toLowerCase();
+            if (tag === 'br') {
+              out += '\n';
+              return;
+            }
+            const inner = serializeSurfaceToMarkdown(node);
+            if (tag === 'b' || tag === 'strong') {
+              out += `**${inner}**`;
+            } else if (tag === 'i' || tag === 'em') {
+              out += `*${inner}*`;
+            } else if (tag === 'a') {
+              const href = node.getAttribute('href') || '';
+              out += href ? `[${inner || href}](${href})` : inner;
+            } else if (tag === 'span') {
+              const styleAttr = node.getAttribute('style') || '';
+              out += styleAttr ? `<span style="${styleAttr}">${inner}</span>` : inner;
+            } else if (tag === 'div' || tag === 'p') {
+              const prefix = out && !out.endsWith('\n') ? '\n' : '';
+              out += `${prefix}${inner}\n`;
+            } else {
+              out += inner;
+            }
+          }
+        });
+        return out.replace(/\n{3,}/g, '\n\n').trim();
+      }
+
+      function renderMarkdownIntoSurface(surfaceEl, rawVal) {
+        if (!surfaceEl) return;
+        const clean = (rawVal || '').trim();
+        if (!clean) {
+          surfaceEl.innerHTML = '';
+          return;
+        }
+        if (window.marked && typeof window.marked.parse === 'function') {
+          surfaceEl.innerHTML = window.marked.parse(clean);
+        } else {
+          surfaceEl.textContent = clean;
+        }
+      }
+
+      function applyStyleToSurfaceSelection(surfaceEl, ta, styleProp, styleVal, fallbackText = '선택 텍스트') {
+        if (!surfaceEl || !ta) return;
+        surfaceEl.focus();
+        const sel = window.getSelection();
+        let range = null;
+        if (sel && sel.rangeCount > 0 && surfaceEl.contains(sel.getRangeAt(0).commonAncestorContainer)) {
+          range = sel.getRangeAt(0);
+        } else {
+          range = document.createRange();
+          range.selectNodeContents(surfaceEl);
+          range.collapse(false);
+        }
+
+        const span = document.createElement('span');
+        span.style[styleProp] = styleVal;
+        if (styleProp === 'backgroundColor') {
+          span.style.padding = '0 3px';
+          span.style.borderRadius = '3px';
+        }
+
+        if (range.collapsed) {
+          span.textContent = fallbackText;
+          range.insertNode(span);
+          const nextRange = document.createRange();
+          nextRange.selectNodeContents(span);
+          if (sel) {
+            sel.removeAllRanges();
+            sel.addRange(nextRange);
+          }
+        } else {
+          const extracted = range.extractContents();
+          span.appendChild(extracted);
+          range.insertNode(span);
+          const nextRange = document.createRange();
+          nextRange.selectNodeContents(span);
+          if (sel) {
+            sel.removeAllRanges();
+            sel.addRange(nextRange);
+          }
+        }
+        ta.value = serializeSurfaceToMarkdown(surfaceEl);
+      }
+
+      function applySimpleCommandToSurface(surfaceEl, ta, cmdName, fallbackText = '텍스트') {
+        if (!surfaceEl || !ta) return;
+        surfaceEl.focus();
+        const sel = window.getSelection();
+        if (sel && sel.rangeCount > 0 && surfaceEl.contains(sel.getRangeAt(0).commonAncestorContainer) && sel.getRangeAt(0).collapsed) {
+          const r = sel.getRangeAt(0);
+          const el = document.createElement(cmdName === 'bold' ? 'strong' : 'em');
+          el.textContent = fallbackText;
+          r.insertNode(el);
+          const nr = document.createRange();
+          nr.selectNodeContents(el);
+          sel.removeAllRanges();
+          sel.addRange(nr);
+        } else {
+          document.execCommand(cmdName, false, null);
+        }
+        ta.value = serializeSurfaceToMarkdown(surfaceEl);
       }
 
       document.querySelectorAll('.rich-mini-toolbar').forEach((bar) => {
@@ -3608,6 +3756,71 @@ ${cleanBody}`;
         const targetId = bar.dataset.target;
         const ta = document.getElementById(targetId);
         if (!ta) return;
+
+        // Live styled editor surface right below toolbar so font/color changes show immediately
+        let wrapEl = bar.nextElementSibling;
+        if (!wrapEl || !wrapEl.classList.contains('rich-editor-wrap')) {
+          wrapEl = document.createElement('div');
+          wrapEl.className = 'rich-editor-wrap';
+          bar.parentNode.insertBefore(wrapEl, bar.nextSibling);
+        }
+
+        const surfaceEl = document.createElement('div');
+        surfaceEl.className = 'rich-live-surface';
+        surfaceEl.contentEditable = 'true';
+        surfaceEl.dataset.forTextarea = targetId;
+        surfaceEl.dataset.placeholder = ta.getAttribute('placeholder') || '';
+
+        const sourceToggleBtn = document.createElement('button');
+        sourceToggleBtn.type = 'button';
+        sourceToggleBtn.className = 'rich-source-toggle';
+        sourceToggleBtn.textContent = '태그/코드 직접 보기';
+
+        ta.style.display = 'none';
+        wrapEl.appendChild(surfaceEl);
+        wrapEl.appendChild(sourceToggleBtn);
+        wrapEl.appendChild(ta);
+
+        renderMarkdownIntoSurface(surfaceEl, ta.value);
+
+        surfaceEl.addEventListener('input', () => {
+          ta.value = serializeSurfaceToMarkdown(surfaceEl);
+        });
+
+        ta.addEventListener('input', () => {
+          if (ta.style.display !== 'none') {
+            renderMarkdownIntoSurface(surfaceEl, ta.value);
+          }
+        });
+
+        sourceToggleBtn.onclick = (e) => {
+          e.stopPropagation();
+          const showingSource = ta.style.display !== 'none';
+          if (!showingSource) {
+            ta.value = serializeSurfaceToMarkdown(surfaceEl);
+            ta.style.display = 'block';
+            surfaceEl.style.display = 'none';
+            sourceToggleBtn.textContent = '서식 화면으로 보기';
+            ta.focus();
+          } else {
+            renderMarkdownIntoSurface(surfaceEl, ta.value);
+            ta.style.display = 'none';
+            surfaceEl.style.display = 'block';
+            sourceToggleBtn.textContent = '태그/코드 직접 보기';
+            surfaceEl.focus();
+          }
+        };
+
+        // Keep surface synced whenever track edit or thread modal opens
+        const syncObserver = new MutationObserver(() => {
+          if (ta.style.display === 'none') {
+            const currentSerialized = serializeSurfaceToMarkdown(surfaceEl);
+            if ((ta.value || '').trim() !== currentSerialized) {
+              renderMarkdownIntoSurface(surfaceEl, ta.value);
+            }
+          }
+        });
+        syncObserver.observe(ta, { attributes: true, attributeFilter: ['value'] });
 
         // 1. 굵게
         const boldBtn = document.createElement('button');
@@ -3618,7 +3831,7 @@ ${cleanBody}`;
         boldBtn.title = '굵게';
         boldBtn.onclick = (e) => {
           e.stopPropagation();
-          wrapSelection(ta, '**', '**', '굵은 글씨');
+          applySimpleCommandToSurface(surfaceEl, ta, 'bold', '굵은 글씨');
         };
 
         // 2. 기울임
@@ -3630,10 +3843,10 @@ ${cleanBody}`;
         italicBtn.title = '기울임';
         italicBtn.onclick = (e) => {
           e.stopPropagation();
-          wrapSelection(ta, '*', '*', '기울임 글씨');
+          applySimpleCommandToSurface(surfaceEl, ta, 'italic', '기울임 글씨');
         };
 
-        // 3. 폰트 선택
+        // 3. 폰트 선택 (즉시 반영)
         const fontSel = document.createElement('select');
         fontSel.className = 'rich-tool-select';
         fontSel.title = '폰트 선택';
@@ -3646,11 +3859,11 @@ ${cleanBody}`;
         fontSel.onchange = (e) => {
           e.stopPropagation();
           if (!fontSel.value) return;
-          wrapSelection(ta, `<span style="font-family:${fontSel.value};">`, '</span>', '선택 텍스트');
+          applyStyleToSurfaceSelection(surfaceEl, ta, 'fontFamily', fontSel.value, '선택 텍스트');
           fontSel.value = '';
         };
 
-        // 4. 폰트 크기 선택
+        // 4. 폰트 크기 선택 (즉시 반영)
         const sizeSel = document.createElement('select');
         sizeSel.className = 'rich-tool-select';
         sizeSel.title = '폰트 크기 선택';
@@ -3663,7 +3876,7 @@ ${cleanBody}`;
         sizeSel.onchange = (e) => {
           e.stopPropagation();
           if (!sizeSel.value) return;
-          wrapSelection(ta, `<span style="font-size:${sizeSel.value};">`, '</span>', '선택 텍스트');
+          applyStyleToSurfaceSelection(surfaceEl, ta, 'fontSize', sizeSel.value, '선택 텍스트');
           sizeSel.value = '';
         };
 
@@ -3678,15 +3891,29 @@ ${cleanBody}`;
           const url = prompt('연결할 URL을 입력하세요 (https://...)');
           if (!url || !url.trim()) return;
           const cleanUrl = url.trim();
-          const start = ta.selectionStart ?? ta.value.length;
-          const end = ta.selectionEnd ?? ta.value.length;
-          const label = ta.value.slice(start, end) || '링크 텍스트';
-          const mdLink = `[${label}](${cleanUrl})`;
-          ta.value = ta.value.slice(0, start) + mdLink + ta.value.slice(end);
-          ta.focus();
+          surfaceEl.focus();
+          const sel = window.getSelection();
+          let labelText = '링크 텍스트';
+          let range = null;
+          if (sel && sel.rangeCount > 0 && surfaceEl.contains(sel.getRangeAt(0).commonAncestorContainer)) {
+            range = sel.getRangeAt(0);
+            if (!range.collapsed) labelText = range.toString();
+          } else {
+            range = document.createRange();
+            range.selectNodeContents(surfaceEl);
+            range.collapse(false);
+          }
+          const aEl = document.createElement('a');
+          aEl.href = cleanUrl;
+          aEl.target = '_blank';
+          aEl.rel = 'noopener noreferrer';
+          aEl.textContent = labelText;
+          if (!range.collapsed) range.deleteContents();
+          range.insertNode(aEl);
+          ta.value = serializeSurfaceToMarkdown(surfaceEl);
         };
 
-        // 6. 폰트 컬러 + 배경 컬러
+        // 6. 폰트 컬러 + 배경 컬러 (즉시 반영)
         const colorGroup = document.createElement('div');
         colorGroup.className = 'rich-color-group';
 
@@ -3704,7 +3931,7 @@ ${cleanBody}`;
         fgBtn.textContent = '글자색';
         fgBtn.onclick = (e) => {
           e.stopPropagation();
-          wrapSelection(ta, `<span style="color:${fgPicker.value};">`, '</span>', '색상 글씨');
+          applyStyleToSurfaceSelection(surfaceEl, ta, 'color', fgPicker.value, '색상 글씨');
         };
 
         const bgPicker = document.createElement('input');
@@ -3721,7 +3948,7 @@ ${cleanBody}`;
         bgBtn.textContent = '배경색';
         bgBtn.onclick = (e) => {
           e.stopPropagation();
-          wrapSelection(ta, `<span style="background-color:${bgPicker.value};padding:0 3px;border-radius:3px;">`, '</span>', '배경 글씨');
+          applyStyleToSurfaceSelection(surfaceEl, ta, 'backgroundColor', bgPicker.value, '배경 글씨');
         };
 
         colorGroup.appendChild(fgPicker);
@@ -3735,6 +3962,13 @@ ${cleanBody}`;
         bar.appendChild(sizeSel);
         bar.appendChild(linkBtn);
         bar.appendChild(colorGroup);
+      });
+
+      // Sync any programmatic textarea value updates (e.g. startEditTrack, cancelEditMode, submitThreadBtn)
+      document.querySelectorAll('.rich-live-surface').forEach((surf) => {
+        const tId = surf.dataset.forTextarea;
+        const ta = document.getElementById(tId);
+        if (ta) renderMarkdownIntoSurface(surf, ta.value);
       });
     }
 

@@ -352,7 +352,7 @@
     }
 
     /* =========================================
-       재생 모드 턴테이블 본체 및 톤암 위치 (5px 왼쪽 이동 반영)
+       재생 모드 턴테이블 본체 및 톤암 (아랫부분 고정축 + 바늘만 시계바늘 회전)
        ========================================= */
     .turntable-box {
       position: absolute;
@@ -428,13 +428,14 @@
     .tonearm-custom-img {
       display: none;
       position: absolute;
-      bottom: 18px;
-      left: 15px; /* 기존 20px에서 5px 왼쪽으로 이동 */
+      bottom: 13px;
+      left: 7px;
       width: 62px;
-      height: 136px;
+      height: 138px;
       object-fit: contain;
-      transform-origin: 28% 88%;
-      transform: rotate(-14deg);
+      /* 톤암 하단 둥근 피벗 중심점 고정 (FIX) */
+      transform-origin: 18% 91%;
+      transform: rotate(-8deg);
       transition: transform 0.7s cubic-bezier(0.22, 1, 0.36, 1);
     }
     .tonearm-overlay.has-img .turntable-spindle {
@@ -443,8 +444,9 @@
     .tonearm-overlay.has-img .tonearm-custom-img {
       display: block;
     }
+    /* 재생 시 고정축을 기준으로 위쪽 핀 부분만 시계방향 회전 (MOVE) */
     .tonearm-overlay.playing .tonearm-custom-img {
-      transform: rotate(16deg);
+      transform: rotate(22deg);
     }
 
     /* =========================================
@@ -1072,11 +1074,11 @@
         height: 100%;
       }
       .tonearm-custom-img {
-        width: 30%;
-        height: 62%;
-        bottom: 8%;
-        left: 7%; /* 모바일에서도 5px 왼쪽으로 이동 */
-        transform-origin: 28% 88%;
+        width: 28%;
+        height: 63%;
+        bottom: 6%;
+        left: 3.2%;
+        transform-origin: 18% 91%;
       }
       .track-drawer {
         width: calc(100% - min(48vw, 175px) + 14px) !important;

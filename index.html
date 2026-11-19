@@ -526,7 +526,23 @@
       cursor: pointer;
     }
 
-    .ctrl-btn.loop-active {
+.ctrl-btn.loop-one,
+    .ctrl-btn.loop-all,
+    .ctrl-btn.shuffle-active {
+      color: var(--line-blue);
+      background: #f4f7ff;
+    }
+    .ctrl-loop-badge {
+      position: absolute;
+      bottom: 2px;
+      right: 3px;
+      font-size: 0.56rem;
+      line-height: 1;
+      font-weight: 700;
+      color: var(--line-blue);
+      pointer-events: none;
+    }
+        .ctrl-btn.loop-active {
       color: var(--line-blue);
       background: #f4f7ff;
     }
@@ -1769,7 +1785,7 @@
       }
       .ctrl-title { font-size: 0.72rem; }
       .ctrl-volume-wrap { width: 42px; }
-      .ctrl-btn { width: 24px; height: 24px; }
+      .ctrl-btn { width: 22px; height: 22px; }
       .ctrl-btn svg { width: 10px; height: 10px; }
       .mini-track-popover { height: 44px !important; min-height: 44px !important; max-height: 44px !important; flex: 0 0 44px !important; }
       .detail-drawer { max-width: 100%; }
@@ -1841,8 +1857,12 @@
               </div>
 
               <div class="ctrl-buttons">
-                <button type="button" class="ctrl-btn" id="btnLoopTrack" title="한 곡 반복 재생">
+                <button type="button" class="ctrl-btn" id="btnLoopTrack" title="반복 재생 (1회: 한 곡 루프 / 2회: 리스트 루프)">
                   <svg viewBox="0 0 24 24"><path d="M12 5V1L7 6l5 5V7c3.31 0 6 2.69 6 6s-2.69 6-6 6-6-2.69-6-6H4c0 4.42 3.58 8 8 8s8-3.58 8-8-3.58-8-8-8z"/></svg>
+                  <span class="ctrl-loop-badge" id="loopBadge"></span>
+                </button>
+                <button type="button" class="ctrl-btn" id="btnShuffleTrack" title="셔플 재생">
+                  <svg viewBox="0 0 24 24"><path d="M10.59 9.17L5.41 4 4 5.41l5.17 5.17 1.42-1.41zM14.5 4l2.04 2.04L4 18.59 5.41 20 17.96 7.46 20 9.5V4h-5.5zm.33 9.41l-1.41 1.41 3.13 3.13L14.5 20H20v-5.5l-2.04 2.04-3.13-3.13z"/></svg>
                 </button>
                 <button type="button" class="ctrl-btn" id="btnPrevTrack" title="이전 트랙">
                   <svg viewBox="0 0 24 24"><path d="M11 18V6l-8.5 6 8.5 6zm.5-6l8.5 6V6l-8.5 6z"/></svg>
@@ -2037,8 +2057,39 @@
     const bgmAudio = document.getElementById('bgmAudioPlayer');
     const volSlider = document.getElementById('ctrlVolumeSlider');
     const btnLoopTrack = document.getElementById('btnLoopTrack');
-    let isLooping = false;
+    const btnShuffleTrack = document.getElementById('btnShuffleTrack');
+    const loopBadge = document.getElementById('loopBadge');
+    // 'none' = 반복 끔, 'one' = 한 곡 루프, 'all' = 리스트 루프
+    let loopMode = 'none';
+    let isShuffle = false;
     let isTrackEnded = false;
+
+    function updateLoopButtonUI() {
+      if (!btnLoopTrack) return;
+      btnLoopTrack.classList.remove('loop-active', 'loop-one', 'loop-all');
+      if (loopMode === 'one') {
+        btnLoopTrack.classList.add('loop-active', 'loop-one');
+        if (loopBadge) loopBadge.textContent = '1';
+        btnLoopTrack.title = '한 곡 반복 중 (클릭 시 리스트 반복)';
+      } else if (loopMode === 'all') {
+        btnLoopTrack.classList.add('loop-active', 'loop-all');
+        if (loopBadge) loopBadge.textContent = 'ALL';
+        btnLoopTrack.title = '리스트 반복 중 (클릭 시 반복 끔)';
+      } else {
+        if (loopBadge) loopBadge.textContent = '';
+        btnLoopTrack.title = '반복 재생 (1회: 한 곡 루프 / 2회: 리스트 루프)';
+      }
+    }
+
+    function pickRandomTrackIndex(excludeIdx) {
+      if (!Array.isArray(filteredPosts) || filteredPosts.length === 0) return 0;
+      if (filteredPosts.length === 1) return 0;
+      let candidate = Math.floor(Math.random() * filteredPosts.length);
+      if (candidate === excludeIdx) {
+        candidate = (candidate + 1) % filteredPosts.length;
+      }
+      return candidate;
+    }
     let currentBgmUrl = "";
     let currentMediaType = "none"; // "mp3" | "youtube" | "none"
 
@@ -2098,7 +2149,7 @@
               if (ev.data === YT.PlayerState.PLAYING) {
                 isTrackEnded = false;
               } else if (ev.data === YT.PlayerState.ENDED) {
-                if (isLooping) {
+                if (loopMode === 'one') {
                   isTrackEnded = false;
                   progressPercent = 0;
                   const fill = document.getElementById('ctrlProgressFill');
@@ -2107,6 +2158,9 @@
                     ev.target.seekTo(0, true);
                     ev.target.playVideo();
                   } catch (err) {}
+                } else if (loopMode === 'all' && filteredPosts.length > 0) {
+                  const nextIdx = isShuffle ? pickRandomTrackIndex(currentIndex) : (currentIndex + 1) % filteredPosts.length;
+                  switchTrackWhilePlaying(nextIdx);
                 } else {
                   isTrackEnded = true;
                   setDiscPlayState(false);
@@ -2183,11 +2237,26 @@
     }
 
     if (btnLoopTrack) {
+      updateLoopButtonUI();
       btnLoopTrack.addEventListener('click', (e) => {
         e.stopPropagation();
-        isLooping = !isLooping;
-        if (bgmAudio) bgmAudio.loop = isLooping;
-        btnLoopTrack.classList.toggle('loop-active', isLooping);
+        if (loopMode === 'none') {
+          loopMode = 'one';
+        } else if (loopMode === 'one') {
+          loopMode = 'all';
+        } else {
+          loopMode = 'none';
+        }
+        if (bgmAudio) bgmAudio.loop = (loopMode === 'one');
+        updateLoopButtonUI();
+      });
+    }
+
+    if (btnShuffleTrack) {
+      btnShuffleTrack.addEventListener('click', (e) => {
+        e.stopPropagation();
+        isShuffle = !isShuffle;
+        btnShuffleTrack.classList.toggle('shuffle-active', isShuffle);
       });
     }
 
@@ -2206,10 +2275,13 @@
 
       bgmAudio.addEventListener('ended', () => {
         if (currentMediaType !== 'mp3') return;
-        if (isLooping) {
+        if (loopMode === 'one') {
           isTrackEnded = false;
           bgmAudio.currentTime = 0;
           bgmAudio.play().catch(() => {});
+        } else if (loopMode === 'all' && filteredPosts.length > 0) {
+          const nextIdx = isShuffle ? pickRandomTrackIndex(currentIndex) : (currentIndex + 1) % filteredPosts.length;
+          switchTrackWhilePlaying(nextIdx);
         } else {
           isTrackEnded = true;
           setDiscPlayState(false);
@@ -2251,7 +2323,7 @@
             bgmAudio.src = bgmUrl;
             bgmAudio.load();
           }
-          bgmAudio.loop = isLooping;
+          bgmAudio.loop = (loopMode === 'one');
           if (shouldPlay) {
             bgmAudio.play().catch(() => {});
           }
@@ -2820,14 +2892,18 @@ const PLUS_PLAYLIST_PATH = "playlist/plus_tracks.json";
     const handlePrevTrack = (e) => {
       if (e) e.stopPropagation();
       if (filteredPosts.length === 0) return;
-      const prevIdx = (currentIndex - 1 + filteredPosts.length) % filteredPosts.length;
+      const prevIdx = isShuffle
+        ? pickRandomTrackIndex(currentIndex)
+        : (currentIndex - 1 + filteredPosts.length) % filteredPosts.length;
       switchTrackWhilePlaying(prevIdx);
     };
 
     const handleNextTrack = (e) => {
       if (e) e.stopPropagation();
       if (filteredPosts.length === 0) return;
-      const nextIdx = (currentIndex + 1) % filteredPosts.length;
+      const nextIdx = isShuffle
+        ? pickRandomTrackIndex(currentIndex)
+        : (currentIndex + 1) % filteredPosts.length;
       switchTrackWhilePlaying(nextIdx);
     };
 

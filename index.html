@@ -494,7 +494,7 @@
       appearance: none;
       width: 100%;
       height: 3.5px;
-      background: linear-gradient(to right, #C6D5FF 0%, #C6D5FF 80%, #e6e8ec 80%, #e6e8ec 100%);
+      background: linear-gradient(to right, #C6D5FF 0%, #C6D5FF 50%, #e6e8ec 50%, #e6e8ec 100%);
       border-radius: 99px;
       outline: none;
       cursor: pointer;
@@ -1480,7 +1480,7 @@
                   <div class="ctrl-title" id="ctrlTitle">TRACK TITLE</div>
                 </div>
                 <div class="ctrl-volume-wrap" title="볼륨 조절">
-                  <input type="range" id="ctrlVolumeSlider" class="ctrl-volume-slider" min="0" max="100" value="80" />
+                  <input type="range" id="ctrlVolumeSlider" class="ctrl-volume-slider" min="0" max="100" value="50" />
                 </div>
               </div>
 
@@ -1771,7 +1771,7 @@
 
     if (volSlider) {
       const savedVol = localStorage.getItem('oblaat_bgm_volume');
-      const initVol = savedVol !== null ? Number(savedVol) : 80;
+      const initVol = savedVol !== null ? Number(savedVol) : 50;
       volSlider.value = initVol;
       if (bgmAudio) bgmAudio.volume = initVol / 100;
       updateVolumeSliderFill(initVol);

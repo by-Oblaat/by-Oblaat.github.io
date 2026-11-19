@@ -198,12 +198,29 @@
       text-align: center;
       padding: 24px 16px;
       box-shadow: 0 12px 28px rgba(107, 158, 255, 0.14);
-      /* Tilt the cover artwork itself, not the carousel slot/stage. */
-      transform: rotate(-6deg);
+      /* The jacket box stays level; only the inner artwork is tilted. */
+      transform: none;
     }
 
     .lp-jacket.has-img {
       border: none;
+      background: transparent !important;
+      box-shadow: none;
+      transform: none !important;
+    }
+    .lp-jacket .cover-art {
+      display: none;
+    }
+    .lp-jacket.has-img .cover-art {
+      display: block;
+      position: absolute;
+      inset: 0;
+      background-size: cover;
+      background-position: center;
+      transform: rotate(-6deg);
+      transform-origin: center center;
+      box-shadow: 0 12px 28px rgba(107, 158, 255, 0.14);
+      z-index: 1;
     }
     .lp-jacket.has-img .lp-card-label,
     .lp-jacket.has-img .lp-card-title,
@@ -1313,13 +1330,15 @@
         const vinylImgUrl = extractMetaUrl(post.body, 'vinyl', CUSTOM_ASSETS.vinylDisc);
 
         const jacketClass = coverImgUrl ? 'lp-jacket has-img' : 'lp-jacket';
-        const jacketStyle = coverImgUrl ? `style="background-image: url('${coverImgUrl}')"` : '';
+        const jacketStyle = '';
+        const coverArtStyle = coverImgUrl ? `style="background-image: url('${coverImgUrl}')"` : '';
 
         const vinylClass = vinylImgUrl ? 'vinyl-disc has-img' : 'vinyl-disc';
         const vinylStyle = vinylImgUrl ? `style="background-image: url('${vinylImgUrl}')"` : '';
 
         slot.innerHTML = `
           <div class="${jacketClass}" ${jacketStyle}>
+            <div class="cover-art" ${coverArtStyle}></div>
             <div class="lp-card-label">${labelName}</div>
             <div class="lp-card-title">${post.title}</div>
             <div class="lp-card-date">${date}</div>

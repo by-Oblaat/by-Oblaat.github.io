@@ -719,6 +719,168 @@
       font-weight: 500;
     }
 
+    /* 스레드 + 클릭 시 인라인 수정 UI */
+    .thread-date {
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      user-select: none;
+      transition: color 0.2s ease;
+    }
+    .thread-date:hover {
+      color: var(--line-blue);
+      font-weight: 600;
+    }
+    .thread-edit-box {
+      margin-top: 8px;
+      border: 1px solid var(--line-blue);
+      background: #f8faff;
+      padding: 12px;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+    .thread-edit-textarea {
+      width: 100%;
+      min-height: 85px;
+      border: 1px solid #dcdcdc;
+      background: #ffffff;
+      padding: 8px 10px;
+      font-family: 'Gowun Batang', serif;
+      font-size: 0.9rem;
+      line-height: 1.6;
+      outline: none;
+      resize: vertical;
+    }
+    .thread-edit-textarea:focus {
+      border-color: var(--line-blue);
+    }
+    .thread-edit-actions {
+      display: flex;
+      justify-content: flex-end;
+      gap: 8px;
+    }
+    .thread-edit-cancel, .thread-edit-save {
+      padding: 5px 12px;
+      font-size: 0.8rem;
+      cursor: pointer;
+      font-family: 'Gowun Batang', serif;
+    }
+    .thread-edit-cancel {
+      background: #ffffff;
+      border: 1px solid #dcdcdc;
+      color: var(--text-sub);
+    }
+    .thread-edit-save {
+      background: var(--text-main);
+      border: none;
+      color: #ffffff;
+    }
+    .thread-edit-save:disabled {
+      opacity: 0.5;
+      cursor: default;
+    }
+    .thread-edit-status {
+      font-size: 0.75rem;
+      color: var(--line-orange);
+    }
+
+    .thread-edit-delete {
+      margin-right: auto;
+      background: #ffffff;
+      border: 1px solid var(--line-orange);
+      color: var(--line-orange);
+      padding: 5px 12px;
+      font-size: 0.8rem;
+      cursor: pointer;
+      font-family: 'Gowun Batang', serif;
+    }
+    .thread-edit-delete:hover {
+      background: #fff4f1;
+    }
+    .thread-edit-delete:disabled {
+      opacity: 0.5;
+      cursor: default;
+    }
+
+
+    .thread-edit-img-panel {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      padding: 8px;
+      border: 1px dashed #c8d6f5;
+      background: #ffffff;
+      border-radius: 6px;
+    }
+    .thread-edit-img-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 0.76rem;
+      color: var(--text-sub);
+    }
+    .thread-edit-add-label {
+      color: var(--line-blue);
+      cursor: pointer;
+      text-decoration: underline;
+      font-weight: 600;
+    }
+    .thread-edit-img-list {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+    .thread-edit-img-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 8px;
+      padding: 4px 6px;
+      border: 1px solid #eef1f7;
+      border-radius: 4px;
+      background: #fafbff;
+      font-size: 0.76rem;
+    }
+    .thread-edit-img-thumb-wrap {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      min-width: 0;
+      flex: 1;
+    }
+    .thread-edit-img-thumb {
+      width: 34px;
+      height: 34px;
+      object-fit: cover;
+      border-radius: 3px;
+      flex-shrink: 0;
+      margin: 0 !important;
+    }
+    .thread-edit-img-url {
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+      color: var(--text-sub);
+    }
+    .thread-edit-img-del {
+      background: #ffffff;
+      border: 1px solid #e2c5be;
+      color: var(--line-orange);
+      padding: 2px 7px;
+      font-size: 0.72rem;
+      cursor: pointer;
+      border-radius: 4px;
+      flex-shrink: 0;
+      font-family: 'Gowun Batang', serif;
+    }
+    .thread-edit-img-del:hover {
+      background: #fff4f1;
+    }
+
+
+
     .thread-body {
       font-size: 1rem;
       line-height: 1.9;
@@ -1806,10 +1968,17 @@
         window._threadGifTimers = [];
 
         if (threadPart.trim()) {
-          const blocks = threadPart.trim().split(/^---\s*$/gm).map(b => b.trim()).filter(Boolean);
-          blocks.forEach(block => {
-            const cleanBlock = block.replace(/^(?:threads:)?\s*/gi, '').replace(/threads:/gi, '').trim();
+          const rawBlocks = threadPart.trim().split(/^---\s*$/gm);
+          const parsedBlocks = [];
+          rawBlocks.forEach((rawBlk, rawIdx) => {
+            const trimmedBlk = rawBlk.trim();
+            if (!trimmedBlk) return;
+            const cleanBlock = trimmedBlk.replace(/^(?:threads:)?\s*/gi, '').replace(/threads:/gi, '').trim();
             if (!cleanBlock) return;
+            parsedBlocks.push({ cleanBlock, rawIdx, trimmedBlk });
+          });
+
+          parsedBlocks.forEach(({ cleanBlock, rawIdx }) => {
 
             const imgUrls = [];
             const mdRegex = /!\[.*?\]\((.*?)\)/g;
@@ -1833,8 +2002,311 @@
 
             const dateEl = document.createElement('div');
             dateEl.className = 'thread-date';
+            dateEl.title = '클릭하여 이 스레드 수정';
             dateEl.textContent = '+';
             itemEl.appendChild(dateEl);
+
+            const editBox = document.createElement('div');
+            editBox.className = 'thread-edit-box';
+            editBox.style.display = 'none';
+
+            let editableImgs = [...imgUrls];
+
+            const editTextarea = document.createElement('textarea');
+            editTextarea.className = 'thread-edit-textarea';
+            editTextarea.value = textWithoutImgs;
+
+            const imgPanel = document.createElement('div');
+            imgPanel.className = 'thread-edit-img-panel';
+
+            const imgPanelHeader = document.createElement('div');
+            imgPanelHeader.className = 'thread-edit-img-header';
+
+            const imgPanelTitle = document.createElement('span');
+            imgPanelTitle.textContent = '첨부 이미지 관리';
+
+            const uniqueInputId = `threadEditImgInput_${currentIndex}_${rawIdx}`;
+            const addImgLabel = document.createElement('label');
+            addImgLabel.className = 'thread-edit-add-label';
+            addImgLabel.htmlFor = uniqueInputId;
+            addImgLabel.textContent = '+ 이미지 추가';
+
+            const addImgInput = document.createElement('input');
+            addImgInput.type = 'file';
+            addImgInput.id = uniqueInputId;
+            addImgInput.accept = 'image/*';
+            addImgInput.multiple = true;
+            addImgInput.style.display = 'none';
+
+            imgPanelHeader.appendChild(imgPanelTitle);
+            imgPanelHeader.appendChild(addImgLabel);
+            imgPanelHeader.appendChild(addImgInput);
+
+            const imgListEl = document.createElement('div');
+            imgListEl.className = 'thread-edit-img-list';
+
+            const editStatus = document.createElement('div');
+            editStatus.className = 'thread-edit-status';
+
+            const renderEditableImgList = () => {
+              imgListEl.innerHTML = '';
+              if (editableImgs.length === 0) {
+                const emptyNote = document.createElement('div');
+                emptyNote.className = 'thread-edit-img-url';
+                emptyNote.textContent = '첨부된 이미지가 없습니다.';
+                imgListEl.appendChild(emptyNote);
+                return;
+              }
+              editableImgs.forEach((imgUrl, iIdx) => {
+                const row = document.createElement('div');
+                row.className = 'thread-edit-img-row';
+
+                const thumbWrap = document.createElement('div');
+                thumbWrap.className = 'thread-edit-img-thumb-wrap';
+
+                const thumb = document.createElement('img');
+                thumb.className = 'thread-edit-img-thumb';
+                thumb.src = imgUrl;
+                thumb.alt = `첨부 이미지 ${iIdx + 1}`;
+
+                const urlText = document.createElement('span');
+                urlText.className = 'thread-edit-img-url';
+                urlText.textContent = `${iIdx + 1}. ${imgUrl}`;
+
+                thumbWrap.appendChild(thumb);
+                thumbWrap.appendChild(urlText);
+
+                const delBtn = document.createElement('button');
+                delBtn.type = 'button';
+                delBtn.className = 'thread-edit-img-del';
+                delBtn.textContent = '삭제';
+                delBtn.onclick = (ev) => {
+                  ev.stopPropagation();
+                  editableImgs.splice(iIdx, 1);
+                  renderEditableImgList();
+                };
+
+                row.appendChild(thumbWrap);
+                row.appendChild(delBtn);
+                imgListEl.appendChild(row);
+              });
+            };
+
+            renderEditableImgList();
+
+            addImgInput.onchange = async (ev) => {
+              const files = Array.from(ev.target.files || []);
+              if (files.length === 0) return;
+              const token = ghTokenInput.value.trim();
+              if (!token) {
+                editStatus.textContent = '이미지를 업로드하려면 GitHub Token을 먼저 입력해 주세요.';
+                ev.target.value = '';
+                return;
+              }
+              addImgInput.disabled = true;
+              try {
+                for (let i = 0; i < files.length; i++) {
+                  editStatus.textContent = `이미지 업로드 중 (${i + 1}/${files.length})...`;
+                  const uploadedUrl = await uploadImageToGitHub(files[i], token);
+                  editableImgs.push(uploadedUrl);
+                }
+                renderEditableImgList();
+                editStatus.textContent = `이미지 ${files.length}장 추가됨 (저장 버튼을 누르면 반영됩니다)`;
+                setTimeout(() => { editStatus.textContent = ''; }, 1800);
+              } catch (err) {
+                editStatus.textContent = err.message || '이미지 업로드 실패';
+              } finally {
+                addImgInput.disabled = false;
+                ev.target.value = '';
+              }
+            };
+
+            imgPanel.appendChild(imgPanelHeader);
+            imgPanel.appendChild(imgListEl);
+
+            const editActions = document.createElement('div');
+            editActions.className = 'thread-edit-actions';
+
+            const deleteThreadBtn = document.createElement('button');
+            deleteThreadBtn.type = 'button';
+            deleteThreadBtn.className = 'thread-edit-delete';
+            deleteThreadBtn.textContent = '스레드 삭제';
+
+            const cancelEditBtn = document.createElement('button');
+            cancelEditBtn.type = 'button';
+            cancelEditBtn.className = 'thread-edit-cancel';
+            cancelEditBtn.textContent = '취소';
+
+            const saveEditBtn = document.createElement('button');
+            saveEditBtn.type = 'button';
+            saveEditBtn.className = 'thread-edit-save';
+            saveEditBtn.textContent = '저장';
+
+            deleteThreadBtn.onclick = async (ev) => {
+              ev.stopPropagation();
+              const token = ghTokenInput.value.trim();
+              if (!token) {
+                editStatus.textContent = '삭제하려면 GitHub Token을 먼저 입력해 주세요.';
+                return;
+              }
+              const currentPost = filteredPosts[currentIndex];
+              if (!currentPost || currentPost.number <= 0) {
+                editStatus.textContent = '샘플 게시글은 삭제할 수 없습니다.';
+                return;
+              }
+              if (!confirm('이 스레드를 삭제하시겠습니까?')) return;
+
+              deleteThreadBtn.disabled = true;
+              saveEditBtn.disabled = true;
+              cancelEditBtn.disabled = true;
+              editStatus.textContent = '스레드 삭제 중...';
+
+              try {
+                const latestBody = currentPost.body || '';
+                const splitMarker = '---threads---';
+                const markerIdx = latestBody.indexOf(splitMarker);
+                if (markerIdx === -1) throw new Error('스레드 영역을 찾을 수 없습니다.');
+
+                const headPart = latestBody.slice(0, markerIdx);
+                const tailPart = latestBody.slice(markerIdx + splitMarker.length);
+                const splitRegex = /^---\s*$/gm;
+                const segments = tailPart.split(splitRegex);
+
+                if (rawIdx < 0 || rawIdx >= segments.length) {
+                  throw new Error('삭제할 스레드를 찾지 못했습니다.');
+                }
+
+                segments.splice(rawIdx, 1);
+                const remainingSegments = segments.map(s => s.trim()).filter(Boolean);
+
+                let updatedFullBody = headPart.trim();
+                if (remainingSegments.length > 0) {
+                  updatedFullBody += `\n\n${splitMarker}\n` + remainingSegments.join('\n---\n');
+                }
+
+                const res = await fetch(`https://api.github.com/repos/${GITHUB_USER}/${GITHUB_REPO}/issues/${currentPost.number}`, {
+                  method: 'PATCH',
+                  headers: {
+                    'Authorization': `token ${token}`,
+                    'Content-Type': 'application/json'
+                  },
+                  body: JSON.stringify({ body: updatedFullBody })
+                });
+
+                if (!res.ok) throw new Error('스레드 삭제 저장 실패');
+
+                editStatus.textContent = '삭제 완료!';
+                await fetchPosts();
+                openTrackDetail(currentIndex);
+              } catch (err) {
+                editStatus.textContent = err.message;
+                deleteThreadBtn.disabled = false;
+                saveEditBtn.disabled = false;
+                cancelEditBtn.disabled = false;
+              }
+            };
+
+            editActions.appendChild(deleteThreadBtn);
+            editActions.appendChild(cancelEditBtn);
+            editActions.appendChild(saveEditBtn);
+            editBox.appendChild(editTextarea);
+            editBox.appendChild(imgPanel);
+            editBox.appendChild(editActions);
+            editBox.appendChild(editStatus);
+
+            dateEl.onclick = (ev) => {
+              ev.stopPropagation();
+              const isHidden = editBox.style.display === 'none';
+              document.querySelectorAll('.thread-edit-box').forEach(box => {
+                box.style.display = 'none';
+              });
+              editBox.style.display = isHidden ? 'flex' : 'none';
+              if (isHidden) {
+                editTextarea.value = textWithoutImgs;
+                editableImgs = [...imgUrls];
+                renderEditableImgList();
+                editStatus.textContent = '';
+                editTextarea.focus();
+              }
+            };
+
+            cancelEditBtn.onclick = (ev) => {
+              ev.stopPropagation();
+              editBox.style.display = 'none';
+              editStatus.textContent = '';
+            };
+
+            saveEditBtn.onclick = async (ev) => {
+              ev.stopPropagation();
+              const token = ghTokenInput.value.trim();
+              const nextText = editTextarea.value.trim();
+              if (!token) {
+                editStatus.textContent = '관리창 또는 하단에서 GitHub Token을 먼저 입력해 주세요.';
+                return;
+              }
+              if (!nextText && editableImgs.length === 0) {
+                editStatus.textContent = '내용이나 이미지를 하나 이상 남겨 주세요.';
+                return;
+              }
+              const currentPost = filteredPosts[currentIndex];
+              if (!currentPost || currentPost.number <= 0) {
+                editStatus.textContent = '샘플 게시글은 수정할 수 없습니다.';
+                return;
+              }
+
+              saveEditBtn.disabled = true;
+              cancelEditBtn.disabled = true;
+              editStatus.textContent = '저장 중...';
+
+              try {
+                const latestBody = currentPost.body || '';
+                const splitMarker = '---threads---';
+                const markerIdx = latestBody.indexOf(splitMarker);
+                if (markerIdx === -1) throw new Error('스레드 영역을 찾을 수 없습니다.');
+
+                const headPart = latestBody.slice(0, markerIdx + splitMarker.length);
+                const tailPart = latestBody.slice(markerIdx + splitMarker.length);
+                const splitRegex = /^---\s*$/gm;
+                const segments = tailPart.split(splitRegex);
+
+                if (rawIdx < 0 || rawIdx >= segments.length) {
+                  throw new Error('수정할 스레드를 찾지 못했습니다.');
+                }
+
+                const mergedParts = [];
+                if (nextText) mergedParts.push(nextText);
+                editableImgs.forEach((u) => {
+                  if (u) mergedParts.push(`![image](${u})`);
+                });
+                const combinedBlockText = mergedParts.join('\n\n');
+
+                const prevSeg = segments[rawIdx];
+                const leadingMatch = prevSeg.match(/^(\s*(?:threads:\s*)?)/i);
+                const prefix = leadingMatch ? leadingMatch[1] : '\n';
+                segments[rawIdx] = `${prefix}${combinedBlockText}`;
+
+                const updatedFullBody = `${headPart}${segments.join('\n---\n')}`;
+
+                const res = await fetch(`https://api.github.com/repos/${GITHUB_USER}/${GITHUB_REPO}/issues/${currentPost.number}`, {
+                  method: 'PATCH',
+                  headers: {
+                    'Authorization': `token ${token}`,
+                    'Content-Type': 'application/json'
+                  },
+                  body: JSON.stringify({ body: updatedFullBody })
+                });
+
+                if (!res.ok) throw new Error('스레드 수정 저장 실패');
+
+                editStatus.textContent = '수정 완료!';
+                await fetchPosts();
+                openTrackDetail(currentIndex);
+              } catch (err) {
+                editStatus.textContent = err.message;
+                saveEditBtn.disabled = false;
+                cancelEditBtn.disabled = false;
+              }
+            };
 
             const bodyEl = document.createElement('div');
             bodyEl.className = 'thread-body';
@@ -1930,6 +2402,7 @@
             }
 
             itemEl.appendChild(bodyEl);
+            itemEl.appendChild(editBox);
             threadsContainer.appendChild(itemEl);
           });
         }

@@ -554,6 +554,15 @@
       white-space: nowrap;
       overflow: hidden;
       text-overflow: ellipsis;
+      display: block;
+      width: 100%;
+    }
+    .ctrl-title marquee {
+      display: block;
+      width: 100%;
+      vertical-align: middle;
+      font: inherit;
+      color: inherit;
     }
 
     .ctrl-progress-wrap {
@@ -2334,6 +2343,30 @@
     }
 
 
+function setCtrlTitle(rawTitle) {
+      const titleEl = document.getElementById('ctrlTitle');
+      if (!titleEl) return;
+      const text = (rawTitle || '').trim() || 'TRACK TITLE';
+      titleEl.textContent = text;
+      requestAnimationFrame(() => {
+        if (!titleEl) return;
+        if (titleEl.scrollWidth > titleEl.clientWidth + 2) {
+          const mq = document.createElement('marquee');
+          mq.setAttribute('behavior', 'scroll');
+          mq.setAttribute('direction', 'left');
+          mq.setAttribute('scrollamount', '3');
+          mq.setAttribute('loop', 'infinite');
+          mq.textContent = text;
+          titleEl.innerHTML = '';
+          titleEl.appendChild(mq);
+        }
+      });
+    }
+    window.addEventListener('resize', () => {
+      const titleEl = document.getElementById('ctrlTitle');
+      if (titleEl) setCtrlTitle(titleEl.textContent);
+    });
+
     function applyCustomPlayerAssets() {
       const turntableBox = document.getElementById('turntableBox');
       const tonearmImg = document.getElementById('tonearmImg');
@@ -2573,8 +2606,7 @@ const PLUS_PLAYLIST_PATH = "playlist/plus_tracks.json";
       activeVinyl.classList.remove('spinning');
 
       const post = filteredPosts[0];
-      const defaultPlusVinyl = encodeURI("./track 000.png");
-      const vinylImgUrl = extractMetaUrl(post.body, 'vinyl', CUSTOM_ASSETS.vinylDisc || defaultPlusVinyl);
+      const vinylImgUrl = encodeURI("./track 000.png");
       if (vinylImgUrl) {
         activeVinyl.style.backgroundImage = `url("${vinylImgUrl}")`;
         activeVinyl.classList.add('has-img');
@@ -2583,7 +2615,7 @@ const PLUS_PLAYLIST_PATH = "playlist/plus_tracks.json";
         activeVinyl.classList.remove('has-img');
       }
 
-      document.getElementById('ctrlTitle').textContent = post.title;
+      setCtrlTitle(post.title);
       progressPercent = 0;
       document.getElementById('ctrlProgressFill').style.width = '0%';
       renderTrackList();
@@ -2728,7 +2760,9 @@ const PLUS_PLAYLIST_PATH = "playlist/plus_tracks.json";
       const post = filteredPosts[idx];
       if (!post) return;
 
-      const vinylImgUrl = extractMetaUrl(post.body, 'vinyl', CUSTOM_ASSETS.vinylDisc);
+      const vinylImgUrl = document.body.classList.contains('plus-music-mode')
+        ? encodeURI("./track 000.png")
+        : extractMetaUrl(post.body, 'vinyl', CUSTOM_ASSETS.vinylDisc);
       if (vinylImgUrl) {
         activeVinyl.style.backgroundImage = `url("${vinylImgUrl}")`;
         activeVinyl.classList.add('has-img');
@@ -2737,7 +2771,7 @@ const PLUS_PLAYLIST_PATH = "playlist/plus_tracks.json";
         activeVinyl.classList.remove('has-img');
       }
 
-      document.getElementById('ctrlTitle').textContent = post.title;
+      setCtrlTitle(post.title);
       progressPercent = 0;
       document.getElementById('ctrlProgressFill').style.width = '0%';
       document.querySelectorAll('.mini-track-row').forEach((el, i) => {
@@ -3007,7 +3041,7 @@ const PLUS_PLAYLIST_PATH = "playlist/plus_tracks.json";
       const post = filteredPosts[idx];
       if (!post) return;
 
-      document.getElementById('ctrlTitle').textContent = post.title;
+      setCtrlTitle(post.title);
       progressPercent = 0;
       document.getElementById('ctrlProgressFill').style.width = `${progressPercent}%`;
 
@@ -3017,7 +3051,9 @@ const PLUS_PLAYLIST_PATH = "playlist/plus_tracks.json";
         startProgressSimulation();
       }
 
-      const vinylImgUrl = extractMetaUrl(post.body, 'vinyl', CUSTOM_ASSETS.vinylDisc);
+      const vinylImgUrl = document.body.classList.contains('plus-music-mode')
+        ? encodeURI("./track 000.png")
+        : extractMetaUrl(post.body, 'vinyl', CUSTOM_ASSETS.vinylDisc);
       const activeVinyl = document.getElementById('activeVinylDisc');
       if (vinylImgUrl) {
         activeVinyl.style.backgroundImage = `url("${vinylImgUrl}")`;
@@ -4622,10 +4658,10 @@ const plusAudioInput = document.getElementById('plusTrackAudioInput');
 
         const nextPost = filteredPosts[currentIndex];
         if (nextPost) {
-          document.getElementById('ctrlTitle').textContent = nextPost.title;
+          setCtrlTitle(nextPost.title);
           loadAndPlayTrackAudio(nextPost, true);
         } else {
-          document.getElementById('ctrlTitle').textContent = '음악 트랙을 추가해 주세요';
+          setCtrlTitle('음악 트랙을 추가해 주세요');
           stopAllAudioPlayback(true);
         }
 
@@ -4735,7 +4771,7 @@ const plusAudioInput = document.getElementById('plusTrackAudioInput');
           renderTrackList();
           const activeItem = filteredPosts[currentIndex];
           if (activeItem) {
-            document.getElementById('ctrlTitle').textContent = activeItem.title;
+            setCtrlTitle(activeItem.title);
             loadAndPlayTrackAudio(activeItem, true);
             setDiscPlayState(true);
             startProgressSimulation();

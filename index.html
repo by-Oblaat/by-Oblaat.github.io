@@ -761,6 +761,66 @@
       flex-direction: column;
       gap: 8px;
     }
+.thread-header-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      padding: 6px 2px;
+      border-bottom: 1px solid #eeeeee;
+    }
+    .thread-title-toggle {
+      background: none;
+      border: none;
+      text-align: left;
+      font-family: 'Gowun Batang', serif;
+      font-size: 0.96rem;
+      font-weight: 600;
+      color: var(--text-main);
+      cursor: pointer;
+      flex: 1;
+      min-width: 0;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 2px 0;
+      transition: color 0.2s ease;
+    }
+    .thread-title-toggle:hover {
+      color: var(--line-blue);
+    }
+    .thread-expand-arrow {
+      font-size: 0.72rem;
+      color: var(--text-sub);
+      transition: transform 0.2s ease;
+      flex-shrink: 0;
+    }
+    .thread-item.expanded .thread-expand-arrow {
+      transform: rotate(90deg);
+      color: var(--line-blue);
+    }
+    .thread-collapsible-body {
+      display: none;
+      padding-top: 6px;
+    }
+    .thread-item.expanded .thread-collapsible-body {
+      display: block;
+    }
+    .thread-edit-title-input,
+    .thread-new-title-input {
+      width: 100%;
+      border: 1px solid #dcdcdc;
+      background: #ffffff;
+      padding: 7px 10px;
+      font-family: 'Gowun Batang', serif;
+      font-size: 0.88rem;
+      color: var(--text-main);
+      outline: none;
+    }
+    .thread-edit-title-input:focus,
+    .thread-new-title-input:focus {
+      border-color: var(--line-blue);
+    }
 
     .thread-date {
       font-size: 0.85rem;
@@ -1050,6 +1110,87 @@
       border-color: var(--line-blue);
       color: var(--line-blue);
       background: #f4f7ff;
+    }
+
+
+    /* 에디터 서식 툴바 (Track COMMENT & 스레드 공용) */
+    .rich-mini-toolbar {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 6px;
+      padding: 6px 8px;
+      border: 1px solid #e2e6ef;
+      border-radius: 8px;
+      background: #fafbff;
+      margin-bottom: 6px;
+    }
+    .rich-tool-btn {
+      background: #ffffff;
+      border: 1px solid #dcdcdc;
+      color: var(--text-main);
+      border-radius: 5px;
+      padding: 3px 8px;
+      font-size: 0.78rem;
+      line-height: 1.3;
+      cursor: pointer;
+      font-family: 'Gowun Batang', serif;
+      transition: 0.15s ease;
+    }
+    .rich-tool-btn:hover {
+      border-color: var(--line-blue);
+      color: var(--line-blue);
+      background: #f4f7ff;
+    }
+    .rich-tool-select {
+      background: #ffffff;
+      border: 1px solid #dcdcdc;
+      color: var(--text-main);
+      border-radius: 5px;
+      padding: 3px 6px;
+      font-size: 0.76rem;
+      font-family: 'Gowun Batang', serif;
+      outline: none;
+      cursor: pointer;
+      min-width: 64px;
+      max-width: 112px;
+    }
+    .rich-tool-select:focus {
+      border-color: var(--line-blue);
+    }
+    .rich-color-group {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      font-size: 0.72rem;
+      color: var(--text-sub);
+      background: #ffffff;
+      border: 1px solid #e2e6ef;
+      border-radius: 5px;
+      padding: 2px 6px;
+    }
+    .rich-color-input {
+      width: 18px;
+      height: 18px;
+      border: none;
+      padding: 0;
+      background: none;
+      cursor: pointer;
+    }
+    @media (max-width: 680px) {
+      .rich-mini-toolbar {
+        gap: 4px;
+        padding: 5px 6px;
+      }
+      .rich-tool-btn {
+        padding: 3px 6px;
+        font-size: 0.72rem;
+      }
+      .rich-tool-select {
+        padding: 2px 4px;
+        font-size: 0.72rem;
+        max-width: 86px;
+      }
     }
 
     .thread-write-box {
@@ -1519,7 +1660,7 @@
 
           <div class="fade-section comment-section" id="commentSection">
             <div class="comment-label" id="commentLabelBox" style="display:none;">
-              COMMENT <span id="activePostTitle"></span>
+              <span id="activePostTitle"></span>
             </div>
             <div class="comment-body" id="commentBody"></div>
             <div class="threads-container" id="threadsContainer"></div>
@@ -1529,6 +1670,8 @@
 
             <!-- 타래글 작성 박스 -->
             <div class="thread-write-box" id="threadWriteBox" style="display:none;">
+              <input type="text" class="thread-new-title-input" id="newThreadTitleInput" placeholder="스레드 제목을 입력하세요" />
+              <div class="rich-mini-toolbar" data-target="newThreadInput"></div>
               <textarea id="newThreadInput" placeholder="타래글을 작성하세요... (이미지 첨부 가능)"></textarea>
               <div class="thread-write-footer">
                 <div>
@@ -1613,6 +1756,7 @@
 
         <div class="writer-field">
           <label>COMMENT (메인 코멘트 본문)</label>
+          <div class="rich-mini-toolbar" data-target="postBodyInput"></div>
           <textarea class="writer-textarea" id="postBodyInput" placeholder="코멘트 내용을 입력하세요 (선택 사항)"></textarea>
         </div>
 
@@ -2347,7 +2491,7 @@
         if (textOnlyBody.length > 0) {
           document.getElementById('activePostTitle').textContent = `— ${post.title}`;
           commentLabelBox.style.display = 'flex';
-          marked.setOptions({ breaks: true });
+          marked.setOptions({ breaks: true, headerIds: false, mangle: false });
           commentBody.innerHTML = marked.parse(textOnlyBody);
         } else {
           commentLabelBox.style.display = 'none';
@@ -2374,38 +2518,85 @@
           });
 
           parsedBlocks.forEach(({ cleanBlock, rawIdx }) => {
+            let extractedTitle = '';
+            let bodyAfterTitle = cleanBlock;
+            const titleMatch = cleanBlock.match(/^title:\s*(.+)$/im);
+            if (titleMatch) {
+              extractedTitle = titleMatch[1].trim();
+              bodyAfterTitle = cleanBlock.replace(/^title:\s*.+$/im, '').trim();
+            }
 
             const imgUrls = [];
             const mdRegex = /!\[.*?\]\((.*?)\)/g;
             let m;
-            while ((m = mdRegex.exec(cleanBlock)) !== null) {
+            while ((m = mdRegex.exec(bodyAfterTitle)) !== null) {
               if (m[1]) imgUrls.push(m[1].trim());
             }
             const htmlImgRegex = /<img[^>]+src=["']([^"']+)["'][^>]*>/gi;
             let hm;
-            while ((hm = htmlImgRegex.exec(cleanBlock)) !== null) {
+            while ((hm = htmlImgRegex.exec(bodyAfterTitle)) !== null) {
               if (hm[1]) imgUrls.push(hm[1].trim());
             }
 
-            const textWithoutImgs = cleanBlock
+            const textWithoutImgs = bodyAfterTitle
               .replace(/!\[.*?\]\(.*?\)/g, '')
               .replace(/<img[^>]+>/gi, '')
               .trim();
 
+            if (!extractedTitle) {
+              const firstPlainLine = textWithoutImgs.split(/\r?\n/).map(l => l.replace(/<[^>]+>/g, '').trim()).find(Boolean);
+              extractedTitle = firstPlainLine ? firstPlainLine.slice(0, 40) : `Thread ${rawIdx + 1}`;
+            }
+
             const itemEl = document.createElement('div');
             itemEl.className = 'thread-item';
+
+            const headerRow = document.createElement('div');
+            headerRow.className = 'thread-header-row';
+
+            const titleBtn = document.createElement('button');
+            titleBtn.type = 'button';
+            titleBtn.className = 'thread-title-toggle';
+            titleBtn.title = '클릭하여 스레드 펼치기/접기';
+
+            const arrowSpan = document.createElement('span');
+            arrowSpan.className = 'thread-expand-arrow';
+            arrowSpan.textContent = '▸';
+
+            const titleTextSpan = document.createElement('span');
+            titleTextSpan.textContent = extractedTitle;
+
+            titleBtn.appendChild(arrowSpan);
+            titleBtn.appendChild(titleTextSpan);
 
             const dateEl = document.createElement('div');
             dateEl.className = 'thread-date';
             dateEl.title = '클릭하여 이 스레드 수정';
             dateEl.textContent = '+';
-            itemEl.appendChild(dateEl);
+
+            headerRow.appendChild(titleBtn);
+            headerRow.appendChild(dateEl);
+            itemEl.appendChild(headerRow);
+
+            const collapsibleBody = document.createElement('div');
+            collapsibleBody.className = 'thread-collapsible-body';
+
+            titleBtn.onclick = (ev) => {
+              ev.stopPropagation();
+              itemEl.classList.toggle('expanded');
+            };
 
             const editBox = document.createElement('div');
             editBox.className = 'thread-edit-box';
             editBox.style.display = 'none';
 
             let editableImgs = [...imgUrls];
+
+            const editTitleInput = document.createElement('input');
+            editTitleInput.type = 'text';
+            editTitleInput.className = 'thread-edit-title-input';
+            editTitleInput.placeholder = '스레드 제목을 입력하세요';
+            editTitleInput.value = extractedTitle;
 
             const editTextarea = document.createElement('textarea');
             editTextarea.className = 'thread-edit-textarea';
@@ -2605,6 +2796,7 @@
             editActions.appendChild(deleteThreadBtn);
             editActions.appendChild(cancelEditBtn);
             editActions.appendChild(saveEditBtn);
+            editBox.appendChild(editTitleInput);
             editBox.appendChild(editTextarea);
             editBox.appendChild(imgPanel);
             editBox.appendChild(editActions);
@@ -2618,6 +2810,7 @@
               });
               editBox.style.display = isHidden ? 'flex' : 'none';
               if (isHidden) {
+                editTitleInput.value = extractedTitle;
                 editTextarea.value = textWithoutImgs;
                 editableImgs = [...imgUrls];
                 renderEditableImgList();
@@ -2669,7 +2862,8 @@
                   throw new Error('수정할 스레드를 찾지 못했습니다.');
                 }
 
-                const mergedParts = [];
+                const nextTitle = (editTitleInput.value || '').trim() || `Thread ${rawIdx + 1}`;
+                const mergedParts = [`title: ${nextTitle}`];
                 if (nextText) mergedParts.push(nextText);
                 editableImgs.forEach((u) => {
                   if (u) mergedParts.push(`![image](${u})`);
@@ -2798,12 +2992,14 @@
               bodyEl.appendChild(singleImg);
             }
 
-            itemEl.appendChild(bodyEl);
+            collapsibleBody.appendChild(bodyEl);
+            itemEl.appendChild(collapsibleBody);
             itemEl.appendChild(editBox);
             threadsContainer.appendChild(itemEl);
           });
         }
 
+        initRichToolbars();
         const plusBtn = document.getElementById('threadOpenPlusBtn');
         const writeBox = document.getElementById('threadWriteBox');
         if (plusBtn && writeBox) {
@@ -2830,7 +3026,9 @@
     document.getElementById('submitThreadBtn').onclick = async () => {
       const token = ghTokenInput.value.trim();
       const statusEl = document.getElementById('threadStatus');
+      const threadTitleInput = document.getElementById('newThreadTitleInput');
       const threadInput = document.getElementById('newThreadInput');
+      const threadTitle = threadTitleInput ? threadTitleInput.value.trim() : '';
       const threadText = threadInput.value.trim();
 
       if (!token) {
@@ -2858,7 +3056,9 @@
         } else {
           existingBody += '\n---\n';
         }
-        existingBody += threadText.replace(/^(?:threads:)?\s*/gi, '');
+        const cleanThreadBody = threadText.replace(/^(?:threads:)?\s*/gi, '');
+        const finalThreadTitle = threadTitle || cleanThreadBody.replace(/<[^>]+>/g, '').trim().slice(0, 40) || '새 스레드';
+        existingBody += `title: ${finalThreadTitle}\n${cleanThreadBody}`;
 
         const res = await fetch(`https://api.github.com/repos/${GITHUB_USER}/${GITHUB_REPO}/issues/${currentPost.number}`, {
           method: 'PATCH',
@@ -2872,6 +3072,7 @@
         if (!res.ok) throw new Error('타래 추가 실패');
 
         statusEl.textContent = '타래가 추가되었습니다!';
+        if (threadTitleInput) threadTitleInput.value = '';
         threadInput.value = '';
         document.getElementById('submitThreadBtn').disabled = false;
         isPlaying = true;
@@ -2990,6 +3191,7 @@
     if (savedToken) ghTokenInput.value = savedToken;
 
     function openWriterModal() {
+      initRichToolbars();
       renderManageList();
       writerOverlay.classList.add('open');
     }
@@ -3298,7 +3500,8 @@ ${cleanBody}`;
           closeWriterModal();
           statusEl.textContent = '';
           btn.disabled = false;
-          fetchPosts();
+      
+        fetchPosts();
         }, 700);
       } catch (err) {
         statusEl.textContent = err.message;
@@ -3306,6 +3509,173 @@ ${cleanBody}`;
       }
     };
 
+    function initRichToolbars() {
+      const fontOptions = [
+        { label: '폰트', value: '' },
+        { label: '고운바탕', value: "'Gowun Batang', serif" },
+        { label: '고운밤', value: "'Cafe24Gowoonbam', 'Gowun Batang', serif" },
+        { label: '필기체', value: "'Monsieur La Doulaise', cursive" },
+        { label: '산스', value: "sans-serif" }
+      ];
+      const sizeOptions = [
+        { label: '크기', value: '' },
+        { label: '14px', value: '14px' },
+        { label: '16px', value: '16px' },
+        { label: '18px', value: '18px' },
+        { label: '22px', value: '22px' }
+      ];
+
+      function wrapSelection(ta, beforeStr, afterStr, placeholderText = '텍스트') {
+        if (!ta) return;
+        const start = ta.selectionStart ?? ta.value.length;
+        const end = ta.selectionEnd ?? ta.value.length;
+        const selected = ta.value.slice(start, end) || placeholderText;
+        const replacement = `${beforeStr}${selected}${afterStr}`;
+        ta.value = ta.value.slice(0, start) + replacement + ta.value.slice(end);
+        ta.focus();
+        const newStart = start + beforeStr.length;
+        const newEnd = newStart + selected.length;
+        ta.setSelectionRange(newStart, newEnd);
+      }
+
+      document.querySelectorAll('.rich-mini-toolbar').forEach((bar) => {
+        if (bar.dataset.initialized === '1') return;
+        bar.dataset.initialized = '1';
+        const targetId = bar.dataset.target;
+        const ta = document.getElementById(targetId);
+        if (!ta) return;
+
+        // 1. 굵게
+        const boldBtn = document.createElement('button');
+        boldBtn.type = 'button';
+        boldBtn.className = 'rich-tool-btn';
+        boldBtn.style.fontWeight = '700';
+        boldBtn.textContent = 'B';
+        boldBtn.title = '굵게';
+        boldBtn.onclick = (e) => {
+          e.stopPropagation();
+          wrapSelection(ta, '**', '**', '굵은 글씨');
+        };
+
+        // 2. 기울임
+        const italicBtn = document.createElement('button');
+        italicBtn.type = 'button';
+        italicBtn.className = 'rich-tool-btn';
+        italicBtn.style.fontStyle = 'italic';
+        italicBtn.textContent = 'I';
+        italicBtn.title = '기울임';
+        italicBtn.onclick = (e) => {
+          e.stopPropagation();
+          wrapSelection(ta, '*', '*', '기울임 글씨');
+        };
+
+        // 3. 폰트 선택
+        const fontSel = document.createElement('select');
+        fontSel.className = 'rich-tool-select';
+        fontSel.title = '폰트 선택';
+        fontOptions.forEach((opt) => {
+          const o = document.createElement('option');
+          o.value = opt.value;
+          o.textContent = opt.label;
+          fontSel.appendChild(o);
+        });
+        fontSel.onchange = (e) => {
+          e.stopPropagation();
+          if (!fontSel.value) return;
+          wrapSelection(ta, `<span style="font-family:${fontSel.value};">`, '</span>', '선택 텍스트');
+          fontSel.value = '';
+        };
+
+        // 4. 폰트 크기 선택
+        const sizeSel = document.createElement('select');
+        sizeSel.className = 'rich-tool-select';
+        sizeSel.title = '폰트 크기 선택';
+        sizeOptions.forEach((opt) => {
+          const o = document.createElement('option');
+          o.value = opt.value;
+          o.textContent = opt.label;
+          sizeSel.appendChild(o);
+        });
+        sizeSel.onchange = (e) => {
+          e.stopPropagation();
+          if (!sizeSel.value) return;
+          wrapSelection(ta, `<span style="font-size:${sizeSel.value};">`, '</span>', '선택 텍스트');
+          sizeSel.value = '';
+        };
+
+        // 5. 하이퍼링크
+        const linkBtn = document.createElement('button');
+        linkBtn.type = 'button';
+        linkBtn.className = 'rich-tool-btn';
+        linkBtn.textContent = 'LINK';
+        linkBtn.title = '하이퍼링크 삽입';
+        linkBtn.onclick = (e) => {
+          e.stopPropagation();
+          const url = prompt('연결할 URL을 입력하세요 (https://...)');
+          if (!url || !url.trim()) return;
+          const cleanUrl = url.trim();
+          const start = ta.selectionStart ?? ta.value.length;
+          const end = ta.selectionEnd ?? ta.value.length;
+          const label = ta.value.slice(start, end) || '링크 텍스트';
+          const mdLink = `[${label}](${cleanUrl})`;
+          ta.value = ta.value.slice(0, start) + mdLink + ta.value.slice(end);
+          ta.focus();
+        };
+
+        // 6. 폰트 컬러 + 배경 컬러
+        const colorGroup = document.createElement('div');
+        colorGroup.className = 'rich-color-group';
+
+        const fgPicker = document.createElement('input');
+        fgPicker.type = 'color';
+        fgPicker.className = 'rich-color-input';
+        fgPicker.value = '#1a1a1a';
+        fgPicker.title = '글자색 선택';
+
+        const fgBtn = document.createElement('button');
+        fgBtn.type = 'button';
+        fgBtn.className = 'rich-tool-btn';
+        fgBtn.style.padding = '1px 5px';
+        fgBtn.style.fontSize = '0.7rem';
+        fgBtn.textContent = '글자색';
+        fgBtn.onclick = (e) => {
+          e.stopPropagation();
+          wrapSelection(ta, `<span style="color:${fgPicker.value};">`, '</span>', '색상 글씨');
+        };
+
+        const bgPicker = document.createElement('input');
+        bgPicker.type = 'color';
+        bgPicker.className = 'rich-color-input';
+        bgPicker.value = '#eef3ff';
+        bgPicker.title = '배경색 선택';
+
+        const bgBtn = document.createElement('button');
+        bgBtn.type = 'button';
+        bgBtn.className = 'rich-tool-btn';
+        bgBtn.style.padding = '1px 5px';
+        bgBtn.style.fontSize = '0.7rem';
+        bgBtn.textContent = '배경색';
+        bgBtn.onclick = (e) => {
+          e.stopPropagation();
+          wrapSelection(ta, `<span style="background-color:${bgPicker.value};padding:0 3px;border-radius:3px;">`, '</span>', '배경 글씨');
+        };
+
+        colorGroup.appendChild(fgPicker);
+        colorGroup.appendChild(fgBtn);
+        colorGroup.appendChild(bgPicker);
+        colorGroup.appendChild(bgBtn);
+
+        bar.appendChild(boldBtn);
+        bar.appendChild(italicBtn);
+        bar.appendChild(fontSel);
+        bar.appendChild(sizeSel);
+        bar.appendChild(linkBtn);
+        bar.appendChild(colorGroup);
+      });
+    }
+
+
+    initRichToolbars();
     fetchPosts();
   </script>
 </body>

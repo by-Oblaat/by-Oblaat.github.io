@@ -352,7 +352,7 @@
     }
 
     /* =========================================
-       재생 모드 턴테이블 본체 및 톤암 (빨간 원 축 정렬 + 시계바늘 회전)
+       재생 모드 턴테이블 본체 및 톤암
        ========================================= */
     .turntable-box {
       position: absolute;
@@ -432,7 +432,6 @@
       left: 4px;
       width: auto;
       height: 138px;
-      /* 아랫부분 둥근 축 고정 + 위쪽 핀 부분만 시계바늘 회전 */
       transform-origin: 50% 91%;
       transform: rotate(0deg);
       transition: transform 0.7s cubic-bezier(0.22, 1, 0.36, 1);
@@ -727,6 +726,34 @@
     }
     .thread-body p { margin-bottom: 1em; }
     .thread-body img { max-width: 100%; margin: 10px 0; }
+
+    /* 스레드 다중 이미지 GIF형 슬라이드쇼 */
+    .thread-gif-player {
+      position: relative;
+      width: 100%;
+      margin: 10px 0;
+      overflow: hidden;
+      background: #000000;
+      border-radius: 6px;
+      cursor: pointer;
+    }
+    .thread-gif-img {
+      width: 100%;
+      height: auto;
+      display: block;
+    }
+    .thread-gif-badge {
+      position: absolute;
+      top: 8px;
+      left: 8px;
+      background: rgba(0, 0, 0, 0.65);
+      color: #ffffff;
+      font-size: 0.68rem;
+      letter-spacing: 0.08em;
+      padding: 2px 7px;
+      border-radius: 99px;
+      pointer-events: none;
+    }
 
     .thread-write-box {
       margin-top: 28px;
@@ -1192,7 +1219,7 @@
               <div class="thread-write-footer">
                 <div>
                   <label for="newThreadImgInput" style="font-size:0.75rem; color:var(--line-blue); cursor:pointer; text-decoration:underline;">+ 이미지 첨부</label>
-                  <input type="file" id="newThreadImgInput" accept="image/*" style="display:none;" />
+                  <input type="file" id="newThreadImgInput" accept="image/*" multiple style="display:none;" />
                 </div>
                 <button class="thread-submit-btn" id="submitThreadBtn">타래 추가</button>
               </div>
@@ -1509,6 +1536,10 @@
       playTimers.forEach(t => clearTimeout(t));
       playTimers = [];
       clearInterval(progressTimer);
+      if (window._threadGifTimers) {
+        window._threadGifTimers.forEach(t => clearInterval(t));
+        window._threadGifTimers = [];
+      }
       isPlaying = false;
       isDiscPaused = false;
       progressPercent = 0;
@@ -1709,18 +1740,93 @@
         const threadsContainer = document.getElementById('threadsContainer');
         threadsContainer.innerHTML = '';
 
+        if (window._threadGifTimers) {
+          window._threadGifTimers.forEach(timerId => clearInterval(timerId));
+        }
+        window._threadGifTimers = [];
+
         if (threadPart.trim()) {
           const blocks = threadPart.trim().split(/^---\s*$/gm).map(b => b.trim()).filter(Boolean);
           blocks.forEach(block => {
             const cleanBlock = block.replace(/^(?:threads:)?\s*/gi, '').replace(/threads:/gi, '').trim();
             if (!cleanBlock) return;
 
+            const imgUrls = [];
+            const mdRegex = /!\[.*?\]\((.*?)\)/g;
+            let m;
+            while ((m = mdRegex.exec(cleanBlock)) !== null) {
+              if (m[1]) imgUrls.push(m[1].trim());
+            }
+            const htmlImgRegex = /<img[^>]+src=["']([^"']+)["'][^>]*>/gi;
+            let hm;
+            while ((hm = htmlImgRegex.exec(cleanBlock)) !== null) {
+              if (hm[1]) imgUrls.push(hm[1].trim());
+            }
+
+            const textWithoutImgs = cleanBlock
+              .replace(/!\[.*?\]\(.*?\)/g, '')
+              .replace(/<img[^>]+>/gi, '')
+              .trim();
+
             const itemEl = document.createElement('div');
             itemEl.className = 'thread-item';
-            itemEl.innerHTML = `
-              <div class="thread-date">+</div>
-              <div class="thread-body">${marked.parse(cleanBlock)}</div>
-            `;
+
+            const dateEl = document.createElement('div');
+            dateEl.className = 'thread-date';
+            dateEl.textContent = '+';
+            itemEl.appendChild(dateEl);
+
+            const bodyEl = document.createElement('div');
+            bodyEl.className = 'thread-body';
+
+            if (textWithoutImgs) {
+              bodyEl.innerHTML = marked.parse(textWithoutImgs);
+            }
+
+            if (imgUrls.length >= 2) {
+              const gifPlayer = document.createElement('div');
+              gifPlayer.className = 'thread-gif-player';
+              gifPlayer.title = '클릭하여 일시정지 / 재생';
+
+              const gifImg = document.createElement('img');
+              gifImg.className = 'thread-gif-img';
+              gifImg.src = imgUrls[0];
+              gifImg.alt = 'thread gif frame';
+
+              const gifBadge = document.createElement('span');
+              gifBadge.className = 'thread-gif-badge';
+              gifBadge.textContent = `GIF · 1/${imgUrls.length}`;
+
+              gifPlayer.appendChild(gifImg);
+              gifPlayer.appendChild(gifBadge);
+              bodyEl.appendChild(gifPlayer);
+
+              let frameIdx = 0;
+              let gifPaused = false;
+
+              const intervalId = setInterval(() => {
+                if (gifPaused) return;
+                frameIdx = (frameIdx + 1) % imgUrls.length;
+                gifImg.src = imgUrls[frameIdx];
+                gifBadge.textContent = `GIF · ${frameIdx + 1}/${imgUrls.length}`;
+              }, 450);
+
+              gifPlayer.onclick = () => {
+                gifPaused = !gifPaused;
+                gifBadge.textContent = gifPaused
+                  ? `PAUSED · ${frameIdx + 1}/${imgUrls.length}`
+                  : `GIF · ${frameIdx + 1}/${imgUrls.length}`;
+              };
+
+              window._threadGifTimers.push(intervalId);
+            } else if (imgUrls.length === 1) {
+              const singleImg = document.createElement('img');
+              singleImg.src = imgUrls[0];
+              singleImg.alt = 'thread image';
+              bodyEl.appendChild(singleImg);
+            }
+
+            itemEl.appendChild(bodyEl);
             threadsContainer.appendChild(itemEl);
           });
         }
@@ -1789,21 +1895,25 @@
     };
 
     document.getElementById('newThreadImgInput').onchange = async (e) => {
-      const file = e.target.files[0];
+      const files = Array.from(e.target.files || []);
       const token = ghTokenInput.value.trim();
       const statusEl = document.getElementById('threadStatus');
-      if (!file) return;
+      if (files.length === 0) return;
       if (!token) {
         statusEl.textContent = '토큰을 입력해 주세요.';
         return;
       }
-      statusEl.textContent = '이미지 업로드 중...';
+      statusEl.textContent = `이미지 ${files.length}장 업로드 중...`;
       try {
-        const url = await uploadImageToGitHub(file, token);
         const threadTextArea = document.getElementById('newThreadInput');
-        threadTextArea.value += `\n![image](${url})\n`;
-        statusEl.textContent = '이미지 첨부 완료!';
-        setTimeout(() => { statusEl.textContent = ''; }, 1000);
+        for (let i = 0; i < files.length; i++) {
+          statusEl.textContent = `이미지 업로드 중 (${i + 1}/${files.length})...`;
+          const url = await uploadImageToGitHub(files[i], token);
+          threadTextArea.value += `\n![image](${url})\n`;
+        }
+        statusEl.textContent = `이미지 ${files.length}장 첨부 완료!`;
+        e.target.value = '';
+        setTimeout(() => { statusEl.textContent = ''; }, 1200);
       } catch (err) {
         statusEl.textContent = err.message;
       }

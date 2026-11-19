@@ -2643,6 +2643,7 @@ const PLUS_PLAYLIST_PATH = "playlist/plus_tracks.json";
         if (document.fonts && document.fonts.ready) { document.fonts.ready.then(forceSync3D); }
         window.addEventListener('load', forceSync3D);
         window.addEventListener('resize', forceSync3D);
+        window.addEventListener('resize', syncPlusDynamicHeight);
         setTimeout(forceSync3D, 50);
       } catch (err) {
         console.error(err);
@@ -3067,6 +3068,7 @@ const PLUS_PLAYLIST_PATH = "playlist/plus_tracks.json";
       if (!document.body.classList.contains('plus-music-mode')) {
         card.style.height = '';
         card.style.minHeight = '';
+        card.style.maxHeight = '';
         popover.style.setProperty('height', '', 'important');
         popover.style.setProperty('max-height', '', 'important');
         popover.style.setProperty('min-height', '', 'important');
@@ -3074,16 +3076,21 @@ const PLUS_PLAYLIST_PATH = "playlist/plus_tracks.json";
         return;
       }
 
+      const isMobile = window.innerWidth <= 680;
+      const maxListH = isMobile ? 68 : 104; // 턴테이블 높이와 균형을 맞추는 최대 리스트 높이 (약 5곡 표시 후 내부 스크롤)
+      const baseTopH = isMobile ? 104 : 122;
       const count = Math.max(1, filteredPosts.length);
-      const listHeight = Math.min(440, Math.max(44, count * 20 + 10));
-      const cardTotalHeight = 134 + listHeight;
+      const listHeight = Math.min(maxListH, Math.max(44, count * 20 + 8));
+      const cardTotalHeight = baseTopH + listHeight;
 
-      card.style.height = `${cardTotalHeight}px`;
-      card.style.minHeight = `${cardTotalHeight}px`;
+      card.style.setProperty('height', `${cardTotalHeight}px`, 'important');
+      card.style.setProperty('min-height', `${cardTotalHeight}px`, 'important');
+      card.style.setProperty('max-height', `${cardTotalHeight}px`, 'important');
       popover.style.setProperty('height', `${listHeight}px`, 'important');
       popover.style.setProperty('max-height', `${listHeight}px`, 'important');
       popover.style.setProperty('min-height', `${listHeight}px`, 'important');
       popover.style.setProperty('flex', `0 0 ${listHeight}px`, 'important');
+      popover.style.setProperty('overflow-y', 'auto', 'important');
     }
 
     function renderTrackList() {

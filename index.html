@@ -129,7 +129,6 @@
       z-index: 15;
     }
 
-    /* 0단계: 1단계 직전 LP 커버들이 상단으로 사라지는 애니메이션 */
     .showcase-row.stage-covers-exit .player-stage {
       opacity: 0;
       transform: translateY(-48px);
@@ -163,7 +162,6 @@
       visibility: visible;
     }
 
-    /* 2단계: 턴테이블 등장 (OPACITY 0% -> 100%) */
     .active-turntable-stage {
       position: relative;
       width: 220px;
@@ -180,7 +178,6 @@
       transform: translateY(0);
     }
 
-    /* 5단계: 우측 컨트롤 카드 슬라이딩 (-> SLIDING) */
     .track-drawer {
       position: relative;
       z-index: 3;
@@ -280,7 +277,6 @@
       letter-spacing: 0.08em;
     }
 
-    /* 1단계: 커버 아래로 LP SLIDING */
     .vinyl-disc {
       position: absolute;
       top: 9px;
@@ -356,7 +352,7 @@
     }
 
     /* =========================================
-       3단계 & 4단계: 재생 모드 LP 슬라이딩 + 톤암 이동 + 회전
+       재생 모드 턴테이블 본체 및 톤암 위치 (5px 왼쪽 이동 반영)
        ========================================= */
     .turntable-box {
       position: absolute;
@@ -376,7 +372,6 @@
       background-color: transparent;
     }
 
-    /* 3단계: LP가 턴테이블 위로 위에서 아래로 SLIDING 진입 */
     .active-vinyl-disc {
       position: absolute;
       top: 18px;
@@ -403,7 +398,6 @@
       border: none;
       background-color: transparent;
     }
-    /* 4단계: TONEARM MOVE 후 NEXT SPIN 회전 */
     .active-vinyl-disc.spinning {
       animation: spinActiveVinyl 4s linear infinite;
     }
@@ -435,7 +429,7 @@
       display: none;
       position: absolute;
       bottom: 18px;
-      left: 20px;
+      left: 15px; /* 기존 20px에서 5px 왼쪽으로 이동 */
       width: 62px;
       height: 136px;
       object-fit: contain;
@@ -1081,7 +1075,7 @@
         width: 30%;
         height: 62%;
         bottom: 8%;
-        left: 9%;
+        left: 7%; /* 모바일에서도 5px 왼쪽으로 이동 */
         transform-origin: 28% 88%;
       }
       .track-drawer {
@@ -1453,15 +1447,6 @@
       renderTrackList();
     }
 
-    /* =====================================================================
-       시퀀스 애니메이션:
-       0단계: LP 커버들이 상단으로 사라짐
-       1단계: 커버 아래로 LP SLIDING
-       2단계: 턴테이블 등장 (OPACITY 0% -> 100%)
-       3단계: LP가 턴테이블 위로 SLIDING
-       4단계: TONEARM MOVE -> NEXT SPIN
-       5단계: 컨트롤 카드 SLIDING
-       ===================================================================== */
     function startPlayerSequence(slot, idx = currentIndex) {
       resetPlayerAnimation();
       isPlaying = true;
@@ -1486,25 +1471,20 @@
         el.classList.toggle('active', i === idx);
       });
 
-      // [1단계] 현재 커버 아래로 LP 슬라이딩 연출
       if (slot) slot.classList.add('lp-sliding-out');
 
-      // [0단계] 1단계 직전/동반으로 LP 커버들이 상단으로 사라짐
       const t0 = setTimeout(() => {
         showcaseRow.classList.add('stage-covers-exit');
       }, 420);
 
-      // [2단계] 턴테이블 본체 OPACITY 0% -> 100% 등장
       const t2 = setTimeout(() => {
         showcaseRow.classList.add('is-open', 'stage-turntable-in');
       }, 920);
 
-      // [3단계] LP가 턴테이블 플래터 위로 SLIDING 진입
       const t3 = setTimeout(() => {
         showcaseRow.classList.add('stage-lp-in');
       }, 1320);
 
-      // [4단계] TONEARM MOVE -> NEXT SPIN (회전 시작)
       const t4 = setTimeout(() => {
         tonearm.classList.add('playing');
       }, 1820);
@@ -1515,7 +1495,6 @@
         startProgressSimulation();
       }, 2320);
 
-      // [5단계] 우측 뮤직 컨트롤 카드 SLIDING 등장 및 하단 상세 오픈
       const t6 = setTimeout(() => {
         showcaseRow.classList.add('stage-card-in');
         openTrackDetail(idx, { skipDiscReset: true });

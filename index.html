@@ -728,31 +728,89 @@
     .thread-body p { margin-bottom: 1em; }
     .thread-body img { max-width: 100%; margin: 10px 0; }
 
-    /* 스레드 다중 이미지 GIF형 슬라이드쇼 */
-    .thread-gif-player {
+    /* 스레드 다중 이미지 수평 슬라이드 */
+    .thread-slide-wrap {
       position: relative;
       width: 100%;
       margin: 10px 0;
+      border: 1px solid #ececec;
+      border-radius: 8px;
       overflow: hidden;
-      background: #000000;
-      border-radius: 6px;
+      background: #ffffff;
     }
-    .thread-gif-img {
+    .thread-slide-track {
+      display: flex;
+      overflow-x: auto;
+      scroll-snap-type: x mandatory;
+      scroll-behavior: smooth;
+      scrollbar-width: none;
+      -webkit-overflow-scrolling: touch;
+    }
+    .thread-slide-track::-webkit-scrollbar {
+      display: none;
+    }
+    .thread-slide-item {
+      flex: 0 0 100%;
+      width: 100%;
+      scroll-snap-align: center;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      background: #ffffff;
+    }
+    .thread-slide-item img {
       width: 100%;
       height: auto;
       display: block;
+      margin: 0;
     }
-    .thread-gif-badge {
+    .thread-slide-nav {
       position: absolute;
-      top: 8px;
-      left: 8px;
-      background: rgba(0, 0, 0, 0.65);
-      color: #ffffff;
-      font-size: 0.68rem;
-      letter-spacing: 0.08em;
-      padding: 2px 7px;
+      top: 50%;
+      transform: translateY(-50%);
+      background: rgba(255, 255, 255, 0.88);
+      border: 1px solid #dcdcdc;
+      color: var(--text-main);
+      width: 28px;
+      height: 28px;
+      border-radius: 50%;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      font-size: 0.85rem;
+      cursor: pointer;
+      z-index: 4;
+      transition: 0.2s;
+      font-family: 'Gowun Batang', serif;
+    }
+    .thread-slide-nav:hover {
+      border-color: var(--text-main);
+      background: #ffffff;
+    }
+    .thread-slide-prev { left: 8px; }
+    .thread-slide-next { right: 8px; }
+    .thread-slide-dots {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      gap: 6px;
+      padding: 8px 0;
+      background: #ffffff;
+    }
+    .thread-slide-dot {
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: #d5d9e2;
+      border: none;
+      cursor: pointer;
+      padding: 0;
+      transition: 0.2s;
+    }
+    .thread-slide-dot.active {
+      background: var(--line-blue);
+      width: 14px;
       border-radius: 99px;
-      pointer-events: none;
     }
 
 
@@ -1786,41 +1844,84 @@
             }
 
             if (imgUrls.length >= 2) {
-              const gifPlayer = document.createElement('div');
-              gifPlayer.className = 'thread-gif-player';
-              gifPlayer.title = '클릭하여 일시정지 / 재생';
+              const slideWrap = document.createElement('div');
+              slideWrap.className = 'thread-slide-wrap';
 
-              const gifImg = document.createElement('img');
-              gifImg.className = 'thread-gif-img';
-              gifImg.src = imgUrls[0];
-              gifImg.alt = 'thread gif frame';
+              const slideTrack = document.createElement('div');
+              slideTrack.className = 'thread-slide-track';
 
-              const gifBadge = document.createElement('span');
-              gifBadge.className = 'thread-gif-badge';
-              gifBadge.textContent = `GIF · 1/${imgUrls.length}`;
+              imgUrls.forEach((u, i) => {
+                const slideItem = document.createElement('div');
+                slideItem.className = 'thread-slide-item';
+                const slideImg = document.createElement('img');
+                slideImg.src = u;
+                slideImg.alt = `thread slide ${i + 1}`;
+                slideItem.appendChild(slideImg);
+                slideTrack.appendChild(slideItem);
+              });
 
-              gifPlayer.appendChild(gifImg);
-              gifPlayer.appendChild(gifBadge);
-              bodyEl.appendChild(gifPlayer);
+              const prevBtn = document.createElement('button');
+              prevBtn.type = 'button';
+              prevBtn.className = 'thread-slide-nav thread-slide-prev';
+              prevBtn.innerHTML = '&lsaquo;';
+              prevBtn.title = '이전 이미지';
 
-              let frameIdx = 0;
-              let gifPaused = false;
+              const nextBtn = document.createElement('button');
+              nextBtn.type = 'button';
+              nextBtn.className = 'thread-slide-nav thread-slide-next';
+              nextBtn.innerHTML = '&rsaquo;';
+              nextBtn.title = '다음 이미지';
 
-              const intervalId = setInterval(() => {
-                if (gifPaused) return;
-                frameIdx = (frameIdx + 1) % imgUrls.length;
-                gifImg.src = imgUrls[frameIdx];
-                gifBadge.textContent = `GIF · ${frameIdx + 1}/${imgUrls.length}`;
-              }, 450);
+              const dotsWrap = document.createElement('div');
+              dotsWrap.className = 'thread-slide-dots';
+              const dots = imgUrls.map((_, i) => {
+                const dot = document.createElement('button');
+                dot.type = 'button';
+                dot.className = `thread-slide-dot ${i === 0 ? 'active' : ''}`;
+                dot.title = `${i + 1}번째 이미지`;
+                dotsWrap.appendChild(dot);
+                return dot;
+              });
 
-              gifPlayer.onclick = () => {
-                gifPaused = !gifPaused;
-                gifBadge.textContent = gifPaused
-                  ? `PAUSED · ${frameIdx + 1}/${imgUrls.length}`
-                  : `GIF · ${frameIdx + 1}/${imgUrls.length}`;
+              let currentSlide = 0;
+              const goToSlide = (targetIdx) => {
+                currentSlide = (targetIdx + imgUrls.length) % imgUrls.length;
+                slideTrack.scrollTo({
+                  left: currentSlide * slideTrack.clientWidth,
+                  behavior: 'smooth'
+                });
+                dots.forEach((d, idx) => d.classList.toggle('active', idx === currentSlide));
               };
 
-              window._threadGifTimers.push(intervalId);
+              prevBtn.onclick = (ev) => {
+                ev.stopPropagation();
+                goToSlide(currentSlide - 1);
+              };
+              nextBtn.onclick = (ev) => {
+                ev.stopPropagation();
+                goToSlide(currentSlide + 1);
+              };
+              dots.forEach((dot, i) => {
+                dot.onclick = (ev) => {
+                  ev.stopPropagation();
+                  goToSlide(i);
+                };
+              });
+
+              slideTrack.addEventListener('scroll', () => {
+                if (!slideTrack.clientWidth) return;
+                const idx = Math.round(slideTrack.scrollLeft / slideTrack.clientWidth);
+                if (idx !== currentSlide && idx >= 0 && idx < imgUrls.length) {
+                  currentSlide = idx;
+                  dots.forEach((d, i) => d.classList.toggle('active', i === currentSlide));
+                }
+              }, { passive: true });
+
+              slideWrap.appendChild(slideTrack);
+              slideWrap.appendChild(prevBtn);
+              slideWrap.appendChild(nextBtn);
+              slideWrap.appendChild(dotsWrap);
+              bodyEl.appendChild(slideWrap);
             } else if (imgUrls.length === 1) {
               const singleImg = document.createElement('img');
               singleImg.src = imgUrls[0];

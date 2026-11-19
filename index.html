@@ -113,7 +113,6 @@
       position: relative;
     }
 
-    /* 1. 커버플로우 스테이지 부드러운 페이드/스케일 트랜지션 */
     .player-stage {
       position: absolute;
       width: 240px;
@@ -123,12 +122,11 @@
       align-items: flex-start;
       opacity: 1;
       transform: scale(1);
-      transition: opacity 0.5s cubic-bezier(0.22, 1, 0.36, 1),
-                  transform 0.5s cubic-bezier(0.22, 1, 0.36, 1);
+      transition: opacity 0.45s cubic-bezier(0.22, 1, 0.36, 1),
+                  transform 0.45s cubic-bezier(0.22, 1, 0.36, 1);
       z-index: 15;
     }
 
-    /* 2. 재생 턴테이블+컨트롤 카드 스테이지 부드러운 페이드/스케일 트랜지션 */
     .player-active-row {
       position: absolute;
       width: 100%;
@@ -139,17 +137,16 @@
       gap: 0;
       padding: 0 10px;
       opacity: 0;
-      transform: scale(0.94);
+      transform: scale(0.95);
       pointer-events: none;
-      transition: opacity 0.5s cubic-bezier(0.22, 1, 0.36, 1),
-                  transform 0.5s cubic-bezier(0.22, 1, 0.36, 1);
+      transition: opacity 0.45s cubic-bezier(0.22, 1, 0.36, 1),
+                  transform 0.45s cubic-bezier(0.22, 1, 0.36, 1);
       z-index: 10;
     }
 
-    /* 재생 모드 활성화 시 상태 전환 (display:none 제거로 부드러운 크로스페이드) */
     .showcase-row.is-open .player-stage {
       opacity: 0;
-      transform: scale(0.94);
+      transform: scale(0.95);
       pointer-events: none;
     }
     .showcase-row.is-open .player-active-row {
@@ -222,14 +219,10 @@
       text-align: center;
       padding: 24px 16px;
       box-shadow: 0 12px 28px rgba(107, 158, 255, 0.14);
-      transform: none;
     }
 
     .lp-jacket.has-img {
       border: none;
-      background-color: transparent;
-      box-shadow: 0 12px 28px rgba(107, 158, 255, 0.14);
-      transform: none !important;
     }
     .lp-jacket.has-img .lp-card-label,
     .lp-jacket.has-img .lp-card-title,
@@ -416,7 +409,7 @@
     }
 
     /* =========================================
-       우측 뮤직 컨트롤 카드 (슬림형 + 상시 스크롤 구조)
+       우측 뮤직 컨트롤 카드
        ========================================= */
     .player-control-card {
       width: 310px;
@@ -1381,7 +1374,7 @@
         track.appendChild(slot);
         slotElements.push(slot);
       });
-      
+
       updateCarouselPositions();
       renderTrackList();
     }
@@ -1700,6 +1693,7 @@
       }
     };
 
+    /* 3D 원근법 유지 + 현재 커버 정면(0도) 정렬 */
     function updateCarouselPositions() {
       slotElements.forEach((slot, idx) => {
         const offset = idx - currentIndex;

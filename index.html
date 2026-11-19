@@ -1873,7 +1873,10 @@
             <input type="file" id="plusTrackAudioInput" accept="audio/*" style="display:none;" />
             <span id="plusSelectedAudioName" style="font-size:0.74rem; color:var(--text-sub); max-width:160px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;"></span>
           </div>
-          <div style="display:flex; align-items:center; gap:6px;">
+          <div style="display:flex; align-items:center; gap:5px; flex-wrap:wrap;">
+            <button type="button" class="plus-edit-cancel-btn" id="plusMoveUpBtn" title="트랙 위로 이동">▲</button>
+            <button type="button" class="plus-edit-cancel-btn" id="plusMoveDownBtn" title="트랙 아래로 이동">▼</button>
+            <button type="button" class="plus-edit-cancel-btn" id="plusDeleteTrackBtn" style="border-color:var(--line-orange);color:var(--line-orange);">삭제</button>
             <button type="button" class="plus-edit-cancel-btn" id="plusCancelEditBtn">수정 취소</button>
             <button type="button" class="plus-quick-add-btn" id="plusAddTrackBtn">플레이리스트에 추가</button>
           </div>
@@ -4402,6 +4405,19 @@ const plusAudioInput = document.getElementById('plusTrackAudioInput');
 
     let editingPlusIndex = null;
     const plusCancelEditBtn = document.getElementById('plusCancelEditBtn');
+    const plusMoveUpBtn = document.getElementById('plusMoveUpBtn');
+    const plusMoveDownBtn = document.getElementById('plusMoveDownBtn');
+    const plusDeleteTrackBtn = document.getElementById('plusDeleteTrackBtn');
+
+    function syncPlusEditActionButtons() {
+      const hasTarget = editingPlusIndex !== null && plusPlaylistTracks[editingPlusIndex];
+      [plusCancelEditBtn, plusMoveUpBtn, plusMoveDownBtn, plusDeleteTrackBtn].forEach(b => {
+        if (!b) return;
+        b.classList.toggle('active', Boolean(hasTarget));
+      });
+      if (plusMoveUpBtn) plusMoveUpBtn.disabled = !hasTarget || editingPlusIndex <= 0;
+      if (plusMoveDownBtn) plusMoveDownBtn.disabled = !hasTarget || editingPlusIndex >= plusPlaylistTracks.length - 1;
+    }
 
     function resetPlusQuickForm() {
       editingPlusIndex = null;
@@ -4412,7 +4428,7 @@ const plusAudioInput = document.getElementById('plusTrackAudioInput');
       if (plusAudioInput) plusAudioInput.value = '';
       if (plusSelectedAudioName) plusSelectedAudioName.textContent = '';
       if (plusAddTrackBtn) plusAddTrackBtn.textContent = '플레이리스트에 추가';
-      if (plusCancelEditBtn) plusCancelEditBtn.classList.remove('active');
+      syncPlusEditActionButtons();
     }
 
     function startEditPlusTrack(targetIdx) {
@@ -4427,9 +4443,124 @@ const plusAudioInput = document.getElementById('plusTrackAudioInput');
       if (plusAudioInput) plusAudioInput.value = '';
       if (plusSelectedAudioName) plusSelectedAudioName.textContent = item.bgm ? '기존 오디오 유지됨' : '';
       if (plusAddTrackBtn) plusAddTrackBtn.textContent = '수정 저장';
-      if (plusCancelEditBtn) plusCancelEditBtn.classList.add('active');
+      syncPlusEditActionButtons();
       if (statusEl) statusEl.textContent = `수정 중: ${item.title}`;
       if (titleInp) titleInp.focus();
+    }
+
+    async function applyPlusOrderChange(delta) {
+      if (editingPlusIndex === null || !plusPlaylistTracks[editingPlusIndex]) return;
+      const nextIdx = editingPlusIndex + delta;
+      if (nextIdx < 0 || nextIdx >= plusPlaylistTracks.length) return;
+
+      const statusEl = document.getElementById('plusQuickStatus');
+      const token = (ghTokenInput && ghTokenInput.value.trim()) || localStorage.getItem('oblaat_gh_token') || '';
+
+      const rawExisting = plusPlaylistTracks.map(t => ({
+        title: t.title,
+        bgm: t.bgm || '',
+        yt: t.yt || '',
+        created_at: t.created_at || new Date().toISOString()
+      }));
+
+      const tmp = rawExisting[editingPlusIndex];
+      rawExisting[editingPlusIndex] = rawExisting[nextIdx];
+      rawExisting[nextIdx] = tmp;
+
+      localStorage.setItem('oblaat_plus_playlist_cache', JSON.stringify(rawExisting));
+      plusPlaylistTracks = rawExisting.map((t, i) => ({
+        number: -(i + 1),
+        isPlusPlaylist: true,
+        title: t.title || `Track ${i + 1}`,
+        created_at: t.created_at || new Date().toISOString(),
+        labels: [{ name: 'PLUS' }],
+        bgm: t.bgm || '',
+        yt: t.yt || '',
+        body: buildBodyFromPlusTrack(t)
+      }));
+
+      editingPlusIndex = nextIdx;
+      currentIndex = nextIdx;
+      filteredPosts = [...plusPlaylistTracks];
+      renderTrackList();
+      syncPlusEditActionButtons();
+
+      if (token) {
+        try { await savePlusPlaylistToGitHub(rawExisting, token); } catch (e) {}
+      }
+      if (statusEl) {
+        statusEl.textContent = '트랙 순서가 변경되었습니다.';
+        setTimeout(() => { if (statusEl) statusEl.textContent = `수정 중: ${plusPlaylistTracks[editingPlusIndex]?.title || ''}`; }, 1200);
+      }
+    }
+
+    if (plusMoveUpBtn) {
+      plusMoveUpBtn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        applyPlusOrderChange(-1);
+      });
+    }
+
+    if (plusMoveDownBtn) {
+      plusMoveDownBtn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        applyPlusOrderChange(1);
+      });
+    }
+
+    if (plusDeleteTrackBtn) {
+      plusDeleteTrackBtn.addEventListener('click', async (e) => {
+        e.stopPropagation();
+        if (editingPlusIndex === null || !plusPlaylistTracks[editingPlusIndex]) return;
+        const target = plusPlaylistTracks[editingPlusIndex];
+        if (!confirm(`"${target.title}" 트랙을 삭제할까요?`)) return;
+
+        const statusEl = document.getElementById('plusQuickStatus');
+        const token = (ghTokenInput && ghTokenInput.value.trim()) || localStorage.getItem('oblaat_gh_token') || '';
+
+        const rawExisting = plusPlaylistTracks
+          .filter((_, idx) => idx !== editingPlusIndex)
+          .map(t => ({
+            title: t.title,
+            bgm: t.bgm || '',
+            yt: t.yt || '',
+            created_at: t.created_at || new Date().toISOString()
+          }));
+
+        localStorage.setItem('oblaat_plus_playlist_cache', JSON.stringify(rawExisting));
+        plusPlaylistTracks = rawExisting.map((t, i) => ({
+          number: -(i + 1),
+          isPlusPlaylist: true,
+          title: t.title || `Track ${i + 1}`,
+          created_at: t.created_at || new Date().toISOString(),
+          labels: [{ name: 'PLUS' }],
+          bgm: t.bgm || '',
+          yt: t.yt || '',
+          body: buildBodyFromPlusTrack(t)
+        }));
+
+        filteredPosts = [...plusPlaylistTracks];
+        currentIndex = Math.max(0, Math.min(currentIndex, filteredPosts.length - 1));
+        resetPlusQuickForm();
+        renderTrackList();
+
+        const nextPost = filteredPosts[currentIndex];
+        if (nextPost) {
+          document.getElementById('ctrlTitle').textContent = nextPost.title;
+          loadAndPlayTrackAudio(nextPost, true);
+        } else {
+          document.getElementById('ctrlTitle').textContent = '음악 트랙을 추가해 주세요';
+          stopAllAudioPlayback(true);
+        }
+
+        if (token) {
+          try { await savePlusPlaylistToGitHub(rawExisting, token); } catch (err) {}
+        }
+        if (statusEl) {
+          statusEl.textContent = '트랙이 삭제되었습니다.';
+          setTimeout(() => { if (statusEl) statusEl.textContent = ''; }, 1600);
+        }
+      });
     }
 
     if (plusCancelEditBtn) {

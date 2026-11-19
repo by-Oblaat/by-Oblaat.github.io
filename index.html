@@ -453,18 +453,22 @@
        ========================================= */
     .player-control-card {
       width: 310px;
-      height: 166px;
+      min-height: 166px;
       background: #ffffff;
       border: 1px solid #ececec;
       border-radius: 16px;
       box-shadow: 0 10px 28px rgba(0, 0, 0, 0.06);
-      padding: 12px 16px 10px 24px;
+      padding: 12px 16px 12px 24px;
       display: flex;
       flex-direction: column;
-      justify-content: space-between;
+      justify-content: flex-start;
+      gap: 10px;
       position: relative;
       flex-shrink: 0;
       pointer-events: auto;
+      transition: height 0.45s cubic-bezier(0.22, 1, 0.36, 1),
+                  min-height 0.45s cubic-bezier(0.22, 1, 0.36, 1),
+                  box-shadow 0.35s ease;
     }
 
 .ctrl-top-row {
@@ -1521,6 +1525,43 @@
       min-height: 18px;
     }
 
+.plus-row-edit-btn {
+      display: none;
+      margin-left: 6px;
+      background: none;
+      border: 1px solid #d5d9e2;
+      color: var(--text-sub);
+      border-radius: 4px;
+      padding: 0 5px;
+      font-size: 0.7rem;
+      line-height: 16px;
+      cursor: pointer;
+      font-family: 'Gowun Batang', serif;
+      vertical-align: middle;
+    }
+    body.plus-music-mode.owner-unlocked .plus-row-edit-btn {
+      display: inline-block;
+    }
+    .plus-row-edit-btn:hover {
+      border-color: var(--line-blue);
+      color: var(--line-blue);
+      background: #f4f7ff;
+    }
+    .plus-edit-cancel-btn {
+      display: none;
+      background: #ffffff;
+      border: 1px solid #dcdcdc;
+      color: var(--text-sub);
+      border-radius: 6px;
+      padding: 6px 10px;
+      font-size: 0.76rem;
+      cursor: pointer;
+      font-family: 'Gowun Batang', serif;
+    }
+    .plus-edit-cancel-btn.active {
+      display: inline-block;
+    }
+
 .plus-quick-add-box {
       display: none;
       width: 100%;
@@ -1587,32 +1628,21 @@
       min-height: 14px;
     }
 
-/* '+' 음악 전용 카테고리 모드: 플레이어 카드(166px)는 그대로 고정, 트랙 리스트(#miniTrackPopover)만 트랙 수에 맞춰 아래로 길어짐 */
-    .player-control-card {
-      height: 166px !important;
-      justify-content: space-between;
+/* '✧' 음악 전용 카테고리 모드: 상단 컨트롤 간격은 유지하고, 트랙 리스트에 맞춰 뮤직 플레이어 하단이 함께 늘어남 */
+    body.plus-music-mode .detail-drawer {
+      display: none !important;
     }
-    .mini-track-popover {
+    body.plus-music-mode .mini-track-popover {
+      background: transparent;
+      border: none;
+      border-top: 1px solid #eeeeee;
+      border-radius: 0;
+      box-shadow: none;
+      padding: 6px 6px 4px 0 !important;
       transition: height 0.45s cubic-bezier(0.22, 1, 0.36, 1),
                   max-height 0.45s cubic-bezier(0.22, 1, 0.36, 1),
                   min-height 0.45s cubic-bezier(0.22, 1, 0.36, 1),
                   flex-basis 0.45s cubic-bezier(0.22, 1, 0.36, 1) !important;
-    }
-    body.plus-music-mode .detail-drawer {
-      display: none !important;
-    }
-    body.plus-music-mode .player-control-card {
-      height: 166px !important;
-      overflow: visible !important;
-    }
-    body.plus-music-mode .mini-track-popover {
-      background: #ffffff;
-      border: 1px solid #ececec;
-      border-top: 1px solid #eeeeee;
-      border-radius: 0 0 14px 14px;
-      box-shadow: 0 10px 24px rgba(0, 0, 0, 0.05);
-      padding: 6px 8px 8px 8px !important;
-      z-index: 4;
     }
 
         /* 홈페이지 최하단 시그니처 푸터 */
@@ -1840,7 +1870,10 @@
             <input type="file" id="plusTrackAudioInput" accept="audio/*" style="display:none;" />
             <span id="plusSelectedAudioName" style="font-size:0.74rem; color:var(--text-sub); max-width:160px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;"></span>
           </div>
-          <button type="button" class="plus-quick-add-btn" id="plusAddTrackBtn">플레이리스트에 추가</button>
+          <div style="display:flex; align-items:center; gap:6px;">
+            <button type="button" class="plus-edit-cancel-btn" id="plusCancelEditBtn">수정 취소</button>
+            <button type="button" class="plus-quick-add-btn" id="plusAddTrackBtn">플레이리스트에 추가</button>
+          </div>
         </div>
         <div class="plus-quick-status" id="plusQuickStatus"></div>
       </div>
@@ -2423,22 +2456,6 @@ const PLUS_PLAYLIST_PATH = "playlist/plus_tracks.json";
     }
 
     function activatePlusMusicView() {
-      document.body.classList.remove('plus-music-mode');
-      void document.body.offsetWidth;
-      requestAnimationFrame(() => {
-        document.body.classList.add('plus-music-mode');
-        syncPlusDynamicHeight();
-      });
-      playTimers.forEach(t => clearTimeout(t));
-      playTimers = [];
-      clearInterval(progressTimer);
-      stopAllAudioPlayback(false);
-
-      const showcaseRow = document.getElementById('showcaseRow');
-      const activeVinyl = document.getElementById('activeVinylDisc');
-      const tonearm = document.getElementById('tonearmOverlay');
-      document.getElementById('detailDrawer').classList.remove('open');
-
       if (filteredPosts.length === 0) {
         filteredPosts = [{
           number: 0,
@@ -2450,7 +2467,34 @@ const PLUS_PLAYLIST_PATH = "playlist/plus_tracks.json";
       }
 
       currentIndex = 0;
-      const post = filteredPosts[currentIndex];
+      playTimers.forEach(t => clearTimeout(t));
+      playTimers = [];
+      clearInterval(progressTimer);
+      stopAllAudioPlayback(false);
+
+      const showcaseRow = document.getElementById('showcaseRow');
+      const activeVinyl = document.getElementById('activeVinylDisc');
+      const tonearm = document.getElementById('tonearmOverlay');
+      document.getElementById('detailDrawer').classList.remove('open');
+
+      const alreadyInPlusMode = document.body.classList.contains('plus-music-mode');
+
+      if (alreadyInPlusMode) {
+        showcaseRow.classList.remove('stage-covers-exit', 'stage-lp-in', 'stage-card-in');
+        showcaseRow.classList.add('is-open', 'stage-turntable-in');
+      } else {
+        showcaseRow.classList.remove(
+          'stage-covers-exit',
+          'is-open',
+          'stage-turntable-in',
+          'stage-lp-in',
+          'stage-card-in'
+        );
+      }
+      tonearm.classList.remove('playing');
+      activeVinyl.classList.remove('spinning');
+
+      const post = filteredPosts[0];
       const vinylImgUrl = extractMetaUrl(post.body, 'vinyl', CUSTOM_ASSETS.vinylDisc);
       if (vinylImgUrl) {
         activeVinyl.style.backgroundImage = `url("${vinylImgUrl}")`;
@@ -2463,16 +2507,40 @@ const PLUS_PLAYLIST_PATH = "playlist/plus_tracks.json";
       document.getElementById('ctrlTitle').textContent = post.title;
       progressPercent = 0;
       document.getElementById('ctrlProgressFill').style.width = '0%';
+      renderTrackList();
+
+      document.body.classList.add('plus-music-mode');
+      syncPlusDynamicHeight();
 
       isPlaying = true;
       isDiscPaused = false;
-      showcaseRow.classList.remove('stage-covers-exit');
-      showcaseRow.classList.add('is-open', 'stage-turntable-in', 'stage-lp-in', 'stage-card-in');
-      tonearm.classList.add('playing');
-      activeVinyl.classList.add('spinning');
-      renderTrackList();
-      loadAndPlayTrackAudio(post, true);
-      startProgressSimulation();
+
+      // 턴테이블 등장 -> LP가 턴테이블 위로 올라오는 애니메이션 -> 톤암 이동 -> 회전 -> 카드 등장
+      const t1 = setTimeout(() => {
+        showcaseRow.classList.add('is-open', 'stage-turntable-in');
+      }, alreadyInPlusMode ? 0 : 120);
+
+      const t2 = setTimeout(() => {
+        showcaseRow.classList.add('stage-lp-in');
+      }, 480);
+
+      const t3 = setTimeout(() => {
+        tonearm.classList.add('playing');
+      }, 960);
+
+      const t4 = setTimeout(() => {
+        activeVinyl.classList.add('spinning');
+        loadAndPlayTrackAudio(post, true);
+        setDiscPlayState(true);
+        startProgressSimulation();
+      }, 1420);
+
+      const t5 = setTimeout(() => {
+        showcaseRow.classList.add('stage-card-in');
+        syncPlusDynamicHeight();
+      }, 1620);
+
+      playTimers.push(t1, t2, t3, t4, t5);
     }
 
     function bindFilterButtons() {
@@ -2673,6 +2741,7 @@ const PLUS_PLAYLIST_PATH = "playlist/plus_tracks.json";
 
     document.getElementById('turntableTriggerBox').onclick = (e) => {
       e.stopPropagation();
+      if (document.body.classList.contains('plus-music-mode')) return;
       if (isPlaying) resetPlayerAnimation();
     };
 
@@ -2782,9 +2851,9 @@ const PLUS_PLAYLIST_PATH = "playlist/plus_tracks.json";
       const popover = document.getElementById('miniTrackPopover');
       if (!card || !popover) return;
 
-      card.style.setProperty('height', '166px', 'important');
-
       if (!document.body.classList.contains('plus-music-mode')) {
+        card.style.height = '';
+        card.style.minHeight = '';
         popover.style.setProperty('height', '', 'important');
         popover.style.setProperty('max-height', '', 'important');
         popover.style.setProperty('min-height', '', 'important');
@@ -2793,8 +2862,11 @@ const PLUS_PLAYLIST_PATH = "playlist/plus_tracks.json";
       }
 
       const count = Math.max(1, filteredPosts.length);
-      const listHeight = Math.min(440, Math.max(44, count * 20 + 16));
+      const listHeight = Math.min(440, Math.max(44, count * 20 + 10));
+      const cardTotalHeight = 134 + listHeight;
 
+      card.style.height = `${cardTotalHeight}px`;
+      card.style.minHeight = `${cardTotalHeight}px`;
       popover.style.setProperty('height', `${listHeight}px`, 'important');
       popover.style.setProperty('max-height', `${listHeight}px`, 'important');
       popover.style.setProperty('min-height', `${listHeight}px`, 'important');
@@ -2809,9 +2881,11 @@ const PLUS_PLAYLIST_PATH = "playlist/plus_tracks.json";
         syncPlusDynamicHeight();
         return;
       }
+      const isPlusList = document.body.classList.contains('plus-music-mode');
       popover.innerHTML = filteredPosts.map((post, idx) => `
-        <div class="mini-track-row ${idx === currentIndex ? 'active' : ''}" data-idx="${idx}">
-          ${idx + 1}. ${post.title}
+        <div class="mini-track-row ${idx === currentIndex ? 'active' : ''}" data-idx="${idx}" style="${isPlusList ? 'display:flex;justify-content:space-between;align-items:center;' : ''}">
+          <span style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap;flex:1;min-width:0;">${idx + 1}. ${post.title}</span>
+          ${isPlusList ? `<button type="button" class="plus-row-edit-btn" data-edit-idx="${idx}" title="트랙 수정">수정</button>` : ''}
         </div>
       `).join('');
       syncPlusDynamicHeight();
@@ -2820,6 +2894,14 @@ const PLUS_PLAYLIST_PATH = "playlist/plus_tracks.json";
         item.addEventListener('click', (e) => {
           e.stopPropagation();
           switchTrackWhilePlaying(Number(item.dataset.idx));
+        });
+      });
+
+      popover.querySelectorAll('.plus-row-edit-btn').forEach(editBtn => {
+        editBtn.addEventListener('click', (e) => {
+          e.stopPropagation();
+          const targetIdx = Number(editBtn.dataset.editIdx);
+          startEditPlusTrack(targetIdx);
         });
       });
     }
@@ -3416,122 +3498,7 @@ const PLUS_PLAYLIST_PATH = "playlist/plus_tracks.json";
           });
         }
 
-    const plusAudioInput = document.getElementById('plusTrackAudioInput');
-    const plusSelectedAudioName = document.getElementById('plusSelectedAudioName');
-    const plusAddTrackBtn = document.getElementById('plusAddTrackBtn');
-
-    if (plusAudioInput && plusSelectedAudioName) {
-      plusAudioInput.addEventListener('change', () => {
-        const f = plusAudioInput.files && plusAudioInput.files[0];
-        plusSelectedAudioName.textContent = f ? f.name : '';
-      });
-    }
-
-    if (plusAddTrackBtn) {
-      plusAddTrackBtn.addEventListener('click', async (e) => {
-        e.stopPropagation();
-        const statusEl = document.getElementById('plusQuickStatus');
-        const titleInp = document.getElementById('plusTrackTitleInput');
-        const ytInp = document.getElementById('plusTrackYtInput');
-        const token = (ghTokenInput && ghTokenInput.value.trim()) || localStorage.getItem('oblaat_gh_token') || '';
-
-        const trackTitle = (titleInp && titleInp.value.trim()) || '';
-        const ytVal = (ytInp && ytInp.value.trim()) || '';
-        const audioFile = (plusAudioInput && plusAudioInput.files && plusAudioInput.files[0]) || null;
-
-        if (!trackTitle) {
-          if (statusEl) statusEl.textContent = '음악 제목을 입력해 주세요.';
-          return;
-        }
-        if (!audioFile && !ytVal) {
-          if (statusEl) statusEl.textContent = 'MP3 파일을 선택하거나 유튜브 링크를 입력해 주세요.';
-          return;
-        }
-        plusAddTrackBtn.disabled = true;
-        if (statusEl) statusEl.textContent = audioFile ? '오디오 처리 중...' : '플레이리스트에 추가 중...';
-
-        try {
-          let bgmUrl = '';
-          if (audioFile) {
-            if (token) {
-              try {
-                bgmUrl = await uploadImageToGitHub(audioFile, token);
-              } catch (upErr) {
-                bgmUrl = URL.createObjectURL(audioFile);
-              }
-            } else {
-              bgmUrl = URL.createObjectURL(audioFile);
-            }
-          }
-
-          const rawExisting = plusPlaylistTracks.map(t => ({
-            title: t.title,
-            bgm: t.bgm || '',
-            yt: t.yt || '',
-            created_at: t.created_at || new Date().toISOString()
-          }));
-
-          const newEntry = {
-            title: trackTitle,
-            bgm: bgmUrl,
-            yt: ytVal,
-            created_at: new Date().toISOString()
-          };
-          rawExisting.push(newEntry);
-
-          // 즉시 로컬 상태 및 localStorage 반영 (로컬 테스트 환경에서도 막힘없이 동작)
-          localStorage.setItem('oblaat_plus_playlist_cache', JSON.stringify(rawExisting));
-          plusPlaylistTracks = rawExisting.map((t, i) => ({
-            number: -(i + 1),
-            isPlusPlaylist: true,
-            title: t.title || `Track ${i + 1}`,
-            created_at: t.created_at || new Date().toISOString(),
-            labels: [{ name: 'PLUS' }],
-            bgm: t.bgm || '',
-            yt: t.yt || '',
-            body: buildBodyFromPlusTrack(t)
-          }));
-
-          let syncedToGitHub = false;
-          if (token) {
-            try {
-              await savePlusPlaylistToGitHub(rawExisting, token);
-              syncedToGitHub = true;
-            } catch (ghErr) {
-              syncedToGitHub = false;
-            }
-          }
-
-          filteredPosts = [...plusPlaylistTracks];
-          currentIndex = Math.max(0, filteredPosts.length - 1);
-          renderTrackList();
-          const addedItem = filteredPosts[currentIndex];
-          if (addedItem) {
-            document.getElementById('ctrlTitle').textContent = addedItem.title;
-            loadAndPlayTrackAudio(addedItem, true);
-            setDiscPlayState(true);
-            startProgressSimulation();
-          }
-
-          if (titleInp) titleInp.value = '';
-          if (ytInp) ytInp.value = '';
-          if (plusAudioInput) plusAudioInput.value = '';
-          if (plusSelectedAudioName) plusSelectedAudioName.textContent = '';
-          if (statusEl) {
-            statusEl.textContent = syncedToGitHub
-              ? '플레이리스트에 추가되었습니다!'
-              : '로컬 플레이리스트에 추가되었습니다! (GitHub 저장은 토큰 연결 시 동기화됩니다)';
-          }
-          setTimeout(() => { if (statusEl) statusEl.textContent = ''; }, 2200);
-        } catch (err) {
-          if (statusEl) statusEl.textContent = err.message || '추가 실패';
-        } finally {
-          plusAddTrackBtn.disabled = false;
-        }
-      });
-    }
-
-        initRichToolbars();
+                initRichToolbars();
         const plusBtn = document.getElementById('threadOpenPlusBtn');
         const writeBox = document.getElementById('threadWriteBox');
         if (plusBtn && writeBox) {
@@ -4414,6 +4381,171 @@ ${cleanBody}`;
       });
     }
 
+
+
+const plusAudioInput = document.getElementById('plusTrackAudioInput');
+    const plusSelectedAudioName = document.getElementById('plusSelectedAudioName');
+    const plusAddTrackBtn = document.getElementById('plusAddTrackBtn');
+
+    if (plusAudioInput && plusSelectedAudioName) {
+      plusAudioInput.addEventListener('change', () => {
+        const f = plusAudioInput.files && plusAudioInput.files[0];
+        plusSelectedAudioName.textContent = f ? f.name : '';
+      });
+    }
+
+    let editingPlusIndex = null;
+    const plusCancelEditBtn = document.getElementById('plusCancelEditBtn');
+
+    function resetPlusQuickForm() {
+      editingPlusIndex = null;
+      const titleInp = document.getElementById('plusTrackTitleInput');
+      const ytInp = document.getElementById('plusTrackYtInput');
+      if (titleInp) titleInp.value = '';
+      if (ytInp) ytInp.value = '';
+      if (plusAudioInput) plusAudioInput.value = '';
+      if (plusSelectedAudioName) plusSelectedAudioName.textContent = '';
+      if (plusAddTrackBtn) plusAddTrackBtn.textContent = '플레이리스트에 추가';
+      if (plusCancelEditBtn) plusCancelEditBtn.classList.remove('active');
+    }
+
+    function startEditPlusTrack(targetIdx) {
+      const item = plusPlaylistTracks[targetIdx];
+      if (!item) return;
+      editingPlusIndex = targetIdx;
+      const titleInp = document.getElementById('plusTrackTitleInput');
+      const ytInp = document.getElementById('plusTrackYtInput');
+      const statusEl = document.getElementById('plusQuickStatus');
+      if (titleInp) titleInp.value = item.title || '';
+      if (ytInp) ytInp.value = item.yt || '';
+      if (plusAudioInput) plusAudioInput.value = '';
+      if (plusSelectedAudioName) plusSelectedAudioName.textContent = item.bgm ? '기존 오디오 유지됨' : '';
+      if (plusAddTrackBtn) plusAddTrackBtn.textContent = '수정 저장';
+      if (plusCancelEditBtn) plusCancelEditBtn.classList.add('active');
+      if (statusEl) statusEl.textContent = `수정 중: ${item.title}`;
+      if (titleInp) titleInp.focus();
+    }
+
+    if (plusCancelEditBtn) {
+      plusCancelEditBtn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        const statusEl = document.getElementById('plusQuickStatus');
+        resetPlusQuickForm();
+        if (statusEl) statusEl.textContent = '';
+      });
+    }
+
+    if (plusAddTrackBtn) {
+      plusAddTrackBtn.addEventListener('click', async (e) => {
+        e.stopPropagation();
+        const statusEl = document.getElementById('plusQuickStatus');
+        const titleInp = document.getElementById('plusTrackTitleInput');
+        const ytInp = document.getElementById('plusTrackYtInput');
+        const token = (ghTokenInput && ghTokenInput.value.trim()) || localStorage.getItem('oblaat_gh_token') || '';
+
+        const trackTitle = (titleInp && titleInp.value.trim()) || '';
+        const ytVal = (ytInp && ytInp.value.trim()) || '';
+        const audioFile = (plusAudioInput && plusAudioInput.files && plusAudioInput.files[0]) || null;
+        const isEditingPlus = editingPlusIndex !== null && plusPlaylistTracks[editingPlusIndex];
+        const existingItem = isEditingPlus ? plusPlaylistTracks[editingPlusIndex] : null;
+
+        if (!trackTitle) {
+          if (statusEl) statusEl.textContent = '음악 제목을 입력해 주세요.';
+          return;
+        }
+        if (!audioFile && !ytVal && !(existingItem && existingItem.bgm)) {
+          if (statusEl) statusEl.textContent = 'MP3 파일을 선택하거나 유튜브 링크를 입력해 주세요.';
+          return;
+        }
+        plusAddTrackBtn.disabled = true;
+        if (statusEl) statusEl.textContent = audioFile ? '오디오 처리 중...' : (isEditingPlus ? '트랙 수정 저장 중...' : '플레이리스트에 추가 중...');
+
+        try {
+          let bgmUrl = existingItem ? (existingItem.bgm || '') : '';
+          if (audioFile) {
+            if (token) {
+              try {
+                bgmUrl = await uploadImageToGitHub(audioFile, token);
+              } catch (upErr) {
+                bgmUrl = URL.createObjectURL(audioFile);
+              }
+            } else {
+              bgmUrl = URL.createObjectURL(audioFile);
+            }
+          }
+
+          const rawExisting = plusPlaylistTracks.map(t => ({
+            title: t.title,
+            bgm: t.bgm || '',
+            yt: t.yt || '',
+            created_at: t.created_at || new Date().toISOString()
+          }));
+
+          const entryData = {
+            title: trackTitle,
+            bgm: bgmUrl,
+            yt: ytVal,
+            created_at: existingItem && existingItem.created_at ? existingItem.created_at : new Date().toISOString()
+          };
+
+          if (isEditingPlus) {
+            rawExisting[editingPlusIndex] = entryData;
+          } else {
+            rawExisting.push(entryData);
+          }
+
+          localStorage.setItem('oblaat_plus_playlist_cache', JSON.stringify(rawExisting));
+          plusPlaylistTracks = rawExisting.map((t, i) => ({
+            number: -(i + 1),
+            isPlusPlaylist: true,
+            title: t.title || `Track ${i + 1}`,
+            created_at: t.created_at || new Date().toISOString(),
+            labels: [{ name: 'PLUS' }],
+            bgm: t.bgm || '',
+            yt: t.yt || '',
+            body: buildBodyFromPlusTrack(t)
+          }));
+
+          let syncedToGitHub = false;
+          if (token) {
+            try {
+              await savePlusPlaylistToGitHub(rawExisting, token);
+              syncedToGitHub = true;
+            } catch (ghErr) {
+              syncedToGitHub = false;
+            }
+          }
+
+          const targetIdx = isEditingPlus ? editingPlusIndex : Math.max(0, plusPlaylistTracks.length - 1);
+          filteredPosts = [...plusPlaylistTracks];
+          currentIndex = Math.min(targetIdx, Math.max(0, filteredPosts.length - 1));
+          renderTrackList();
+          const activeItem = filteredPosts[currentIndex];
+          if (activeItem) {
+            document.getElementById('ctrlTitle').textContent = activeItem.title;
+            loadAndPlayTrackAudio(activeItem, true);
+            setDiscPlayState(true);
+            startProgressSimulation();
+          }
+
+          resetPlusQuickForm();
+          if (statusEl) {
+            if (isEditingPlus) {
+              statusEl.textContent = syncedToGitHub ? '트랙이 수정되었습니다!' : '로컬에서 트랙이 수정되었습니다!';
+            } else {
+              statusEl.textContent = syncedToGitHub
+                ? '플레이리스트에 추가되었습니다!'
+                : '로컬 플레이리스트에 추가되었습니다! (GitHub 저장은 토큰 연결 시 동기화됩니다)';
+            }
+          }
+          setTimeout(() => { if (statusEl) statusEl.textContent = ''; }, 2200);
+        } catch (err) {
+          if (statusEl) statusEl.textContent = err.message || '저장 실패';
+        } finally {
+          plusAddTrackBtn.disabled = false;
+        }
+      });
+    }
 
     initRichToolbars();
     fetchPosts();

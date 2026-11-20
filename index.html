@@ -2215,15 +2215,26 @@
           events: {
             onReady: (ev) => {
               ytPlayerReady = true;
-              ev.target.setVolume(targetVol);
+              try {
+                ev.target.unMute();
+                ev.target.setVolume(targetVol);
+              } catch (e) {}
               if (pendingYtAutoplay && currentMediaType === 'youtube') {
-                ev.target.playVideo();
+                try { ev.target.playVideo(); } catch (e) {}
               }
             },
             onStateChange: (ev) => {
               if (currentMediaType !== 'youtube') return;
               if (ev.data === YT.PlayerState.PLAYING) {
                 isTrackEnded = false;
+              } else if (ev.data === YT.PlayerState.CUED) {
+                if (isPlaying && !isDiscPaused && !isTrackEnded) {
+                  try {
+                    ev.target.unMute();
+                    ev.target.setVolume(volSlider ? Number(volSlider.value) : 50);
+                    ev.target.playVideo();
+                  } catch (e) {}
+                }
               } else if (ev.data === YT.PlayerState.ENDED) {
                 if (loopMode === 'one') {
                   isTrackEnded = false;
@@ -3248,7 +3259,26 @@ const PLUS_PLAYLIST_PATH = "playlist/plus_tracks.json";
                 if (stEl) stEl.textContent = '';
                 inlineEditBox.style.display = 'flex';
                 dashEditBtn.classList.add('active');
-                initRichToolbars();
+            function retryActiveAudioAfterGesture() {
+      if (!isPlaying || isDiscPaused || isTrackEnded) return;
+      if (currentMediaType === 'youtube' && ytPlayer && ytPlayerReady) {
+        try {
+          ytPlayer.unMute();
+          ytPlayer.setVolume(volSlider ? Number(volSlider.value) : 50);
+          const st = typeof ytPlayer.getPlayerState === 'function' ? ytPlayer.getPlayerState() : -1;
+          if (st !== YT.PlayerState.PLAYING && st !== YT.PlayerState.BUFFERING) {
+            ytPlayer.playVideo();
+          }
+        } catch (e) {}
+      } else if (currentMediaType === 'mp3' && bgmAudio && currentBgmUrl && bgmAudio.paused) {
+        bgmAudio.play().catch(() => {});
+      }
+    }
+    ['pointerdown', 'keydown'].forEach((evtName) => {
+      document.addEventListener(evtName, retryActiveAudioAfterGesture, { passive: true });
+    });
+
+    initRichToolbars();
                 const surf = document.querySelector('.rich-live-surface[data-for-textarea="inlineCommentTextarea"]');
                 if (surf && window.marked) {
                   surf.innerHTML = pureCommentText ? window.marked.parse(pureCommentText) : '';

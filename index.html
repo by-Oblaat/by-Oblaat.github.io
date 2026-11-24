@@ -1868,11 +1868,23 @@
         height: 166px !important;
         padding: 10px 11px 10px 22px !important;
       }
+      body.plus-music-mode .player-control-card {
+        height: 204px !important;
+        min-height: 204px !important;
+        max-height: 204px !important;
+      }
       .ctrl-title { font-size: 0.72rem; }
       .ctrl-volume-wrap { width: 42px; }
       .ctrl-btn { width: 22px; height: 22px; }
       .ctrl-btn svg { width: 10px; height: 10px; }
       .mini-track-popover { height: 44px !important; min-height: 44px !important; max-height: 44px !important; flex: 0 0 44px !important; }
+      body.plus-music-mode .mini-track-popover {
+        height: 108px !important;
+        min-height: 108px !important;
+        max-height: 108px !important;
+        flex: 0 0 108px !important;
+        overflow-y: auto !important;
+      }
       .detail-drawer { max-width: 100%; }
       .image-frame { min-height: 200px; }
     }
@@ -3108,10 +3120,10 @@ const PLUS_PLAYLIST_PATH = "playlist/plus_tracks.json";
       }
 
       const isMobile = window.innerWidth <= 680;
-      const maxListH = isMobile ? 68 : 104; // 턴테이블 높이와 균형을 맞추는 최대 리스트 높이 (약 5곡 표시 후 내부 스크롤)
-      const baseTopH = isMobile ? 104 : 122;
+      const maxListH = isMobile ? 108 : 108; // 5곡(20px * 5 + 여백 8px = 108px)만 보이고 나머지는 내부 스크롤
+      const baseTopH = isMobile ? 96 : 122;
       const count = Math.max(1, filteredPosts.length);
-      const listHeight = Math.min(maxListH, Math.max(44, count * 20 + 8));
+      const listHeight = isMobile ? 108 : Math.min(maxListH, Math.max(44, count * 20 + 8));
       const cardTotalHeight = baseTopH + listHeight;
 
       card.style.setProperty('height', `${cardTotalHeight}px`, 'important');

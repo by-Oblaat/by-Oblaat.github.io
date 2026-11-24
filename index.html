@@ -1070,12 +1070,17 @@
 
 
     .thread-body {
-      font-size: 1rem;
+      font-size: 9pt !important;
       line-height: 1.9;
       color: var(--text-main);
       word-break: keep-all;
     }
-    .thread-body p { margin-bottom: 1em; }
+    .thread-body p,
+    .thread-body li,
+    .thread-body blockquote {
+      font-size: 9pt !important;
+      margin-bottom: 1em;
+    }
     .thread-body img { max-width: 100%; margin: 10px 0; }
 
     /* 스레드 다중 이미지 수평 슬라이드 (동일 높이 프레임) */

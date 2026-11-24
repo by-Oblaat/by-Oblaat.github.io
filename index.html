@@ -3984,12 +3984,42 @@ const PLUS_PLAYLIST_PATH = "playlist/plus_tracks.json";
       const threadTitle = threadTitleInput ? threadTitleInput.value.trim() : '';
       const threadText = threadInput.value.trim();
 
+      const newThreadSurf = document.querySelector('.rich-live-surface[data-for-textarea="newThreadInput"]');
+      let finalThreadText = threadText;
+      if (newThreadSurf && threadInput.style.display === 'none') {
+        const imgsInSurf = Array.from(newThreadSurf.querySelectorAll('img')).map(im => im.getAttribute('src')).filter(Boolean);
+        let plainText = '';
+        const walkText = (node) => {
+          if (node.nodeType === Node.TEXT_NODE) {
+            plainText += node.textContent;
+          } else if (node.nodeType === Node.ELEMENT_NODE) {
+            const t = node.tagName.toLowerCase();
+            if (t === 'img') return;
+            if (t === 'br') { plainText += '\n'; return; }
+            node.childNodes.forEach(walkText);
+            if (t === 'div' || t === 'p') {
+              if (!plainText.endsWith('\n')) plainText += '\n';
+            }
+          }
+        };
+        newThreadSurf.childNodes.forEach(walkText);
+        const existingMdImgs = (threadText.match(/!\[.*?\]\(.*?\)/g) || []);
+        const mergedImgMd = imgsInSurf.length > 0
+          ? imgsInSurf.map(u => `![image](${u})`).join('\n')
+          : existingMdImgs.join('\n');
+        const partsOut = [];
+        if (plainText.trim()) partsOut.push(plainText.trim());
+        if (mergedImgMd) partsOut.push(mergedImgMd);
+        finalThreadText = partsOut.join('\n\n').trim();
+      }
+      const hasAnyContent = Boolean(finalThreadText.replace(/!\[.*?\]\(.*?\)/g, '').replace(/<[^>]+>/g, '').trim()) || /!\[.*?\]\(.*?\)|<img\b/i.test(finalThreadText);
+
       if (!token) {
         statusEl.textContent = '타래를 작성하려면 GitHub Token을 입력해 주세요.';
         return;
       }
-      if (!threadText) {
-        statusEl.textContent = '타래 내용을 입력해 주세요.';
+      if (!hasAnyContent) {
+        statusEl.textContent = '타래 내용이나 이미지를 입력해 주세요.';
         return;
       }
 
@@ -4009,7 +4039,7 @@ const PLUS_PLAYLIST_PATH = "playlist/plus_tracks.json";
         } else {
           existingBody += '\n---\n';
         }
-        const cleanThreadBody = threadText.replace(/^(?:threads:)?\s*/gi, '');
+        const cleanThreadBody = finalThreadText.replace(/^(?:threads:)?\s*/gi, '');
         const finalThreadTitle = threadTitle || cleanThreadBody.replace(/<[^>]+>/g, '').trim().slice(0, 40) || '새 스레드';
         existingBody += `title: ${finalThreadTitle}\n${cleanThreadBody}`;
 
@@ -4041,26 +4071,39 @@ const PLUS_PLAYLIST_PATH = "playlist/plus_tracks.json";
 
     document.getElementById('newThreadImgInput').onchange = async (e) => {
       const files = Array.from(e.target.files || []);
-      const token = ghTokenInput.value.trim();
+      const token = (ghTokenInput.value || '').trim() || localStorage.getItem('oblaat_gh_token') || '';
       const statusEl = document.getElementById('threadStatus');
       if (files.length === 0) return;
       if (!token) {
-        statusEl.textContent = '토큰을 입력해 주세요.';
+        statusEl.textContent = '관리창 또는 하단에서 GitHub Token을 먼저 입력해 주세요.';
+        e.target.value = '';
         return;
       }
       statusEl.textContent = `이미지 ${files.length}장 업로드 중...`;
       try {
         const threadTextArea = document.getElementById('newThreadInput');
+        const liveSurf = document.querySelector('.rich-live-surface[data-for-textarea="newThreadInput"]');
         for (let i = 0; i < files.length; i++) {
           statusEl.textContent = `이미지 업로드 중 (${i + 1}/${files.length})...`;
           const url = await uploadImageToGitHub(files[i], token);
           threadTextArea.value += `\n![image](${url})\n`;
+          if (liveSurf) {
+            const imgEl = document.createElement('img');
+            imgEl.src = url;
+            imgEl.alt = '첨부 이미지';
+            imgEl.style.maxWidth = '100%';
+            imgEl.style.margin = '8px 0';
+            imgEl.style.borderRadius = '6px';
+            imgEl.style.display = 'block';
+            liveSurf.appendChild(imgEl);
+          }
         }
         statusEl.textContent = `이미지 ${files.length}장 첨부 완료!`;
         e.target.value = '';
-        setTimeout(() => { statusEl.textContent = ''; }, 1200);
+        setTimeout(() => { statusEl.textContent = ''; }, 1500);
       } catch (err) {
-        statusEl.textContent = err.message;
+        statusEl.textContent = err.message || '이미지 업로드 실패';
+        e.target.value = '';
       }
     };
 

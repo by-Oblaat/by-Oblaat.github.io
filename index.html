@@ -1185,6 +1185,79 @@
 
 
 
+/* 스레드 첨부 이미지 블러 가리기 ('Hidden beneath a veil') */
+    .thread-blur-wrap {
+      position: relative;
+      width: 100%;
+      margin: 10px 0;
+      border-radius: 8px;
+      overflow: hidden;
+      cursor: pointer;
+    }
+    .thread-blur-wrap .thread-slide-wrap {
+      margin: 0;
+    }
+    .thread-blur-wrap .thread-single-img {
+      width: 100%;
+      height: auto;
+      display: block;
+      margin: 0;
+    }
+    .thread-blur-target {
+      transition: filter 0.48s cubic-bezier(0.22, 1, 0.36, 1),
+                  transform 0.48s cubic-bezier(0.22, 1, 0.36, 1);
+    }
+    .thread-blur-wrap.is-blurred .thread-blur-target {
+      filter: blur(18px) saturate(0.85);
+      transform: scale(1.04);
+      pointer-events: none;
+    }
+    .thread-blur-veil {
+      position: absolute;
+      inset: 0;
+      z-index: 6;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      padding: 16px;
+      background: rgba(255, 255, 255, 0.24);
+      backdrop-filter: blur(2px);
+      opacity: 1;
+      transition: opacity 0.38s ease, visibility 0.38s ease;
+      cursor: pointer;
+    }
+    .thread-blur-wrap:not(.is-blurred) .thread-blur-veil {
+      opacity: 0;
+      visibility: hidden;
+      pointer-events: none;
+    }
+    .thread-blur-veil-label {
+      padding: 7px 16px;
+      border-radius: 99px;
+      background: rgba(255, 255, 255, 0.88);
+      border: 1px solid rgba(107, 158, 255, 0.45);
+      color: var(--text-main);
+      font-family: 'Gowun Batang', serif;
+      font-size: 0.8rem;
+      letter-spacing: 0.06em;
+      box-shadow: 0 4px 14px rgba(0, 0, 0, 0.06);
+      user-select: none;
+    }
+    .thread-blur-check-label {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      font-size: 0.75rem;
+      color: var(--text-sub);
+      cursor: pointer;
+      user-select: none;
+      font-family: 'Gowun Batang', serif;
+    }
+    .thread-blur-check-label input[type="checkbox"] {
+      accent-color: var(--line-blue);
+      cursor: pointer;
+    }
+
     /* 타래글 작성 영역 열기용 + 버튼 */
     .thread-open-plus-btn {
       margin-top: 20px;
@@ -2036,9 +2109,13 @@
               <div class="rich-mini-toolbar" data-target="newThreadInput"></div>
               <textarea id="newThreadInput" placeholder="타래글을 작성하세요... (이미지 첨부 가능)"></textarea>
               <div class="thread-write-footer">
-                <div>
+                <div style="display:flex; align-items:center; gap:12px; flex-wrap:wrap;">
                   <label for="newThreadImgInput" style="font-size:0.75rem; color:var(--line-blue); cursor:pointer; text-decoration:underline;">+ 이미지 첨부</label>
                   <input type="file" id="newThreadImgInput" accept="image/*" multiple style="display:none;" />
+                  <label class="thread-blur-check-label" title="체크 시 첨부 이미지가 블러 처리됩니다">
+                    <input type="checkbox" id="newThreadBlurCheck" />
+                    <span>이미지 가리기 (블러)</span>
+                  </label>
                 </div>
                 <button class="thread-submit-btn" id="submitThreadBtn">타래 추가</button>
               </div>
@@ -3347,11 +3424,19 @@ const PLUS_PLAYLIST_PATH = "playlist/plus_tracks.json";
 
           parsedBlocks.forEach(({ cleanBlock, rawIdx }) => {
             let extractedTitle = '';
+            let isBlurred = false;
             let bodyAfterTitle = cleanBlock;
             const titleMatch = cleanBlock.match(/^title:\s*(.+)$/im);
             if (titleMatch) {
               extractedTitle = titleMatch[1].trim();
-              bodyAfterTitle = cleanBlock.replace(/^title:\s*.+$/im, '').trim();
+              bodyAfterTitle = bodyAfterTitle.replace(/^title:\s*.+$/im, '').trim();
+            }
+            const blurMatch = bodyAfterTitle.match(/^blur:\s*(true|1|yes)$/im);
+            if (blurMatch) {
+              isBlurred = true;
+              bodyAfterTitle = bodyAfterTitle.replace(/^blur:\s*.+$/im, '').trim();
+            } else {
+              bodyAfterTitle = bodyAfterTitle.replace(/^blur:\s*.+$/im, '').trim();
             }
 
             const imgUrls = [];
@@ -3458,8 +3543,26 @@ const PLUS_PLAYLIST_PATH = "playlist/plus_tracks.json";
             addImgInput.multiple = true;
             addImgInput.style.display = 'none';
 
+            const editBlurLabel = document.createElement('label');
+            editBlurLabel.className = 'thread-blur-check-label';
+            editBlurLabel.title = '체크 시 첨부 이미지가 블러 처리됩니다';
+            const editBlurCheck = document.createElement('input');
+            editBlurCheck.type = 'checkbox';
+            editBlurCheck.checked = isBlurred;
+            const editBlurSpan = document.createElement('span');
+            editBlurSpan.textContent = '이미지 가리기';
+            editBlurLabel.appendChild(editBlurCheck);
+            editBlurLabel.appendChild(editBlurSpan);
+
+            const imgPanelControls = document.createElement('div');
+            imgPanelControls.style.display = 'flex';
+            imgPanelControls.style.alignItems = 'center';
+            imgPanelControls.style.gap = '10px';
+            imgPanelControls.appendChild(editBlurLabel);
+            imgPanelControls.appendChild(addImgLabel);
+
             imgPanelHeader.appendChild(imgPanelTitle);
-            imgPanelHeader.appendChild(addImgLabel);
+            imgPanelHeader.appendChild(imgPanelControls);
             imgPanelHeader.appendChild(addImgInput);
 
             const imgListEl = document.createElement('div');
@@ -3749,6 +3852,7 @@ const PLUS_PLAYLIST_PATH = "playlist/plus_tracks.json";
               editBox.style.display = isHidden ? 'flex' : 'none';
               if (isHidden) {
                 editTitleInput.value = extractedTitle;
+                editBlurCheck.checked = isBlurred;
                 editTextarea.value = textWithoutImgs;
                 editableImgs = [...imgUrls];
                 renderEditableImgList();
@@ -3846,6 +3950,7 @@ const PLUS_PLAYLIST_PATH = "playlist/plus_tracks.json";
 
                 const nextTitle = (editTitleInput.value || '').trim() || `Thread ${rawIdx + 1}`;
                 const mergedParts = [`title: ${nextTitle}`];
+                if (editBlurCheck.checked) mergedParts.push('blur: true');
                 if (nextText) mergedParts.push(nextText);
                 editableImgs.forEach((u) => {
                   if (u) mergedParts.push(`![image](${u})`);
@@ -3966,12 +4071,49 @@ const PLUS_PLAYLIST_PATH = "playlist/plus_tracks.json";
               slideWrap.appendChild(prevBtn);
               slideWrap.appendChild(nextBtn);
               slideWrap.appendChild(dotsWrap);
-              bodyEl.appendChild(slideWrap);
+
+              if (isBlurred) {
+                const blurWrap = document.createElement('div');
+                blurWrap.className = 'thread-blur-wrap is-blurred';
+                slideTrack.classList.add('thread-blur-target');
+                const veil = document.createElement('div');
+                veil.className = 'thread-blur-veil';
+                veil.innerHTML = `<span class="thread-blur-veil-label">Hidden beneath a veil</span>`;
+                veil.onclick = (ev) => {
+                  ev.stopPropagation();
+                  blurWrap.classList.remove('is-blurred');
+                };
+                blurWrap.appendChild(slideWrap);
+                blurWrap.appendChild(veil);
+                bodyEl.appendChild(blurWrap);
+              } else {
+                bodyEl.appendChild(slideWrap);
+              }
             } else if (imgUrls.length === 1) {
               const singleImg = document.createElement('img');
               singleImg.src = imgUrls[0];
               singleImg.alt = 'thread image';
-              bodyEl.appendChild(singleImg);
+              if (isBlurred) {
+                const blurWrap = document.createElement('div');
+                blurWrap.className = 'thread-blur-wrap is-blurred';
+                singleImg.className = 'thread-single-img thread-blur-target';
+                const veil = document.createElement('div');
+                veil.className = 'thread-blur-veil';
+                veil.innerHTML = `<span class="thread-blur-veil-label">Hidden beneath a veil</span>`;
+                veil.onclick = (ev) => {
+                  ev.stopPropagation();
+                  blurWrap.classList.remove('is-blurred');
+                };
+                blurWrap.onclick = (ev) => {
+                  ev.stopPropagation();
+                  blurWrap.classList.toggle('is-blurred');
+                };
+                blurWrap.appendChild(singleImg);
+                blurWrap.appendChild(veil);
+                bodyEl.appendChild(blurWrap);
+              } else {
+                bodyEl.appendChild(singleImg);
+              }
             }
 
             collapsibleBody.appendChild(bodyEl);
@@ -4068,9 +4210,11 @@ const PLUS_PLAYLIST_PATH = "playlist/plus_tracks.json";
         } else {
           existingBody += '\n---\n';
         }
+        const newBlurCheck = document.getElementById('newThreadBlurCheck');
+        const isNewThreadBlurred = Boolean(newBlurCheck && newBlurCheck.checked);
         const cleanThreadBody = finalThreadText.replace(/^(?:threads:)?\s*/gi, '');
         const finalThreadTitle = threadTitle || cleanThreadBody.replace(/<[^>]+>/g, '').trim().slice(0, 40) || '새 스레드';
-        existingBody += `title: ${finalThreadTitle}\n${cleanThreadBody}`;
+        existingBody += `title: ${finalThreadTitle}\n${isNewThreadBlurred ? 'blur: true\n' : ''}${cleanThreadBody}`;
 
         const res = await fetch(`https://api.github.com/repos/${GITHUB_USER}/${GITHUB_REPO}/issues/${currentPost.number}`, {
           method: 'PATCH',
@@ -4085,6 +4229,8 @@ const PLUS_PLAYLIST_PATH = "playlist/plus_tracks.json";
 
         statusEl.textContent = '타래가 추가되었습니다!';
         if (threadTitleInput) threadTitleInput.value = '';
+        const newBlurReset = document.getElementById('newThreadBlurCheck');
+        if (newBlurReset) newBlurReset.checked = false;
         threadInput.value = '';
       document.querySelectorAll('.rich-live-surface').forEach(s => { if (s.dataset.forTextarea === 'postBodyInput' || s.dataset.forTextarea === 'newThreadInput') { const srcTa = document.getElementById(s.dataset.forTextarea); if (srcTa && window.marked) s.innerHTML = srcTa.value.trim() ? window.marked.parse(srcTa.value.trim()) : ''; } });
         document.getElementById('submitThreadBtn').disabled = false;

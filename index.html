@@ -3540,6 +3540,13 @@ const PLUS_PLAYLIST_PATH = "playlist/plus_tracks.json";
             deleteThreadBtn.className = 'thread-edit-delete';
             deleteThreadBtn.textContent = '스레드 삭제';
 
+            const moveThreadTopBtn = document.createElement('button');
+            moveThreadTopBtn.type = 'button';
+            moveThreadTopBtn.className = 'thread-edit-cancel';
+            moveThreadTopBtn.textContent = '⤒';
+            moveThreadTopBtn.title = '스레드 최상단으로 이동';
+            moveThreadTopBtn.disabled = rawIdx <= 0;
+
             const moveThreadUpBtn = document.createElement('button');
             moveThreadUpBtn.type = 'button';
             moveThreadUpBtn.className = 'thread-edit-cancel';
@@ -3554,9 +3561,8 @@ const PLUS_PLAYLIST_PATH = "playlist/plus_tracks.json";
             moveThreadDownBtn.title = '스레드 아래로 이동';
             moveThreadDownBtn.disabled = rawIdx >= parsedBlocks.length - 1;
 
-            const reorderThread = async (delta) => {
-              const targetIdx = rawIdx + delta;
-              if (targetIdx < 0 || targetIdx >= parsedBlocks.length) return;
+            const reorderThread = async (targetIdx) => {
+              if (targetIdx < 0 || targetIdx >= parsedBlocks.length || targetIdx === rawIdx) return;
               const token = ghTokenInput.value.trim();
               if (!token) {
                 editStatus.textContent = '순서를 변경하려면 GitHub Token을 먼저 입력해 주세요.';
@@ -3567,6 +3573,7 @@ const PLUS_PLAYLIST_PATH = "playlist/plus_tracks.json";
                 editStatus.textContent = '샘플 게시글은 순서를 변경할 수 없습니다.';
                 return;
               }
+              moveThreadTopBtn.disabled = true;
               moveThreadUpBtn.disabled = true;
               moveThreadDownBtn.disabled = true;
               deleteThreadBtn.disabled = true;
@@ -3589,9 +3596,8 @@ const PLUS_PLAYLIST_PATH = "playlist/plus_tracks.json";
                   throw new Error('스레드 순서를 바꿀 수 없습니다.');
                 }
 
-                const tmp = segments[rawIdx];
-                segments[rawIdx] = segments[targetIdx];
-                segments[targetIdx] = tmp;
+                const [movedItem] = segments.splice(rawIdx, 1);
+                segments.splice(targetIdx, 0, movedItem);
 
                 const updatedFullBody = `${headPart}\n\n${splitMarker}\n` + segments.join('\n---\n');
 
@@ -3612,6 +3618,7 @@ const PLUS_PLAYLIST_PATH = "playlist/plus_tracks.json";
                 openTrackDetail(currentIndex, { skipDiscReset: true });
               } catch (err) {
                 editStatus.textContent = err.message || '순서 변경 실패';
+                moveThreadTopBtn.disabled = rawIdx <= 0;
                 moveThreadUpBtn.disabled = rawIdx <= 0;
                 moveThreadDownBtn.disabled = rawIdx >= parsedBlocks.length - 1;
                 deleteThreadBtn.disabled = false;
@@ -3620,13 +3627,17 @@ const PLUS_PLAYLIST_PATH = "playlist/plus_tracks.json";
               }
             };
 
+            moveThreadTopBtn.onclick = (ev) => {
+              ev.stopPropagation();
+              reorderThread(0);
+            };
             moveThreadUpBtn.onclick = (ev) => {
               ev.stopPropagation();
-              reorderThread(-1);
+              reorderThread(rawIdx - 1);
             };
             moveThreadDownBtn.onclick = (ev) => {
               ev.stopPropagation();
-              reorderThread(1);
+              reorderThread(rawIdx + 1);
             };
 
             const cancelEditBtn = document.createElement('button');
@@ -3705,6 +3716,7 @@ const PLUS_PLAYLIST_PATH = "playlist/plus_tracks.json";
             };
 
             editActions.appendChild(deleteThreadBtn);
+            editActions.appendChild(moveThreadTopBtn);
             editActions.appendChild(moveThreadUpBtn);
             editActions.appendChild(moveThreadDownBtn);
             editActions.appendChild(cancelEditBtn);

@@ -4104,6 +4104,45 @@ const PLUS_PLAYLIST_PATH = "playlist/plus_tracks.json";
             editTitleInput.placeholder = '스레드 제목을 입력하세요';
             editTitleInput.value = extractedTitle;
 
+            const parentSelectRow = document.createElement('div');
+            parentSelectRow.style.display = 'flex';
+            parentSelectRow.style.alignItems = 'center';
+            parentSelectRow.style.gap = '8px';
+            parentSelectRow.style.fontSize = '0.76rem';
+            parentSelectRow.style.color = 'var(--text-sub)';
+
+            const parentSelectLabel = document.createElement('span');
+            parentSelectLabel.textContent = '연결 위치:';
+            parentSelectLabel.style.flexShrink = '0';
+
+            const editParentSelect = document.createElement('select');
+            editParentSelect.className = 'rich-tool-select';
+            editParentSelect.style.maxWidth = 'none';
+            editParentSelect.style.flex = '1';
+
+            const rebuildParentOptions = () => {
+              const forbiddenIds = collectDescendantIds(nodeId);
+              editParentSelect.innerHTML = '';
+              const rootOpt = document.createElement('option');
+              rootOpt.value = '';
+              rootOpt.textContent = '최상위 스레드 (독립 타래)';
+              editParentSelect.appendChild(rootOpt);
+
+              allParsedThreads.forEach((cand, cIdx) => {
+                if (forbiddenIds.has(cand.id)) return;
+                const opt = document.createElement('option');
+                opt.value = cand.id;
+                const labelTitle = cand.title || `(제목 없음 #${cIdx + 1})`;
+                opt.textContent = `↳ ${labelTitle}`;
+                editParentSelect.appendChild(opt);
+              });
+              editParentSelect.value = parentId || '';
+            };
+            rebuildParentOptions();
+
+            parentSelectRow.appendChild(parentSelectLabel);
+            parentSelectRow.appendChild(editParentSelect);
+
             const editTextareaId = `threadEditTextarea_${currentIndex}_${rawIdx}`;
             const editToolbar = document.createElement('div');
             editToolbar.className = 'rich-mini-toolbar';
@@ -4420,6 +4459,7 @@ const PLUS_PLAYLIST_PATH = "playlist/plus_tracks.json";
             editActions.appendChild(cancelEditBtn);
             editActions.appendChild(saveEditBtn);
             editBox.appendChild(editTitleInput);
+            editBox.appendChild(parentSelectRow);
             editBox.appendChild(editToolbar);
             editBox.appendChild(editTextarea);
             editBox.appendChild(imgPanel);
@@ -4435,6 +4475,7 @@ const PLUS_PLAYLIST_PATH = "playlist/plus_tracks.json";
               editBox.style.display = isHidden ? 'flex' : 'none';
               if (isHidden) {
                 editTitleInput.value = extractedTitle;
+                rebuildParentOptions();
                 editBlurCheck.checked = isBlurred;
                 editTextarea.value = textWithoutImgs;
                 editableImgs = [...imgUrls];
@@ -4523,17 +4564,35 @@ const PLUS_PLAYLIST_PATH = "playlist/plus_tracks.json";
                 const headPart = markerIdx === -1 ? latestBody.trim() : latestBody.slice(0, markerIdx).trim();
 
                 const nextTitle = (editTitleInput.value || '').trim();
+                let chosenParentId = (editParentSelect.value || '').trim();
+                const idUpgradeMap = {};
+                allParsedThreads.forEach((t, idx) => {
+                  if (t.id && t.id.startsWith('legacy_')) {
+                    idUpgradeMap[t.id] = `th_${Date.now()}_${idx}`;
+                  }
+                });
+                if (chosenParentId && idUpgradeMap[chosenParentId]) {
+                  chosenParentId = idUpgradeMap[chosenParentId];
+                }
                 const nextAllThreads = allParsedThreads.map(t => {
+                  const upgradedSelfId = idUpgradeMap[t.id] || t.id;
+                  const upgradedParent = t.parentId ? (idUpgradeMap[t.parentId] || t.parentId) : '';
                   if (t.id === nodeId) {
                     return {
                       ...t,
+                      id: upgradedSelfId,
+                      parentId: chosenParentId,
                       title: nextTitle,
                       isBlurred: Boolean(editBlurCheck.checked),
                       textWithoutImgs: nextText,
                       imgUrls: [...editableImgs]
                     };
                   }
-                  return t;
+                  return {
+                    ...t,
+                    id: upgradedSelfId,
+                    parentId: upgradedParent
+                  };
                 });
 
                 const updatedFullBody = serializeAllThreadsToBody(headPart, nextAllThreads);

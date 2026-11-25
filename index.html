@@ -3635,10 +3635,7 @@ const PLUS_PLAYLIST_PATH = "playlist/plus_tracks.json";
               .replace(/<img[^>]+>/gi, '')
               .trim();
 
-            if (!extractedTitle) {
-              const firstPlainLine = textWithoutImgs.split(/\r?\n/).map(l => l.replace(/<[^>]+>/g, '').trim()).find(Boolean);
-              extractedTitle = firstPlainLine ? firstPlainLine.slice(0, 40) : `Thread ${rawIdx + 1}`;
-            }
+
 
             allParsedThreads.push({
               id: threadId,
@@ -3663,7 +3660,7 @@ const PLUS_PLAYLIST_PATH = "playlist/plus_tracks.json";
               const lines = [];
               if (t.id && !t.id.startsWith('legacy_')) lines.push(`id: ${t.id}`);
               if (t.parentId) lines.push(`parent: ${t.parentId}`);
-              lines.push(`title: ${t.title}`);
+              if (t.title) lines.push(`title: ${t.title}`);
               if (t.isBlurred) lines.push('blur: true');
               if (t.textWithoutImgs) lines.push(t.textWithoutImgs);
               (t.imgUrls || []).forEach(u => {
@@ -3763,7 +3760,7 @@ const PLUS_PLAYLIST_PATH = "playlist/plus_tracks.json";
 
             const replyBadge = document.createElement('div');
             replyBadge.className = 'thread-reply-badge';
-            replyBadge.textContent = `↳ "${extractedTitle}" 에 타래 연결`;
+            replyBadge.textContent = extractedTitle ? `↳ "${extractedTitle}" 에 타래 연결` : `↳ 타래 연결`;
 
             const replyTitleInput = document.createElement('input');
             replyTitleInput.type = 'text';
@@ -3975,7 +3972,7 @@ const PLUS_PLAYLIST_PATH = "playlist/plus_tracks.json";
                   parentId: t.parentId === nodeId ? assignedParentId : t.parentId
                 }));
 
-                const newReplyTitle = (replyTitleInput.value || '').trim() || finalReplyText.replace(/<[^>]+>/g, '').trim().slice(0, 40) || '연결된 타래';
+                const newReplyTitle = (replyTitleInput.value || '').trim();
                 updatedList.push({
                   id: `th_${Date.now()}_${Math.random().toString(36).slice(2, 6)}`,
                   parentId: assignedParentId,
@@ -4440,7 +4437,7 @@ const PLUS_PLAYLIST_PATH = "playlist/plus_tracks.json";
                 const markerIdx = latestBody.indexOf(splitMarker);
                 const headPart = markerIdx === -1 ? latestBody.trim() : latestBody.slice(0, markerIdx).trim();
 
-                const nextTitle = (editTitleInput.value || '').trim() || `Thread ${rawIdx + 1}`;
+                const nextTitle = (editTitleInput.value || '').trim();
                 const nextAllThreads = allParsedThreads.map(t => {
                   if (t.id === nodeId) {
                     return {
@@ -4726,9 +4723,9 @@ const PLUS_PLAYLIST_PATH = "playlist/plus_tracks.json";
         const newBlurCheck = document.getElementById('newThreadBlurCheck');
         const isNewThreadBlurred = Boolean(newBlurCheck && newBlurCheck.checked);
         const cleanThreadBody = finalThreadText.replace(/^(?:threads:)?\s*/gi, '');
-        const finalThreadTitle = threadTitle || cleanThreadBody.replace(/<[^>]+>/g, '').trim().slice(0, 40) || '새 스레드';
+        const finalThreadTitle = threadTitle;
         const newRootId = `th_${Date.now()}_${Math.random().toString(36).slice(2, 6)}`;
-        existingBody += `id: ${newRootId}\ntitle: ${finalThreadTitle}\n${isNewThreadBlurred ? 'blur: true\n' : ''}${cleanThreadBody}`;
+        existingBody += `id: ${newRootId}\n${finalThreadTitle ? `title: ${finalThreadTitle}\n` : ''}${isNewThreadBlurred ? 'blur: true\n' : ''}${cleanThreadBody}`;
 
         const res = await fetch(`https://api.github.com/repos/${GITHUB_USER}/${GITHUB_REPO}/issues/${currentPost.number}`, {
           method: 'PATCH',

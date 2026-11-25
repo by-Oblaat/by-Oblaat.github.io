@@ -1185,7 +1185,24 @@
 
 
 
-/* 본문 및 스레드 내 유튜브 링크 자동 임베드 재생 화면 */
+/* 본문, 스레드 및 에디터 하이퍼링크 색상 (#C6D5FF 볼륨 바 통일) */
+    #commentBody a,
+    .thread-body a,
+    .rich-live-surface a {
+      color: #C6D5FF;
+      text-decoration: underline;
+      text-decoration-color: #C6D5FF;
+      text-underline-offset: 3px;
+      transition: color 0.18s ease, text-decoration-color 0.18s ease;
+    }
+    #commentBody a:hover,
+    .thread-body a:hover,
+    .rich-live-surface a:hover {
+      color: #9cb5ff;
+      text-decoration-color: #9cb5ff;
+    }
+
+    /* 본문 및 스레드 내 유튜브 링크 자동 임베드 재생 화면 */
     .inline-yt-embed-wrap {
       position: relative;
       width: 100%;

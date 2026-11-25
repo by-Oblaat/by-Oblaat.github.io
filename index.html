@@ -3582,7 +3582,7 @@ const PLUS_PLAYLIST_PATH = "playlist/plus_tracks.json";
         if (dashEditBtn) dashEditBtn.classList.remove('active');
 
         if (textOnlyBody.length > 0) {
-          document.getElementById('activePostTitle').textContent = post.title;
+          const activePostTitleEl = document.getElementById('activePostTitle'); if (activePostTitleEl) { activePostTitleEl.textContent = ''; activePostTitleEl.style.display = 'none'; }
           commentLabelBox.style.display = 'flex';
           marked.setOptions({ breaks: true, headerIds: false, mangle: false });
           commentBody.innerHTML = marked.parse(textOnlyBody);

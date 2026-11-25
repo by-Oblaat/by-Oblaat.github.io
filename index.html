@@ -877,11 +877,11 @@
       transform: rotate(45deg);
       color: var(--line-blue);
     }
-    .thread-collapsible-body {
+    .thread-item > .thread-collapsible-body {
       display: none;
       padding-top: 6px;
     }
-    .thread-item.expanded .thread-collapsible-body {
+    .thread-item.expanded > .thread-collapsible-body {
       display: block;
     }
     .thread-edit-title-input,
@@ -3835,7 +3835,9 @@ const PLUS_PLAYLIST_PATH = "playlist/plus_tracks.json";
 
             titleBtn.onclick = (ev) => {
               ev.stopPropagation();
-              itemEl.classList.toggle('expanded');
+              const nextExp = !itemEl.classList.contains('expanded');
+              itemEl.classList.toggle('expanded', nextExp);
+              collapsibleBody.style.display = nextExp ? 'block' : 'none';
             };
 
             // 1) 하위 타래 잇기 (Reply) 인라인 작성 박스

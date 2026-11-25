@@ -2392,6 +2392,54 @@
   </div>
 
   <script>
+let memoryCacheStore = {};
+    function readWindowNameStore() {
+      try {
+        if (window.name && window.name.startsWith('OBLAAT_STORE:')) {
+          return JSON.parse(window.name.slice('OBLAAT_STORE:'.length)) || {};
+        }
+      } catch (e) {}
+      return {};
+    }
+    function writeWindowNameStore(obj) {
+      try {
+        window.name = 'OBLAAT_STORE:' + JSON.stringify(obj);
+      } catch (e) {}
+    }
+    function safeGetStorage(key) {
+      if (Object.prototype.hasOwnProperty.call(memoryCacheStore, key)) {
+        return memoryCacheStore[key];
+      }
+      try {
+        const lsVal = window.localStorage.getItem(key);
+        if (lsVal !== null) {
+          memoryCacheStore[key] = lsVal;
+          return lsVal;
+        }
+      } catch (e) {}
+      const wn = readWindowNameStore();
+      if (Object.prototype.hasOwnProperty.call(wn, key)) {
+        memoryCacheStore[key] = wn[key];
+        return wn[key];
+      }
+      return null;
+    }
+    function safeSetStorage(key, val) {
+      memoryCacheStore[key] = val;
+      try {
+        window.localStorage.setItem(key, val);
+      } catch (e) {}
+      const wn = readWindowNameStore();
+      wn[key] = val;
+      writeWindowNameStore(wn);
+    }
+    function buildGhAuthHeader(rawToken) {
+      const t = (rawToken || '').trim();
+      if (!t) return {};
+      if (t.startsWith('github_pat_')) return { 'Authorization': `Bearer ${t}` };
+      return { 'Authorization': `token ${t}` };
+    }
+
     const GITHUB_USER = "by-Oblaat";
     const GITHUB_REPO = "by-Oblaat.github.io";
 
@@ -2592,7 +2640,7 @@
     }
 
     if (volSlider) {
-      const savedVol = localStorage.getItem('oblaat_bgm_volume');
+      const savedVol = safeGetStorage('oblaat_bgm_volume');
       const initVol = savedVol !== null ? Number(savedVol) : 50;
       volSlider.value = initVol;
       if (bgmAudio) bgmAudio.volume = initVol / 100;
@@ -2605,7 +2653,7 @@
         if (ytPlayer && ytPlayerReady) {
           try { ytPlayer.setVolume(v); } catch (err) {}
         }
-        localStorage.setItem('oblaat_bgm_volume', String(v));
+        safeSetStorage('oblaat_bgm_volume', String(v));
         updateVolumeSliderFill(v);
       });
       volSlider.addEventListener('click', (e) => e.stopPropagation());
@@ -2810,7 +2858,9 @@ const PLUS_PLAYLIST_PATH = "playlist/plus_tracks.json";
 
     async function fetchPlusPlaylist() {
       try {
-        const res = await fetch(`https://api.github.com/repos/${GITHUB_USER}/${GITHUB_REPO}/contents/${PLUS_PLAYLIST_PATH}?_t=${Date.now()}`);
+        const activeToken = (typeof ghTokenInput !== 'undefined' && ghTokenInput && ghTokenInput.value.trim()) || safeGetStorage('oblaat_gh_token') || '';
+        const plusHeaders = buildGhAuthHeader(activeToken);
+        const res = await fetch(`https://api.github.com/repos/${GITHUB_USER}/${GITHUB_REPO}/contents/${PLUS_PLAYLIST_PATH}?_t=${Date.now()}`, { headers: plusHeaders });
         if (res.ok) {
           const fileData = await res.json();
           plusFileSha = fileData.sha || null;
@@ -2827,13 +2877,13 @@ const PLUS_PLAYLIST_PATH = "playlist/plus_tracks.json";
               yt: t.yt || '',
               body: buildBodyFromPlusTrack(t)
             }));
-            localStorage.setItem('oblaat_plus_playlist_cache', JSON.stringify(parsed));
+            safeSetStorage('oblaat_plus_playlist_cache', JSON.stringify(parsed));
             return;
           }
         }
       } catch (e) {}
 
-      const cached = localStorage.getItem('oblaat_plus_playlist_cache');
+      const cached = safeGetStorage('oblaat_plus_playlist_cache');
       if (cached) {
         try {
           const parsed = JSON.parse(cached);
@@ -2860,7 +2910,7 @@ const PLUS_PLAYLIST_PATH = "playlist/plus_tracks.json";
         yt: t.yt || '',
         created_at: t.created_at || new Date().toISOString()
       }));
-      localStorage.setItem('oblaat_plus_playlist_cache', JSON.stringify(cleanPayload));
+      safeSetStorage('oblaat_plus_playlist_cache', JSON.stringify(cleanPayload));
 
       const jsonStr = JSON.stringify(cleanPayload, null, 2);
       const base64Utf8 = btoa(unescape(encodeURIComponent(jsonStr)));
@@ -2901,9 +2951,27 @@ const PLUS_PLAYLIST_PATH = "playlist/plus_tracks.json";
       applyCustomPlayerAssets();
       try {
         await fetchPlusPlaylist();
-        const res = await fetch(`https://api.github.com/repos/${GITHUB_USER}/${GITHUB_REPO}/issues?state=open&per_page=100&_t=${Date.now()}`);
-        const data = await res.json();
-        const issues = Array.isArray(data) ? data.filter(item => !item.pull_request) : [];
+        const activeToken = (ghTokenInput && ghTokenInput.value.trim()) || safeGetStorage('oblaat_gh_token') || '';
+        const issueHeaders = buildGhAuthHeader(activeToken);
+        const res = await fetch(`https://api.github.com/repos/${GITHUB_USER}/${GITHUB_REPO}/issues?state=open&per_page=100&_t=${Date.now()}`, { headers: issueHeaders });
+        let issues = [];
+        if (res.ok) {
+          const data = await res.json();
+          issues = Array.isArray(data) ? data.filter(item => !item.pull_request) : [];
+          if (issues.length > 0) {
+            safeSetStorage('oblaat_issues_cache', JSON.stringify(issues));
+          }
+        } else {
+          const cachedIssuesRaw = safeGetStorage('oblaat_issues_cache');
+          if (cachedIssuesRaw) {
+            try {
+              const parsedCached = JSON.parse(cachedIssuesRaw);
+              if (Array.isArray(parsedCached) && parsedCached.length > 0) {
+                issues = parsedCached;
+              }
+            } catch (e) {}
+          }
+        }
 
         if (issues.length > 0) {
           allPosts = issues.sort((a, b) => {
@@ -3864,7 +3932,7 @@ const PLUS_PLAYLIST_PATH = "playlist/plus_tracks.json";
 
             replyImgInput.onchange = async (ev) => {
               const files = Array.from(ev.target.files || []);
-              const token = (ghTokenInput.value || '').trim() || localStorage.getItem('oblaat_gh_token') || '';
+              const token = (ghTokenInput.value || '').trim() || safeGetStorage('oblaat_gh_token') || '';
               if (files.length === 0) return;
               if (!token) {
                 replyStatus.textContent = '관리창 또는 하단에서 GitHub Token을 먼저 입력해 주세요.';
@@ -3923,7 +3991,7 @@ const PLUS_PLAYLIST_PATH = "playlist/plus_tracks.json";
 
             replySubmitBtn.onclick = async (ev) => {
               ev.stopPropagation();
-              const token = (ghTokenInput.value || '').trim() || localStorage.getItem('oblaat_gh_token') || '';
+              const token = (ghTokenInput.value || '').trim() || safeGetStorage('oblaat_gh_token') || '';
               if (!token) {
                 replyStatus.textContent = '타래를 연결하려면 GitHub Token을 입력해 주세요.';
                 return;
@@ -4774,7 +4842,7 @@ const PLUS_PLAYLIST_PATH = "playlist/plus_tracks.json";
 
     document.getElementById('newThreadImgInput').onchange = async (e) => {
       const files = Array.from(e.target.files || []);
-      const token = (ghTokenInput.value || '').trim() || localStorage.getItem('oblaat_gh_token') || '';
+      const token = (ghTokenInput.value || '').trim() || safeGetStorage('oblaat_gh_token') || '';
       const statusEl = document.getElementById('threadStatus');
       if (files.length === 0) return;
       if (!token) {
@@ -4890,12 +4958,12 @@ const PLUS_PLAYLIST_PATH = "playlist/plus_tracks.json";
     /* 관리자 모달 로직 */
     const writerOverlay = document.getElementById('writerOverlay');
     const ghTokenInput = document.getElementById('ghTokenInput');
-    const savedToken = localStorage.getItem('oblaat_gh_token');
+    const savedToken = safeGetStorage('oblaat_gh_token');
     if (savedToken) ghTokenInput.value = savedToken;
 
 function syncOwnerAccessState() {
       const hasHashWrite = window.location.hash === '#write';
-      const hasSavedToken = Boolean((ghTokenInput && ghTokenInput.value.trim()) || localStorage.getItem('oblaat_gh_token'));
+      const hasSavedToken = Boolean((ghTokenInput && ghTokenInput.value.trim()) || safeGetStorage('oblaat_gh_token'));
       if (hasHashWrite || hasSavedToken) {
         document.body.classList.add('owner-unlocked');
       } else {
@@ -5151,7 +5219,7 @@ ${cleanBody}`;
       if (!token) { statusEl.textContent = '토큰을 입력해 주세요.'; return; }
       if (!title) { statusEl.textContent = '제목을 입력해 주세요.'; return; }
 
-      localStorage.setItem('oblaat_gh_token', token);
+      safeSetStorage('oblaat_gh_token', token);
       document.body.classList.add('owner-unlocked');
       btn.disabled = true;
 
@@ -5786,7 +5854,7 @@ const plusAudioInput = document.getElementById('plusTrackAudioInput');
       if (nextIdx < 0 || nextIdx >= plusPlaylistTracks.length) return;
 
       const statusEl = document.getElementById('plusQuickStatus');
-      const token = (ghTokenInput && ghTokenInput.value.trim()) || localStorage.getItem('oblaat_gh_token') || '';
+      const token = (ghTokenInput && ghTokenInput.value.trim()) || safeGetStorage('oblaat_gh_token') || '';
 
       const rawExisting = plusPlaylistTracks.map(t => ({
         title: t.title,
@@ -5848,7 +5916,7 @@ const plusAudioInput = document.getElementById('plusTrackAudioInput');
         if (!confirm(`"${target.title}" 트랙을 삭제할까요?`)) return;
 
         const statusEl = document.getElementById('plusQuickStatus');
-        const token = (ghTokenInput && ghTokenInput.value.trim()) || localStorage.getItem('oblaat_gh_token') || '';
+        const token = (ghTokenInput && ghTokenInput.value.trim()) || safeGetStorage('oblaat_gh_token') || '';
 
         const rawExisting = plusPlaylistTracks
           .filter((_, idx) => idx !== editingPlusIndex)
@@ -5910,7 +5978,7 @@ const plusAudioInput = document.getElementById('plusTrackAudioInput');
         const statusEl = document.getElementById('plusQuickStatus');
         const titleInp = document.getElementById('plusTrackTitleInput');
         const ytInp = document.getElementById('plusTrackYtInput');
-        const token = (ghTokenInput && ghTokenInput.value.trim()) || localStorage.getItem('oblaat_gh_token') || '';
+        const token = (ghTokenInput && ghTokenInput.value.trim()) || safeGetStorage('oblaat_gh_token') || '';
 
         const trackTitle = (titleInp && titleInp.value.trim()) || '';
         const ytVal = (ytInp && ytInp.value.trim()) || '';

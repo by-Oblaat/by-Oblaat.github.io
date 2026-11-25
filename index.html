@@ -873,8 +873,8 @@
       transition: transform 0.2s ease;
       flex-shrink: 0;
     }
-    .thread-item.expanded .thread-expand-arrow {
-      transform: rotate(90deg);
+    .thread-item.expanded > .thread-header-row .thread-expand-arrow {
+      transform: rotate(45deg);
       color: var(--line-blue);
     }
     .thread-collapsible-body {
@@ -1184,6 +1184,149 @@
     }
 
 
+
+    /* 이미지 클릭 확대 라이트박스 */
+    .image-lightbox-overlay {
+      display: none;
+      position: fixed;
+      inset: 0;
+      z-index: 400;
+      background: rgba(0, 0, 0, 0.82);
+      backdrop-filter: blur(4px);
+      justify-content: center;
+      align-items: center;
+      padding: 20px;
+      cursor: zoom-out;
+    }
+    .image-lightbox-overlay.open {
+      display: flex;
+      animation: lightboxFadeIn 0.22s ease;
+    }
+    @keyframes lightboxFadeIn {
+      from { opacity: 0; }
+      to   { opacity: 1; }
+    }
+    .image-lightbox-inner {
+      position: relative;
+      max-width: min(92vw, 980px);
+      max-height: 88vh;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      cursor: default;
+    }
+    .image-lightbox-img {
+      max-width: 100%;
+      max-height: 88vh;
+      width: auto;
+      height: auto;
+      object-fit: contain;
+      border-radius: 6px;
+      box-shadow: 0 18px 48px rgba(0, 0, 0, 0.45);
+      background: #ffffff;
+      user-select: none;
+      -webkit-user-drag: none;
+    }
+    .image-lightbox-close {
+      position: fixed;
+      top: 18px;
+      right: 22px;
+      width: 36px;
+      height: 36px;
+      border-radius: 50%;
+      border: 1px solid rgba(255, 255, 255, 0.35);
+      background: rgba(20, 20, 20, 0.72);
+      color: #ffffff;
+      font-size: 1.05rem;
+      line-height: 1;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      cursor: pointer;
+      z-index: 410;
+      font-family: 'Gowun Batang', serif;
+      transition: 0.2s ease;
+    }
+    .image-lightbox-close:hover {
+      background: rgba(255, 255, 255, 0.92);
+      color: #1a1a1a;
+    }
+    #imageFrame img,
+    #commentBody img,
+    .thread-body img {
+      cursor: zoom-in;
+      pointer-events: auto;
+    }
+
+    /* 계층형 연결선 + 접이식 타래 (1번 연결선 + 2번 들여쓰기 아코디언 결합) */
+    .thread-header-actions {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      flex-shrink: 0;
+    }
+    .thread-reply-btn {
+      background: none;
+      border: none;
+      font-family: 'Gowun Batang', serif;
+      font-size: 0.82rem;
+      color: var(--text-sub);
+      cursor: pointer;
+      padding: 0 3px;
+      line-height: 1;
+      transition: color 0.2s ease;
+    }
+    .thread-reply-btn:hover,
+    .thread-reply-btn.active {
+      color: var(--line-blue);
+      font-weight: 700;
+    }
+    .thread-child-count {
+      font-size: 0.72rem;
+      color: var(--line-blue);
+      font-weight: 500;
+      margin-left: 4px;
+      opacity: 0.85;
+    }
+    .thread-children-wrap {
+      margin-top: 10px;
+      margin-left: 10px;
+      padding-left: 14px;
+      border-left: 1.5px solid #d4e0fa;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      position: relative;
+    }
+    .thread-children-wrap > .thread-item {
+      position: relative;
+    }
+    .thread-children-wrap > .thread-item::before {
+      content: "";
+      position: absolute;
+      left: -14px;
+      top: 14px;
+      width: 10px;
+      height: 1.5px;
+      background: #d4e0fa;
+    }
+    .thread-reply-box {
+      margin-top: 8px;
+      margin-left: 10px;
+      padding: 12px;
+      border: 1px solid var(--line-blue);
+      border-left: 2.5px solid var(--line-blue);
+      background: #f8faff;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+    .thread-reply-badge {
+      font-size: 0.74rem;
+      color: var(--line-blue);
+      font-weight: 600;
+      letter-spacing: 0.04em;
+    }
 
 /* 스레드 첨부 이미지 블러 가리기 ('Hidden beneath a veil') */
     .thread-blur-wrap {
@@ -2129,6 +2272,14 @@
       <div class="signature-quote">Fleeting tales wrapped in 0.01mm of translucence, ready to dissolve into nothing.</div>
       <div class="signature-brand">OBLAAT.</div>
     </footer>
+  </div>
+
+  <!-- 이미지 확대 라이트박스 -->
+  <div class="image-lightbox-overlay" id="imageLightboxOverlay" role="dialog" aria-modal="true" aria-label="이미지 확대 보기">
+    <button type="button" class="image-lightbox-close" id="imageLightboxClose" title="닫기">✕</button>
+    <div class="image-lightbox-inner" id="imageLightboxInner">
+      <img class="image-lightbox-img" id="imageLightboxImg" src="" alt="확대 이미지" />
+    </div>
   </div>
 
   <!-- 관리자 모달 -->
@@ -3413,45 +3564,61 @@ const PLUS_PLAYLIST_PATH = "playlist/plus_tracks.json";
 
         if (threadPart.trim()) {
           const rawBlocks = threadPart.trim().split(/^---\s*$/gm);
-          const parsedBlocks = [];
+          const allParsedThreads = [];
+
           rawBlocks.forEach((rawBlk, rawIdx) => {
             const trimmedBlk = rawBlk.trim();
             if (!trimmedBlk) return;
             const cleanBlock = trimmedBlk.replace(/^(?:threads:)?\s*/gi, '').replace(/threads:/gi, '').trim();
             if (!cleanBlock) return;
-            parsedBlocks.push({ cleanBlock, rawIdx, trimmedBlk });
-          });
 
-          parsedBlocks.forEach(({ cleanBlock, rawIdx }) => {
+            let threadId = '';
+            let parentId = '';
             let extractedTitle = '';
             let isBlurred = false;
-            let bodyAfterTitle = cleanBlock;
-            const titleMatch = cleanBlock.match(/^title:\s*(.+)$/im);
+            let bodyWork = cleanBlock;
+
+            const idMatch = bodyWork.match(/^id:\s*(.+)$/im);
+            if (idMatch) {
+              threadId = idMatch[1].trim();
+              bodyWork = bodyWork.replace(/^id:\s*.+$/im, '').trim();
+            } else {
+              threadId = `legacy_${rawIdx}`;
+            }
+
+            const parentMatch = bodyWork.match(/^parent:\s*(.+)$/im);
+            if (parentMatch) {
+              parentId = parentMatch[1].trim();
+              bodyWork = bodyWork.replace(/^parent:\s*.+$/im, '').trim();
+            }
+
+            const titleMatch = bodyWork.match(/^title:\s*(.+)$/im);
             if (titleMatch) {
               extractedTitle = titleMatch[1].trim();
-              bodyAfterTitle = bodyAfterTitle.replace(/^title:\s*.+$/im, '').trim();
+              bodyWork = bodyWork.replace(/^title:\s*.+$/im, '').trim();
             }
-            const blurMatch = bodyAfterTitle.match(/^blur:\s*(true|1|yes)$/im);
+
+            const blurMatch = bodyWork.match(/^blur:\s*(true|1|yes)$/im);
             if (blurMatch) {
               isBlurred = true;
-              bodyAfterTitle = bodyAfterTitle.replace(/^blur:\s*.+$/im, '').trim();
+              bodyWork = bodyWork.replace(/^blur:\s*.+$/im, '').trim();
             } else {
-              bodyAfterTitle = bodyAfterTitle.replace(/^blur:\s*.+$/im, '').trim();
+              bodyWork = bodyWork.replace(/^blur:\s*.+$/im, '').trim();
             }
 
             const imgUrls = [];
             const mdRegex = /!\[.*?\]\((.*?)\)/g;
             let m;
-            while ((m = mdRegex.exec(bodyAfterTitle)) !== null) {
+            while ((m = mdRegex.exec(bodyWork)) !== null) {
               if (m[1]) imgUrls.push(m[1].trim());
             }
             const htmlImgRegex = /<img[^>]+src=["']([^"']+)["'][^>]*>/gi;
             let hm;
-            while ((hm = htmlImgRegex.exec(bodyAfterTitle)) !== null) {
+            while ((hm = htmlImgRegex.exec(bodyWork)) !== null) {
               if (hm[1]) imgUrls.push(hm[1].trim());
             }
 
-            const textWithoutImgs = bodyAfterTitle
+            const textWithoutImgs = bodyWork
               .replace(/!\[.*?\]\(.*?\)/g, '')
               .replace(/<img[^>]+>/gi, '')
               .trim();
@@ -3461,8 +3628,67 @@ const PLUS_PLAYLIST_PATH = "playlist/plus_tracks.json";
               extractedTitle = firstPlainLine ? firstPlainLine.slice(0, 40) : `Thread ${rawIdx + 1}`;
             }
 
+            allParsedThreads.push({
+              id: threadId,
+              parentId,
+              title: extractedTitle,
+              isBlurred,
+              imgUrls,
+              textWithoutImgs,
+              rawIdx
+            });
+          });
+
+          const validIds = new Set(allParsedThreads.map(t => t.id));
+          allParsedThreads.forEach(t => {
+            if (t.parentId && !validIds.has(t.parentId)) {
+              t.parentId = '';
+            }
+          });
+
+          const serializeAllThreadsToBody = (headPart, threadItems) => {
+            const segments = threadItems.map(t => {
+              const lines = [];
+              if (t.id && !t.id.startsWith('legacy_')) lines.push(`id: ${t.id}`);
+              if (t.parentId) lines.push(`parent: ${t.parentId}`);
+              lines.push(`title: ${t.title}`);
+              if (t.isBlurred) lines.push('blur: true');
+              if (t.textWithoutImgs) lines.push(t.textWithoutImgs);
+              (t.imgUrls || []).forEach(u => {
+                if (u) lines.push(`![image](${u})`);
+              });
+              return lines.join('\n\n');
+            }).filter(Boolean);
+
+            let resBody = headPart.trim();
+            if (segments.length > 0) {
+              resBody += `\n\n---threads---\n` + segments.join('\n---\n');
+            }
+            return resBody;
+          };
+
+          const collectDescendantIds = (rootId) => {
+            const toRemove = new Set([rootId]);
+            let added = true;
+            while (added) {
+              added = false;
+              allParsedThreads.forEach(t => {
+                if (t.parentId && toRemove.has(t.parentId) && !toRemove.has(t.id)) {
+                  toRemove.add(t.id);
+                  added = true;
+                }
+              });
+            }
+            return toRemove;
+          };
+
+          const renderThreadNode = (nodeData, siblingList, siblingIdx, depth = 0) => {
+            const { id: nodeId, parentId, title: extractedTitle, isBlurred, imgUrls, textWithoutImgs, rawIdx } = nodeData;
+            const childNodes = allParsedThreads.filter(t => t.parentId === nodeId);
+
             const itemEl = document.createElement('div');
             itemEl.className = 'thread-item';
+            if (depth > 0) itemEl.classList.add('thread-child-item');
 
             const headerRow = document.createElement('div');
             headerRow.className = 'thread-header-row';
@@ -3474,7 +3700,7 @@ const PLUS_PLAYLIST_PATH = "playlist/plus_tracks.json";
 
             const arrowSpan = document.createElement('span');
             arrowSpan.className = 'thread-expand-arrow';
-            arrowSpan.textContent = '▸';
+            arrowSpan.textContent = '+';
 
             const titleTextSpan = document.createElement('span');
             titleTextSpan.textContent = extractedTitle;
@@ -3482,13 +3708,32 @@ const PLUS_PLAYLIST_PATH = "playlist/plus_tracks.json";
             titleBtn.appendChild(arrowSpan);
             titleBtn.appendChild(titleTextSpan);
 
+            if (childNodes.length > 0) {
+              const countBadge = document.createElement('span');
+              countBadge.className = 'thread-child-count';
+              countBadge.textContent = `(${childNodes.length})`;
+              titleBtn.appendChild(countBadge);
+            }
+
+            const headerActions = document.createElement('div');
+            headerActions.className = 'thread-header-actions';
+
+            const replyBtn = document.createElement('button');
+            replyBtn.type = 'button';
+            replyBtn.className = 'thread-reply-btn';
+            replyBtn.title = '이 스레드 아래에 타래 잇기';
+            replyBtn.textContent = '✦';
+
             const dateEl = document.createElement('div');
             dateEl.className = 'thread-date';
             dateEl.title = '클릭하여 이 스레드 수정';
-            dateEl.textContent = '+';
+            dateEl.textContent = '✧';
+
+            headerActions.appendChild(replyBtn);
+            headerActions.appendChild(dateEl);
 
             headerRow.appendChild(titleBtn);
-            headerRow.appendChild(dateEl);
+            headerRow.appendChild(headerActions);
             itemEl.appendChild(headerRow);
 
             const collapsibleBody = document.createElement('div');
@@ -3499,6 +3744,260 @@ const PLUS_PLAYLIST_PATH = "playlist/plus_tracks.json";
               itemEl.classList.toggle('expanded');
             };
 
+            // 1) 하위 타래 잇기 (Reply) 인라인 작성 박스
+            const replyBox = document.createElement('div');
+            replyBox.className = 'thread-reply-box';
+            replyBox.style.display = 'none';
+
+            const replyBadge = document.createElement('div');
+            replyBadge.className = 'thread-reply-badge';
+            replyBadge.textContent = `↳ "${extractedTitle}" 에 타래 연결`;
+
+            const replyTitleInput = document.createElement('input');
+            replyTitleInput.type = 'text';
+            replyTitleInput.className = 'thread-new-title-input';
+            replyTitleInput.placeholder = '연결할 스레드 제목을 입력하세요';
+
+            const replyTextareaId = `threadReplyTextarea_${currentIndex}_${rawIdx}`;
+            const replyToolbar = document.createElement('div');
+            replyToolbar.className = 'rich-mini-toolbar';
+            replyToolbar.dataset.target = replyTextareaId;
+
+            const replyTextarea = document.createElement('textarea');
+            replyTextarea.id = replyTextareaId;
+            replyTextarea.className = 'thread-edit-textarea';
+            replyTextarea.placeholder = '이어지는 타래 내용을 작성하세요...';
+
+            const replyFooter = document.createElement('div');
+            replyFooter.className = 'thread-write-footer';
+
+            const replyLeftTools = document.createElement('div');
+            replyLeftTools.style.display = 'flex';
+            replyLeftTools.style.alignItems = 'center';
+            replyLeftTools.style.gap = '10px';
+            replyLeftTools.style.flexWrap = 'wrap';
+
+            const replyImgInputId = `threadReplyImgInput_${currentIndex}_${rawIdx}`;
+            const replyImgLabel = document.createElement('label');
+            replyImgLabel.htmlFor = replyImgInputId;
+            replyImgLabel.style.fontSize = '0.75rem';
+            replyImgLabel.style.color = 'var(--line-blue)';
+            replyImgLabel.style.cursor = 'pointer';
+            replyImgLabel.style.textDecoration = 'underline';
+            replyImgLabel.textContent = '+ 이미지 첨부';
+
+            const replyImgInput = document.createElement('input');
+            replyImgInput.type = 'file';
+            replyImgInput.id = replyImgInputId;
+            replyImgInput.accept = 'image/*';
+            replyImgInput.multiple = true;
+            replyImgInput.style.display = 'none';
+
+            const replyBlurLabel = document.createElement('label');
+            replyBlurLabel.className = 'thread-blur-check-label';
+            const replyBlurCheck = document.createElement('input');
+            replyBlurCheck.type = 'checkbox';
+            const replyBlurSpan = document.createElement('span');
+            replyBlurSpan.textContent = '이미지 가리기 (블러)';
+            replyBlurLabel.appendChild(replyBlurCheck);
+            replyBlurLabel.appendChild(replyBlurSpan);
+
+            replyLeftTools.appendChild(replyImgLabel);
+            replyLeftTools.appendChild(replyImgInput);
+            replyLeftTools.appendChild(replyBlurLabel);
+
+            const replyRightBtns = document.createElement('div');
+            replyRightBtns.style.display = 'flex';
+            replyRightBtns.style.gap = '6px';
+
+            const replyCancelBtn = document.createElement('button');
+            replyCancelBtn.type = 'button';
+            replyCancelBtn.className = 'thread-edit-cancel';
+            replyCancelBtn.textContent = '취소';
+
+            const replySubmitBtn = document.createElement('button');
+            replySubmitBtn.type = 'button';
+            replySubmitBtn.className = 'thread-edit-save';
+            replySubmitBtn.textContent = '타래 연결';
+
+            replyRightBtns.appendChild(replyCancelBtn);
+            replyRightBtns.appendChild(replySubmitBtn);
+
+            replyFooter.appendChild(replyLeftTools);
+            replyFooter.appendChild(replyRightBtns);
+
+            const replyStatus = document.createElement('div');
+            replyStatus.className = 'thread-edit-status';
+
+            replyBox.appendChild(replyBadge);
+            replyBox.appendChild(replyTitleInput);
+            replyBox.appendChild(replyToolbar);
+            replyBox.appendChild(replyTextarea);
+            replyBox.appendChild(replyFooter);
+            replyBox.appendChild(replyStatus);
+
+            replyImgInput.onchange = async (ev) => {
+              const files = Array.from(ev.target.files || []);
+              const token = (ghTokenInput.value || '').trim() || localStorage.getItem('oblaat_gh_token') || '';
+              if (files.length === 0) return;
+              if (!token) {
+                replyStatus.textContent = '관리창 또는 하단에서 GitHub Token을 먼저 입력해 주세요.';
+                ev.target.value = '';
+                return;
+              }
+              replyStatus.textContent = `이미지 ${files.length}장 업로드 중...`;
+              try {
+                const replySurf = document.querySelector(`.rich-live-surface[data-for-textarea="${replyTextareaId}"]`);
+                for (let i = 0; i < files.length; i++) {
+                  replyStatus.textContent = `이미지 업로드 중 (${i + 1}/${files.length})...`;
+                  const url = await uploadImageToGitHub(files[i], token);
+                  replyTextarea.value += `\n![image](${url})\n`;
+                  if (replySurf) {
+                    const imgEl = document.createElement('img');
+                    imgEl.src = url;
+                    imgEl.alt = '첨부 이미지';
+                    imgEl.style.maxWidth = '100%';
+                    imgEl.style.margin = '8px 0';
+                    imgEl.style.borderRadius = '6px';
+                    imgEl.style.display = 'block';
+                    replySurf.appendChild(imgEl);
+                  }
+                }
+                replyStatus.textContent = `이미지 ${files.length}장 첨부 완료!`;
+                ev.target.value = '';
+                setTimeout(() => { replyStatus.textContent = ''; }, 1500);
+              } catch (err) {
+                replyStatus.textContent = err.message || '이미지 업로드 실패';
+                ev.target.value = '';
+              }
+            };
+
+            replyBtn.onclick = (ev) => {
+              ev.stopPropagation();
+              const isHidden = replyBox.style.display === 'none';
+              document.querySelectorAll('.thread-reply-box').forEach(b => { b.style.display = 'none'; });
+              document.querySelectorAll('.thread-reply-btn').forEach(b => { b.classList.remove('active'); });
+              if (isHidden) {
+                itemEl.classList.add('expanded');
+                replyBox.style.display = 'flex';
+                replyBtn.classList.add('active');
+                replyStatus.textContent = '';
+                initRichToolbars();
+                const replySurf = document.querySelector(`.rich-live-surface[data-for-textarea="${replyTextareaId}"]`);
+                if (replySurf) replySurf.focus();
+              }
+            };
+
+            replyCancelBtn.onclick = (ev) => {
+              ev.stopPropagation();
+              replyBox.style.display = 'none';
+              replyBtn.classList.remove('active');
+              replyStatus.textContent = '';
+            };
+
+            replySubmitBtn.onclick = async (ev) => {
+              ev.stopPropagation();
+              const token = (ghTokenInput.value || '').trim() || localStorage.getItem('oblaat_gh_token') || '';
+              if (!token) {
+                replyStatus.textContent = '타래를 연결하려면 GitHub Token을 입력해 주세요.';
+                return;
+              }
+              const currentPost = filteredPosts[currentIndex];
+              if (!currentPost || currentPost.number <= 0) {
+                replyStatus.textContent = '샘플 게시글에는 타래를 추가할 수 없습니다.';
+                return;
+              }
+
+              const replySurf = document.querySelector(`.rich-live-surface[data-for-textarea="${replyTextareaId}"]`);
+              let finalReplyText = replyTextarea.value.trim();
+              const replyImgs = [];
+              if (replySurf && replyTextarea.style.display === 'none') {
+                Array.from(replySurf.querySelectorAll('img')).forEach(im => {
+                  const s = im.getAttribute('src');
+                  if (s) replyImgs.push(s);
+                });
+                let plainText = '';
+                const walkText = (node) => {
+                  if (node.nodeType === Node.TEXT_NODE) {
+                    plainText += node.textContent;
+                  } else if (node.nodeType === Node.ELEMENT_NODE) {
+                    const t = node.tagName.toLowerCase();
+                    if (t === 'img') return;
+                    if (t === 'br') { plainText += '\n'; return; }
+                    node.childNodes.forEach(walkText);
+                    if (t === 'div' || t === 'p') {
+                      if (!plainText.endsWith('\n')) plainText += '\n';
+                    }
+                  }
+                };
+                replySurf.childNodes.forEach(walkText);
+                finalReplyText = plainText.trim();
+              } else {
+                const mdImgR = /!\[.*?\]\((.*?)\)/g;
+                let rm;
+                while ((rm = mdImgR.exec(finalReplyText)) !== null) {
+                  if (rm[1]) replyImgs.push(rm[1].trim());
+                }
+                finalReplyText = finalReplyText.replace(/!\[.*?\]\(.*?\)/g, '').trim();
+              }
+
+              if (!finalReplyText && replyImgs.length === 0) {
+                replyStatus.textContent = '타래 내용이나 이미지를 입력해 주세요.';
+                return;
+              }
+
+              replySubmitBtn.disabled = true;
+              replyCancelBtn.disabled = true;
+              replyStatus.textContent = '타래 연결 중...';
+
+              try {
+                const latestBody = currentPost.body || '';
+                const splitMarker = '---threads---';
+                const markerIdx = latestBody.indexOf(splitMarker);
+                const headPart = markerIdx === -1 ? latestBody.trim() : latestBody.slice(0, markerIdx).trim();
+
+                const assignedParentId = nodeId.startsWith('legacy_') ? `th_${Date.now()}_p${rawIdx}` : nodeId;
+                const updatedList = allParsedThreads.map(t => ({
+                  ...t,
+                  id: t.id === nodeId ? assignedParentId : (t.id.startsWith('legacy_') ? `th_${Date.now()}_${t.rawIdx}` : t.id),
+                  parentId: t.parentId === nodeId ? assignedParentId : t.parentId
+                }));
+
+                const newReplyTitle = (replyTitleInput.value || '').trim() || finalReplyText.replace(/<[^>]+>/g, '').trim().slice(0, 40) || '연결된 타래';
+                updatedList.push({
+                  id: `th_${Date.now()}_${Math.random().toString(36).slice(2, 6)}`,
+                  parentId: assignedParentId,
+                  title: newReplyTitle,
+                  isBlurred: Boolean(replyBlurCheck && replyBlurCheck.checked),
+                  textWithoutImgs: finalReplyText,
+                  imgUrls: replyImgs
+                });
+
+                const updatedFullBody = serializeAllThreadsToBody(headPart, updatedList);
+
+                const res = await fetch(`https://api.github.com/repos/${GITHUB_USER}/${GITHUB_REPO}/issues/${currentPost.number}`, {
+                  method: 'PATCH',
+                  headers: {
+                    'Authorization': `token ${token}`,
+                    'Content-Type': 'application/json'
+                  },
+                  body: JSON.stringify({ body: updatedFullBody })
+                });
+
+                if (!res.ok) throw new Error('타래 연결 실패');
+
+                replyStatus.textContent = '타래 연결 완료!';
+                isPlaying = true;
+                await fetchPosts({ preservePlayer: true });
+                openTrackDetail(currentIndex, { skipDiscReset: true });
+              } catch (err) {
+                replyStatus.textContent = err.message || '타래 연결 실패';
+                replySubmitBtn.disabled = false;
+                replyCancelBtn.disabled = false;
+              }
+            };
+
+            // 2) 기존 스레드 인라인 수정 박스
             const editBox = document.createElement('div');
             editBox.className = 'thread-edit-box';
             editBox.style.display = 'none';
@@ -3659,25 +4158,25 @@ const PLUS_PLAYLIST_PATH = "playlist/plus_tracks.json";
             moveThreadTopBtn.type = 'button';
             moveThreadTopBtn.className = 'thread-edit-cancel';
             moveThreadTopBtn.textContent = '⤒';
-            moveThreadTopBtn.title = '스레드 최상단으로 이동';
-            moveThreadTopBtn.disabled = rawIdx <= 0;
+            moveThreadTopBtn.title = '최상단으로 이동';
+            moveThreadTopBtn.disabled = siblingIdx <= 0;
 
             const moveThreadUpBtn = document.createElement('button');
             moveThreadUpBtn.type = 'button';
             moveThreadUpBtn.className = 'thread-edit-cancel';
             moveThreadUpBtn.textContent = '▲';
-            moveThreadUpBtn.title = '스레드 위로 이동';
-            moveThreadUpBtn.disabled = rawIdx <= 0;
+            moveThreadUpBtn.title = '위로 이동';
+            moveThreadUpBtn.disabled = siblingIdx <= 0;
 
             const moveThreadDownBtn = document.createElement('button');
             moveThreadDownBtn.type = 'button';
             moveThreadDownBtn.className = 'thread-edit-cancel';
             moveThreadDownBtn.textContent = '▼';
-            moveThreadDownBtn.title = '스레드 아래로 이동';
-            moveThreadDownBtn.disabled = rawIdx >= parsedBlocks.length - 1;
+            moveThreadDownBtn.title = '아래로 이동';
+            moveThreadDownBtn.disabled = siblingIdx >= siblingList.length - 1;
 
-            const reorderThread = async (targetIdx) => {
-              if (targetIdx < 0 || targetIdx >= parsedBlocks.length || targetIdx === rawIdx) return;
+            const reorderSiblingThread = async (targetSiblingIdx) => {
+              if (targetSiblingIdx < 0 || targetSiblingIdx >= siblingList.length || targetSiblingIdx === siblingIdx) return;
               const token = ghTokenInput.value.trim();
               if (!token) {
                 editStatus.textContent = '순서를 변경하려면 GitHub Token을 먼저 입력해 주세요.';
@@ -3700,21 +4199,21 @@ const PLUS_PLAYLIST_PATH = "playlist/plus_tracks.json";
                 const latestBody = currentPost.body || '';
                 const splitMarker = '---threads---';
                 const markerIdx = latestBody.indexOf(splitMarker);
-                if (markerIdx === -1) throw new Error('스레드 영역을 찾을 수 없습니다.');
+                const headPart = markerIdx === -1 ? latestBody.trim() : latestBody.slice(0, markerIdx).trim();
 
-                const headPart = latestBody.slice(0, markerIdx).trim();
-                const tailPart = latestBody.slice(markerIdx + splitMarker.length);
-                const splitRegex = /^---\s*$/gm;
-                const segments = tailPart.split(splitRegex).map(s => s.trim()).filter(Boolean);
+                const reorderedSiblings = [...siblingList];
+                const [moved] = reorderedSiblings.splice(siblingIdx, 1);
+                reorderedSiblings.splice(targetSiblingIdx, 0, moved);
 
-                if (rawIdx < 0 || rawIdx >= segments.length || targetIdx < 0 || targetIdx >= segments.length) {
-                  throw new Error('스레드 순서를 바꿀 수 없습니다.');
-                }
+                let sCursor = 0;
+                const nextAllThreads = allParsedThreads.map(t => {
+                  if ((t.parentId || '') === (parentId || '')) {
+                    return reorderedSiblings[sCursor++];
+                  }
+                  return t;
+                });
 
-                const [movedItem] = segments.splice(rawIdx, 1);
-                segments.splice(targetIdx, 0, movedItem);
-
-                const updatedFullBody = `${headPart}\n\n${splitMarker}\n` + segments.join('\n---\n');
+                const updatedFullBody = serializeAllThreadsToBody(headPart, nextAllThreads);
 
                 const res = await fetch(`https://api.github.com/repos/${GITHUB_USER}/${GITHUB_REPO}/issues/${currentPost.number}`, {
                   method: 'PATCH',
@@ -3733,9 +4232,9 @@ const PLUS_PLAYLIST_PATH = "playlist/plus_tracks.json";
                 openTrackDetail(currentIndex, { skipDiscReset: true });
               } catch (err) {
                 editStatus.textContent = err.message || '순서 변경 실패';
-                moveThreadTopBtn.disabled = rawIdx <= 0;
-                moveThreadUpBtn.disabled = rawIdx <= 0;
-                moveThreadDownBtn.disabled = rawIdx >= parsedBlocks.length - 1;
+                moveThreadTopBtn.disabled = siblingIdx <= 0;
+                moveThreadUpBtn.disabled = siblingIdx <= 0;
+                moveThreadDownBtn.disabled = siblingIdx >= siblingList.length - 1;
                 deleteThreadBtn.disabled = false;
                 saveEditBtn.disabled = false;
                 cancelEditBtn.disabled = false;
@@ -3744,15 +4243,15 @@ const PLUS_PLAYLIST_PATH = "playlist/plus_tracks.json";
 
             moveThreadTopBtn.onclick = (ev) => {
               ev.stopPropagation();
-              reorderThread(0);
+              reorderSiblingThread(0);
             };
             moveThreadUpBtn.onclick = (ev) => {
               ev.stopPropagation();
-              reorderThread(rawIdx - 1);
+              reorderSiblingThread(siblingIdx - 1);
             };
             moveThreadDownBtn.onclick = (ev) => {
               ev.stopPropagation();
-              reorderThread(rawIdx + 1);
+              reorderSiblingThread(siblingIdx + 1);
             };
 
             const cancelEditBtn = document.createElement('button');
@@ -3777,7 +4276,10 @@ const PLUS_PLAYLIST_PATH = "playlist/plus_tracks.json";
                 editStatus.textContent = '샘플 게시글은 삭제할 수 없습니다.';
                 return;
               }
-              if (!confirm('이 스레드를 삭제하시겠습니까?')) return;
+              const msg = childNodes.length > 0
+                ? '이 스레드와 연결된 하위 타래도 함께 삭제하시겠습니까?'
+                : '이 스레드를 삭제하시겠습니까?';
+              if (!confirm(msg)) return;
 
               deleteThreadBtn.disabled = true;
               saveEditBtn.disabled = true;
@@ -3788,24 +4290,11 @@ const PLUS_PLAYLIST_PATH = "playlist/plus_tracks.json";
                 const latestBody = currentPost.body || '';
                 const splitMarker = '---threads---';
                 const markerIdx = latestBody.indexOf(splitMarker);
-                if (markerIdx === -1) throw new Error('스레드 영역을 찾을 수 없습니다.');
+                const headPart = markerIdx === -1 ? latestBody.trim() : latestBody.slice(0, markerIdx).trim();
 
-                const headPart = latestBody.slice(0, markerIdx);
-                const tailPart = latestBody.slice(markerIdx + splitMarker.length);
-                const splitRegex = /^---\s*$/gm;
-                const segments = tailPart.split(splitRegex);
-
-                if (rawIdx < 0 || rawIdx >= segments.length) {
-                  throw new Error('삭제할 스레드를 찾지 못했습니다.');
-                }
-
-                segments.splice(rawIdx, 1);
-                const remainingSegments = segments.map(s => s.trim()).filter(Boolean);
-
-                let updatedFullBody = headPart.trim();
-                if (remainingSegments.length > 0) {
-                  updatedFullBody += `\n\n${splitMarker}\n` + remainingSegments.join('\n---\n');
-                }
+                const removeSet = collectDescendantIds(nodeId);
+                const remainingThreads = allParsedThreads.filter(t => !removeSet.has(t.id));
+                const updatedFullBody = serializeAllThreadsToBody(headPart, remainingThreads);
 
                 const res = await fetch(`https://api.github.com/repos/${GITHUB_USER}/${GITHUB_REPO}/issues/${currentPost.number}`, {
                   method: 'PATCH',
@@ -3937,32 +4426,23 @@ const PLUS_PLAYLIST_PATH = "playlist/plus_tracks.json";
                 const latestBody = currentPost.body || '';
                 const splitMarker = '---threads---';
                 const markerIdx = latestBody.indexOf(splitMarker);
-                if (markerIdx === -1) throw new Error('스레드 영역을 찾을 수 없습니다.');
-
-                const headPart = latestBody.slice(0, markerIdx + splitMarker.length);
-                const tailPart = latestBody.slice(markerIdx + splitMarker.length);
-                const splitRegex = /^---\s*$/gm;
-                const segments = tailPart.split(splitRegex);
-
-                if (rawIdx < 0 || rawIdx >= segments.length) {
-                  throw new Error('수정할 스레드를 찾지 못했습니다.');
-                }
+                const headPart = markerIdx === -1 ? latestBody.trim() : latestBody.slice(0, markerIdx).trim();
 
                 const nextTitle = (editTitleInput.value || '').trim() || `Thread ${rawIdx + 1}`;
-                const mergedParts = [`title: ${nextTitle}`];
-                if (editBlurCheck.checked) mergedParts.push('blur: true');
-                if (nextText) mergedParts.push(nextText);
-                editableImgs.forEach((u) => {
-                  if (u) mergedParts.push(`![image](${u})`);
+                const nextAllThreads = allParsedThreads.map(t => {
+                  if (t.id === nodeId) {
+                    return {
+                      ...t,
+                      title: nextTitle,
+                      isBlurred: Boolean(editBlurCheck.checked),
+                      textWithoutImgs: nextText,
+                      imgUrls: [...editableImgs]
+                    };
+                  }
+                  return t;
                 });
-                const combinedBlockText = mergedParts.join('\n\n');
 
-                const prevSeg = segments[rawIdx];
-                const leadingMatch = prevSeg.match(/^(\s*(?:threads:\s*)?)/i);
-                const prefix = leadingMatch ? leadingMatch[1] : '\n';
-                segments[rawIdx] = `${prefix}${combinedBlockText}`;
-
-                const updatedFullBody = `${headPart}${segments.join('\n---\n')}`;
+                const updatedFullBody = serializeAllThreadsToBody(headPart, nextAllThreads);
 
                 const res = await fetch(`https://api.github.com/repos/${GITHUB_USER}/${GITHUB_REPO}/issues/${currentPost.number}`, {
                   method: 'PATCH',
@@ -4106,7 +4586,11 @@ const PLUS_PLAYLIST_PATH = "playlist/plus_tracks.json";
                 };
                 blurWrap.onclick = (ev) => {
                   ev.stopPropagation();
-                  blurWrap.classList.toggle('is-blurred');
+                  if (blurWrap.classList.contains('is-blurred')) {
+                    blurWrap.classList.remove('is-blurred');
+                  } else if (singleImg && singleImg.src) {
+                    openImageLightbox(singleImg.src, singleImg.alt || '스레드 이미지');
+                  }
                 };
                 blurWrap.appendChild(singleImg);
                 blurWrap.appendChild(veil);
@@ -4117,9 +4601,25 @@ const PLUS_PLAYLIST_PATH = "playlist/plus_tracks.json";
             }
 
             collapsibleBody.appendChild(bodyEl);
+
+            if (childNodes.length > 0) {
+              const childrenWrap = document.createElement('div');
+              childrenWrap.className = 'thread-children-wrap';
+              childNodes.forEach((cNode, cIdx) => {
+                childrenWrap.appendChild(renderThreadNode(cNode, childNodes, cIdx, depth + 1));
+              });
+              collapsibleBody.appendChild(childrenWrap);
+            }
+
             itemEl.appendChild(collapsibleBody);
+            itemEl.appendChild(replyBox);
             itemEl.appendChild(editBox);
-            threadsContainer.appendChild(itemEl);
+            return itemEl;
+          };
+
+          const rootThreads = allParsedThreads.filter(t => !t.parentId);
+          rootThreads.forEach((rNode, rIdx) => {
+            threadsContainer.appendChild(renderThreadNode(rNode, rootThreads, rIdx, 0));
           });
         }
 
@@ -4214,7 +4714,8 @@ const PLUS_PLAYLIST_PATH = "playlist/plus_tracks.json";
         const isNewThreadBlurred = Boolean(newBlurCheck && newBlurCheck.checked);
         const cleanThreadBody = finalThreadText.replace(/^(?:threads:)?\s*/gi, '');
         const finalThreadTitle = threadTitle || cleanThreadBody.replace(/<[^>]+>/g, '').trim().slice(0, 40) || '새 스레드';
-        existingBody += `title: ${finalThreadTitle}\n${isNewThreadBlurred ? 'blur: true\n' : ''}${cleanThreadBody}`;
+        const newRootId = `th_${Date.now()}_${Math.random().toString(36).slice(2, 6)}`;
+        existingBody += `id: ${newRootId}\ntitle: ${finalThreadTitle}\n${isNewThreadBlurred ? 'blur: true\n' : ''}${cleanThreadBody}`;
 
         const res = await fetch(`https://api.github.com/repos/${GITHUB_USER}/${GITHUB_REPO}/issues/${currentPost.number}`, {
           method: 'PATCH',
@@ -5487,6 +5988,60 @@ const plusAudioInput = document.getElementById('plusTrackAudioInput');
         }
       });
     }
+
+    /* 게시글 본문 및 스레드 이미지 클릭 확대 라이트박스 */
+    const imageLightboxOverlay = document.getElementById('imageLightboxOverlay');
+    const imageLightboxImg = document.getElementById('imageLightboxImg');
+    const imageLightboxClose = document.getElementById('imageLightboxClose');
+    const imageLightboxInner = document.getElementById('imageLightboxInner');
+
+    function openImageLightbox(srcUrl, altText = '확대 이미지') {
+      if (!srcUrl || !imageLightboxOverlay || !imageLightboxImg) return;
+      imageLightboxImg.src = srcUrl;
+      imageLightboxImg.alt = altText;
+      imageLightboxOverlay.classList.add('open');
+    }
+
+    function closeImageLightbox() {
+      if (!imageLightboxOverlay) return;
+      imageLightboxOverlay.classList.remove('open');
+      if (imageLightboxImg) imageLightboxImg.src = '';
+    }
+
+    if (imageLightboxClose) {
+      imageLightboxClose.addEventListener('click', (e) => {
+        e.stopPropagation();
+        closeImageLightbox();
+      });
+    }
+    if (imageLightboxInner) {
+      imageLightboxInner.addEventListener('click', (e) => {
+        e.stopPropagation();
+      });
+    }
+    if (imageLightboxOverlay) {
+      imageLightboxOverlay.addEventListener('click', () => {
+        closeImageLightbox();
+      });
+    }
+    window.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape' && imageLightboxOverlay && imageLightboxOverlay.classList.contains('open')) {
+        closeImageLightbox();
+      }
+    });
+
+    document.addEventListener('click', (e) => {
+      const targetImg = e.target && e.target.closest ? e.target.closest('#imageFrame img, #commentBody img, .thread-body img') : null;
+      if (!targetImg) return;
+      const srcUrl = targetImg.getAttribute('src') || targetImg.src;
+      if (!srcUrl) return;
+      const blurParent = targetImg.closest('.thread-blur-wrap');
+      if (blurParent && blurParent.classList.contains('is-blurred')) {
+        return;
+      }
+      e.stopPropagation();
+      openImageLightbox(srcUrl, targetImg.alt || '확대 이미지');
+    });
 
     initRichToolbars();
     fetchPosts();

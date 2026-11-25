@@ -1185,6 +1185,26 @@
 
 
 
+/* 본문 및 스레드 내 유튜브 링크 자동 임베드 재생 화면 */
+    .inline-yt-embed-wrap {
+      position: relative;
+      width: 100%;
+      aspect-ratio: 16 / 9;
+      margin: 10px 0;
+      border: 1px solid #e5e8f0;
+      border-radius: 8px;
+      overflow: hidden;
+      background: #111111;
+    }
+    .inline-yt-embed-wrap iframe {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      border: 0;
+      display: block;
+    }
+
     /* 이미지 클릭 확대 라이트박스 */
     .image-lightbox-overlay {
       display: none;
@@ -1300,15 +1320,6 @@
     }
     .thread-children-wrap > .thread-item {
       position: relative;
-    }
-    .thread-children-wrap > .thread-item::before {
-      content: "";
-      position: absolute;
-      left: -14px;
-      top: 14px;
-      width: 10px;
-      height: 1.5px;
-      background: #d4e0fa;
     }
     .thread-reply-box {
       margin-top: 8px;
@@ -3490,6 +3501,7 @@ const PLUS_PLAYLIST_PATH = "playlist/plus_tracks.json";
           commentLabelBox.style.display = 'flex';
           marked.setOptions({ breaks: true, headerIds: false, mangle: false });
           commentBody.innerHTML = marked.parse(textOnlyBody);
+          appendInlineYouTubeEmbeds(commentBody, textOnlyBody);
 
           if (dashEditBtn && inlineEditBox) {
             dashEditBtn.onclick = (ev) => {
@@ -4471,6 +4483,7 @@ const PLUS_PLAYLIST_PATH = "playlist/plus_tracks.json";
 
             if (textWithoutImgs) {
               bodyEl.innerHTML = marked.parse(textWithoutImgs);
+              appendInlineYouTubeEmbeds(bodyEl, textWithoutImgs);
             }
 
             if (imgUrls.length >= 2) {
@@ -6042,6 +6055,42 @@ const plusAudioInput = document.getElementById('plusTrackAudioInput');
       e.stopPropagation();
       openImageLightbox(srcUrl, targetImg.alt || '확대 이미지');
     });
+
+function extractAllYouTubeIdsFromText(rawText) {
+      if (!rawText) return [];
+      const found = [];
+      const seen = new Set();
+      const urlRegex = /(?:https?:\/\/)?(?:www\.|m\.|music\.)?(?:youtube\.com\/(?:watch\?[^\s<>"')]*|embed\/[^\s<>"')]*|shorts\/[^\s<>"')]*)|youtu\.be\/[^\s<>"')]*)/gi;
+      const matches = rawText.match(urlRegex) || [];
+      matches.forEach((u) => {
+        const cleanU = u.replace(/[.,!?)\]]+$/, '');
+        const vid = extractYouTubeId(cleanU);
+        if (vid && !seen.has(vid)) {
+          seen.add(vid);
+          found.push(vid);
+        }
+      });
+      return found;
+    }
+
+    function appendInlineYouTubeEmbeds(containerEl, sourceText) {
+      if (!containerEl || !sourceText) return;
+      const videoIds = extractAllYouTubeIdsFromText(sourceText);
+      if (videoIds.length === 0) return;
+      videoIds.forEach((vid) => {
+        if (containerEl.querySelector(`iframe[data-yt-embed="${vid}"]`)) return;
+        const wrap = document.createElement('div');
+        wrap.className = 'inline-yt-embed-wrap';
+        const iframe = document.createElement('iframe');
+        iframe.dataset.ytEmbed = vid;
+        iframe.src = `https://www.youtube-nocookie.com/embed/${vid}?playsinline=1&rel=0`;
+        iframe.title = 'YouTube video player';
+        iframe.allow = 'accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share';
+        iframe.allowFullscreen = true;
+        wrap.appendChild(iframe);
+        containerEl.appendChild(wrap);
+      });
+    }
 
     initRichToolbars();
     fetchPosts();
